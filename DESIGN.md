@@ -1,10 +1,9 @@
-# DESIGN.md — Trang quản trị kho tri thức
+# DESIGN.md — Portal (công cụ người dùng + quản trị)
 
-- **Sản phẩm:** trang quản trị kho tri thức RAG (nạp, theo dõi xử lý, quyền xem, hiệu lực văn bản).
-- **Kiến trúc:** Next.js riêng ở `kb-admin/`, độc lập với LibreChat nhưng viết để gộp được: mô-đun giao diện `src/features/kb/` không biết Next, vỏ Next nằm ở `src/host/` (xem `kb-admin/src/features/kb/MERGE.md`).
-- **Người dùng:** người quản lý tài liệu từng phòng ban và admin, làm trên máy tính.
-- **Việc chính:** nạp và gắn đúng thông tin; phát hiện tài liệu lỗi, bị cách ly; sửa quyền, thay bản mới.
+- **Sản phẩm:** portal nội bộ gom công cụ cho nhân viên (tra cứu quy chế, văn bản, nghỉ phép, danh bạ, OCR) và trang quản trị cho admin (kho tri thức, tài khoản, nhật ký, chi phí). Chat nằm ở LibreChat (ADR-004).
+- **Kiến trúc:** Next.js ở `portal/`, phát triển tiếp từ `kb-admin`. Khung ở `src/shell/` (một file `nav.ts` điều khiển menu, quyền xem, lối tắt trang chủ); mỗi mô-đun trong `src/features/<ten>/` không import `next/*`. Chi tiết: `docs/07-khung-giao-dien-portal.md`.
+- **Người dùng:** nhân viên (công cụ) và admin (quản trị), làm trên máy tính, có xem được trên điện thoại.
 - **Bộ mặt:** Clean (P13): sidebar trắng, nội dung trên nền xám, flat, font Inter.
-- **Màu nhấn:** Chàm `#4f46e5`, khai ở `kb-admin/src/features/kb/tokens.css` (`--kb-primary`). Sắc: Neutral. Không có dark mode riêng (khi gộp, ăn theo LibreChat).
-- **Token:** mọi màu trong mô-đun là `kb-*`, không dùng tên chung như `surface`, `muted`.
-- **Màn đã dựng:** Danh sách tài liệu (tab trạng thái, tìm, chọn nhiều, gỡ hàng loạt); panel Nạp tài liệu; panel Chi tiết (Thông tin / Các đoạn / Lịch sử, kiểm tra quyền đọc, cách ly, gỡ).
+- **Màu nhấn:** Chàm `#4f46e5`. Mọi màu là token `p-*` (`bg-p-surface`, `text-p-muted`...), khai ở `portal/src/styles/tokens.css`, ánh xạ sang Tailwind ở `theme.css`. Không dùng màu cứng. Chưa có dark mode.
+- **Trạng thái mọi trang phải có:** đang tải (skeleton), rỗng, lỗi + thử lại, 401, 403 (nêu lý do), đã ghi nhật ký.
+- **Màn đã dựng:** khung (sidebar theo vai trò, drawer điện thoại, menu người dùng), trang chủ, `/403`, trang "Đang phát triển"; `/admin/kb` (danh sách, nạp tài liệu, chi tiết).

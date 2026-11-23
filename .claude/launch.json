@@ -25,11 +25,11 @@
       "port": 4173
     },
     {
-      "name": "kb-admin",
+      "name": "portal",
       "runtimeExecutable": "npm",
       "runtimeArgs": [
         "--prefix",
-        "kb-admin",
+        "portal",
         "run",
         "dev"
       ],

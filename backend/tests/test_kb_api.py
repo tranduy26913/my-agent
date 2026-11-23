@@ -25,7 +25,7 @@ from app.main import create_app
 from app.models import AuditLog, Document
 from tests.kb_testkit import _kb_db, add_doc, add_employee, add_user  # noqa: F401  (_kb_db = fixture kb_db)
 
-# Đúng các khoá của interface KbDocument trong kb-admin/src/features/kb/types.ts (trừ statusNote, optional).
+# Đúng các khoá của interface KbDocument trong portal/src/features/kb/types.ts (trừ statusNote, optional).
 KB_DOCUMENT_KEYS = {
     "docId", "soHieu", "title", "docType", "fileKind", "department", "visibility", "allowedDepartments",
     "allowedRoles", "classified", "effectiveFrom", "effectiveTo", "supersedes", "supersededBy", "version",

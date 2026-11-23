@@ -1,6 +1,6 @@
 # Kế hoạch làm API `/api/kb` (backend cho trang Kho tri thức)
 
-- Giao diện đã có: `kb-admin/src/features/kb/`. Hợp đồng endpoint nằm ở đầu `api/http.ts`, kiểu dữ liệu ở `types.ts`.
+- Giao diện đã có: `portal/src/features/kb/`. Hợp đồng endpoint nằm ở đầu `api/http.ts`, kiểu dữ liệu ở `types.ts`.
 - Quyết định liên quan: ADR-001 (phân quyền tài liệu), ADR-004 (portal, BFF, ngoại lệ cho admin xem tài liệu Mật), ADR-005 (khung FastAPI dùng chung).
 - Kế hoạch này **không phụ thuộc** Zitadel. Làm trước bằng JWT cũ; xác thực chỉ đổi ở `app/api/deps.py` (docs/06, giai đoạn 4).
 
@@ -87,8 +87,8 @@ tests/test_kb_api.py, tests/test_kb_service.py
 - Không import thẳng từ `app.security`.
 
 **Bước 6: Kiểm thủ công với giao diện.**
-- Đặt `NEXT_PUBLIC_KB_API_URL=http://localhost:8000/api/kb` cho kb-admin, rồi thử đủ 7 thao tác.
-- Lưu ý: giai đoạn này kb-admin vẫn gọi thẳng FastAPI. Muốn tránh CORS thì thêm tạm `rewrites` trong `next.config.ts`, **không** bật CORS ở backend. Sau này BFF sẽ thay `rewrites`.
+- Đặt `NEXT_PUBLIC_KB_API_URL=http://localhost:8000/api/kb` cho portal, rồi thử đủ 7 thao tác.
+- Lưu ý: giai đoạn này portal vẫn gọi thẳng FastAPI. Muốn tránh CORS thì thêm tạm `rewrites` trong `next.config.ts`, **không** bật CORS ở backend. Sau này BFF sẽ thay `rewrites`.
 
 ## Ngoại lệ: admin xem tài liệu Mật (ADR-004 mục 4)
 

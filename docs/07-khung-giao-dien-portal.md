@@ -8,17 +8,17 @@ Bộ mặt giữ nguyên theo `DESIGN.md`: phong cách Clean (P13), sidebar tr�
 
 | Đường dẫn | Ai thấy | Nội dung | Backend | Trạng thái |
 |---|---|---|---|---|
-| `/` | mọi người | Trang chủ: lời chào, lối tắt tới công cụ, nút "Hỏi Trợ lý" | `GET /api/me` | Chưa làm |
+| `/` | mọi người | Trang chủ: lời chào, lối tắt tới công cụ, nút "Hỏi Trợ lý" | `GET /api/me` | **Đã làm** (dùng `getMe()` giả) |
 | `/tools/tra-cuu` | mọi người | Ô hỏi đáp về quy chế, câu trả lời có trích dẫn, chọn ngày hiệu lực | `POST /api/kb/ask` (cùng service với `ask_knowledge`) | Chưa làm |
 | `/tools/van-ban` | mọi người | Duyệt các văn bản **mình được xem**, có lọc theo loại/phòng/hiệu lực | `GET /api/kb/library` (đã lọc qua `acl_sql`) | Chưa làm |
 | `/tools/nghi-phep` | mọi người; quản lý có thêm tab "Nhóm của tôi" | Số ngày phép còn lại, đơn nghỉ; quản lý xem đơn của cấp dưới | `/api/hr/*` (ADR-003) | Chưa làm, chờ hr service |
 | `/tools/danh-ba` | mọi người | Tìm đồng nghiệp; số điện thoại hiện theo `can_view_phone` | `/api/hr/directory` | Chưa làm |
 | `/tools/ocr` | mọi người (hoặc theo vai trò, xem mục 6) | Tải ảnh/PDF lên, nhận lại văn bản | **Session OCR quyết định** | Chừa chỗ |
-| `/admin/kb` | `admin` | Kho tri thức: mô-đun `features/kb` đã có | `/api/kb/*` | **Đã có giao diện**, chưa có API |
+| `/admin/kb` | `admin` | Kho tri thức: mô-đun `features/kb` đã có | `/api/kb/*` | **Đã làm**; backend `/api/kb` có sẵn, nối qua BFF (cần `API_DEV_TOKEN` để dùng dữ liệu thật) |
 | `/admin/users` | `admin` | Tài khoản: tạo, khoá/mở, đặt lại mật khẩu; liên kết với `employees` | `/api/admin/users` → Zitadel User Service (API v2) | Chưa làm |
 | `/admin/audit` | `admin` | Nhật ký: lọc theo người, sự kiện, thời gian; làm nổi `kb_view_classified` và `tool_denied` | `GET /api/admin/audit` | Chưa làm |
 | `/admin/usage` | `admin` | Chi phí và lượt gọi theo người, theo model, theo tháng | `GET /api/admin/usage` (`usage_logs`) | Chưa làm |
-| `/403`, `/not-found` | | Trang báo lỗi, nói rõ lý do và cách xử lý | | Chưa làm |
+| `/403`, `/not-found` | | Trang báo lỗi, nói rõ lý do và cách xử lý | | **Đã làm** |
 
 Nên làm theo thứ tự: khung + `/` → `/admin/kb` (gắn API thật) → `/admin/users` → `/tools/tra-cuu` → các trang còn lại.
 
@@ -119,7 +119,9 @@ Phần OCR đang được làm ở một session khác, nên tài liệu này **
 - **Chỉ đổi tên khi session OCR không còn sửa gì trong `kb-admin/`.** Nếu không, hai bên sẽ sửa cùng một file ở hai đường dẫn khác nhau.
 - `MERGE.md` ghi chú là đã bỏ, theo ADR-004.
 
-## 8. Bước dựng khung đầu tiên (khi bắt đầu viết code)
+## 8. Bước dựng khung đầu tiên — **đã xong (2026-11-23)**
+
+Ghi chú khi làm: không đổi tên thẳng được `kb-admin` vì một tiến trình giữ handle thư mục `src`; đã sao chép sang `portal/` rồi xoá bản cũ (nội dung trước đó đã nằm trong git). Token đổi `kb-*` → `p-*`, CSS chung chuyển sang `src/styles/`. BFF `/api/[...path]` thay cho `rewrites` tạm của docs/08.
 
 1. Đổi tên thư mục và đổi tiền tố token (mục 4 và 7).
 2. Viết `nav.ts`, `AppShell` dùng `nav.ts` (kèm drawer cho điện thoại), và `UserMenu`.

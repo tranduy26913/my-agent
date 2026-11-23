@@ -66,7 +66,7 @@ class Settings(BaseSettings):
     kb_dir: str = "../data/knowledge"
     # /api/kb: bản gốc tài liệu upload (<sha256>.<đuôi>), cần cho reindex. Tương đối theo thư mục chạy.
     upload_dir: str = "../data/uploads"
-    max_upload_mb: float = 25.0  # khớp MAX_FILE_BYTES của kb-admin (files.ts)
+    max_upload_mb: float = 25.0  # khớp MAX_FILE_BYTES của portal (files.ts)
     rag_candidates: int = 30  # số ứng viên mỗi nhánh (vector, keyword) trước khi gộp RRF
     rag_top_k: int = 8  # số chunk đưa vào context
     rag_llm_model: str = "claude-sonnet-5-5"  # model sinh câu trả lời RAG (cân bằng chất lượng/chi phí)

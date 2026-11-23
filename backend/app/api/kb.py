@@ -1,6 +1,6 @@
-"""Router /api/kb (kho tri thức): schema JSON cho trang kb-admin và hàm chuyển ORM -> schema.
+"""Router /api/kb (kho tri thức): schema JSON cho trang portal và hàm chuyển ORM -> schema.
 
-Hợp đồng: kb-admin/src/features/kb/types.ts + api/http.ts. JSON dùng camelCase, Python dùng snake_case.
+Hợp đồng: portal/src/features/kb/types.ts + api/http.ts. JSON dùng camelCase, Python dùng snake_case.
 Kế hoạch: docs/08-ke-hoach-api-kb.md. File này chỉ nhận request, kiểm quyền, gọi app.rag.kb_service
 (theo khuôn app/api/ocr.py); nghiệp vụ không nằm ở đây.
 """
