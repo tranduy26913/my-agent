@@ -15,11 +15,11 @@ from sqlalchemy import select
 from app.api.deps import UserInfo, get_current_user, get_db
 from app.config import settings
 from app.main import create_app
-from app.models import AuditLog, Document
+from app.models import Document
 from app.rag import kb_service
 from app.rag.embeddings import get_embedder
 from app.rag.kb_service import KbError, check_file, derive_doc_id
-from tests.kb_testkit import _kb_db, add_doc, add_user  # noqa: F401  (_kb_db = fixture kb_db)
+from tests.kb_testkit import _kb_db, add_doc, add_user, audit_since_start  # noqa: F401  (_kb_db = fixture kb_db)
 
 URL = "/api/kb/documents"
 MD = "text/markdown"
@@ -92,7 +92,7 @@ def saved_files(folder):
 
 
 def audit(db, event="kb_upload"):
-    return db.execute(select(AuditLog).where(AuditLog.event == event)).scalars().all()
+    return audit_since_start(db, event)
 
 
 # ---------------------------------------------------------------- check_file / derive_doc_id (thuần)

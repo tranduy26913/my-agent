@@ -5,16 +5,21 @@ import { isBusy, useDocument, useKbMutations } from "../hooks";
 import { fmtDate, fmtDateTime } from "../format";
 import { VISIBILITY_META, docTypeLabel } from "../labels";
 import type { AccessCheck, KbDocumentDetail } from "../types";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { Drawer } from "./Drawer";
-import { ErrorBanner, StatusBadge, btn, inputCls } from "./ui";
+import { ErrorBanner, StatusBadge } from "./ui";
 
 type Tab = "info" | "chunks" | "history";
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
     <>
-      <dt className="text-p-muted">{label}</dt>
+      <dt className="text-muted-foreground">{label}</dt>
       <dd className="min-w-0 break-words max-sm:mb-2">{children}</dd>
     </>
   );
@@ -42,22 +47,22 @@ function AccessChecker({ docId }: { docId: string }) {
   }
 
   return (
-    <div className="mt-6 rounded-xl bg-p-bg p-4">
+    <div className="mt-6 rounded-xl bg-background p-4">
       <p className="text-sm font-medium">Kiểm tra quyền đọc</p>
-      <p className="mt-1 text-sm text-p-muted">Nhập email để xem người đó có đọc được văn bản này không, theo đúng luật lọc của trợ lý</p>
+      <p className="mt-1 text-sm text-muted-foreground">Nhập email để xem người đó có đọc được văn bản này không, theo đúng luật lọc của trợ lý</p>
       <form onSubmit={(e) => { e.preventDefault(); void run(); }} className="mt-3 flex gap-2">
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ten@saoviet.vn" aria-label="Email nhân viên" className={`${inputCls} min-w-0 flex-1`} />
-        <button type="submit" disabled={busy || !email.trim()} className={`${btn.base} ${btn.outline} h-10 shrink-0 px-3`}>Kiểm tra</button>
+        <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ten@saoviet.vn" aria-label="Email nhân viên" className="h-10 min-w-0 flex-1 bg-card" />
+        <Button type="submit" variant="outline" size="lg" disabled={busy || !email.trim()} className="h-10 shrink-0 px-3">Kiểm tra</Button>
       </form>
       {result ? (
-        <div className={`mt-3 flex gap-2 rounded-lg p-3 text-sm ${result.allowed ? "bg-p-ok-bg text-p-ok" : "bg-p-err-bg text-p-err"}`}>
+        <div className={`mt-3 flex gap-2 rounded-lg p-3 text-sm ${result.allowed ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
           {result.allowed ? <ShieldCheck className="mt-0.5 size-4 shrink-0" /> : <ShieldX className="mt-0.5 size-4 shrink-0" />}
           <p>
             <span className="font-medium">{result.person ? `${result.person}: ` : ""}{result.allowed ? "Đọc được" : "Không đọc được"}.</span> {result.reason}
           </p>
         </div>
       ) : null}
-      {error ? <p className="mt-3 text-sm text-p-err">{error}</p> : null}
+      {error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}
     </div>
   );
 }
@@ -70,9 +75,9 @@ function InfoTab({ d }: { d: KbDocumentDetail }) {
         <Row label="Loại">{docTypeLabel(d.docType)}</Row>
         <Row label="Phòng sở hữu">{d.department}</Row>
         <Row label="Phạm vi xem">
-          <span className="inline-flex items-center gap-1.5"><vis.Icon className="size-4 text-p-muted" />{vis.label}{d.classified ? <span className="rounded-md bg-p-neutral-bg px-1.5 py-0.5 text-xs font-medium text-p-neutral">Mật</span> : null}</span>
+          <span className="inline-flex items-center gap-1.5"><vis.Icon className="size-4 text-muted-foreground" />{vis.label}{d.classified ? <Badge variant="secondary" className="rounded-md bg-muted text-muted-foreground">Mật</Badge> : null}</span>
           {d.allowedDepartments.length || d.allowedRoles.length ? (
-            <span className="mt-1 block text-p-muted">
+            <span className="mt-1 block text-muted-foreground">
               {d.allowedDepartments.length ? `Phòng: ${d.allowedDepartments.join(", ")}` : null}
               {d.allowedDepartments.length && d.allowedRoles.length ? " · " : null}
               {d.allowedRoles.length ? `Vai trò: ${d.allowedRoles.join(", ")}` : null}
@@ -85,7 +90,7 @@ function InfoTab({ d }: { d: KbDocumentDetail }) {
         {d.supersedes ? <Row label="Thay thế"><span className="font-medium">{d.supersedes}</span></Row> : null}
         {d.supersededBy ? <Row label="Bị thay bởi"><span className="font-medium">{d.supersededBy}</span></Row> : null}
         <Row label="Phiên bản">{d.version ?? "—"}</Row>
-        <Row label="Nguồn"><span className="break-all text-p-muted">{d.source}</span></Row>
+        <Row label="Nguồn"><span className="break-all text-muted-foreground">{d.source}</span></Row>
         <Row label="Nạp lúc">{fmtDateTime(d.createdAt)}{d.uploadedBy ? ` · ${d.uploadedBy}` : ""}</Row>
       </dl>
       <AccessChecker docId={d.docId} />
@@ -95,24 +100,24 @@ function InfoTab({ d }: { d: KbDocumentDetail }) {
 
 function ChunksTab({ d }: { d: KbDocumentDetail }) {
   if (d.chunks.length === 0) {
-    return <p className="px-6 py-10 text-center text-sm text-p-muted">{d.status === "processing" ? "Đang xử lý, chưa có đoạn nào" : "Chưa có đoạn nào được index"}</p>;
+    return <p className="px-6 py-10 text-center text-sm text-muted-foreground">{d.status === "processing" ? "Đang xử lý, chưa có đoạn nào" : "Chưa có đoạn nào được index"}</p>;
   }
   return (
     <div className="px-6 py-5">
-      {d.accessLogged ? <p className="mb-3 rounded-lg bg-p-neutral-bg px-3 py-2 text-sm text-p-neutral">Văn bản Mật: lượt xem này đã được ghi nhật ký.</p> : null}
-      <ol className="divide-y divide-p-line">
+      {d.accessLogged ? <p className="mb-3 rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">Văn bản Mật: lượt xem này đã được ghi nhật ký.</p> : null}
+      <ol className="divide-y divide-border">
         {d.chunks.map((c) => (
           <li key={c.ordinal} className="py-3 first:pt-0">
-            <div className="flex items-baseline gap-3 text-xs text-p-muted">
+            <div className="flex items-baseline gap-3 text-xs text-muted-foreground">
               <span className="tabular-nums">#{c.ordinal}</span>
-              <span className="truncate font-medium text-p-fg">{c.section || "Không có mục"}</span>
+              <span className="truncate font-medium text-foreground">{c.section || "Không có mục"}</span>
               {c.page ? <span className="ml-auto shrink-0 tabular-nums">tr. {c.page}</span> : null}
             </div>
-            <p className="mt-1 line-clamp-3 text-sm text-p-fg/80">{c.content}</p>
+            <p className="mt-1 line-clamp-3 text-sm text-foreground/80">{c.content}</p>
           </li>
         ))}
       </ol>
-      {d.chunkCount > d.chunks.length ? <p className="mt-2 text-sm text-p-muted">Còn {d.chunkCount - d.chunks.length} đoạn</p> : null}
+      {d.chunkCount > d.chunks.length ? <p className="mt-2 text-sm text-muted-foreground">Còn {d.chunkCount - d.chunks.length} đoạn</p> : null}
     </div>
   );
 }
@@ -123,7 +128,7 @@ function HistoryTab({ d }: { d: KbDocumentDetail }) {
       {d.history.map((h, i) => (
         <li key={i}>
           <p>{h.text}</p>
-          <p className="text-xs text-p-muted">{fmtDateTime(h.at)} · {h.by}</p>
+          <p className="text-xs text-muted-foreground">{fmtDateTime(h.at)} · {h.by}</p>
         </li>
       ))}
     </ol>
@@ -173,10 +178,10 @@ export function DetailPanel({ open, docId, onClose }: Props) {
         footer={
           data ? (
             <>
-              <button type="button" disabled={isBusy(quarantine)} onClick={() => quarantine.mutate({ docId: data.docId, on: !quarantined })} className={`${btn.base} ${quarantined ? btn.secondary : btn.danger} min-h-10`}>
+              <Button type="button" size="lg" variant={quarantined ? "secondary" : "destructive"} disabled={isBusy(quarantine)} onClick={() => quarantine.mutate({ docId: data.docId, on: !quarantined })} className="min-h-10 px-4">
                 {quarantined ? "Bỏ cách ly" : "Cách ly"}
-              </button>
-              <button type="button" onClick={() => setConfirmDelete(true)} className={`${btn.base} ${btn.danger} min-h-10`}>Gỡ khỏi kho</button>
+              </Button>
+              <Button type="button" size="lg" variant="destructive" onClick={() => setConfirmDelete(true)} className="min-h-10 px-4">Gỡ khỏi kho</Button>
             </>
           ) : undefined
         }
@@ -185,41 +190,34 @@ export function DetailPanel({ open, docId, onClose }: Props) {
           {error ? (
             <div className="px-6 py-4"><ErrorBanner message={error instanceof Error ? error.message : "Không tải được tài liệu"} onRetry={() => void refetch()} /></div>
           ) : null}
-          {isLoading ? <div className="mx-6 mt-4 h-24 animate-pulse rounded-xl bg-p-fg/5 motion-reduce:animate-none" /> : null}
+          {isLoading ? <Skeleton className="mx-6 mt-4 h-24 rounded-xl" /> : null}
           {data ? (
             <>
               <div className="px-6">
-                {data.statusNote ? <p className="mb-3 text-sm text-p-muted">{data.statusNote}</p> : null}
+                {data.statusNote ? <p className="mb-3 text-sm text-muted-foreground">{data.statusNote}</p> : null}
                 {quarantine.error || reindex.error || remove.error ? (
                   <div className="mb-3"><ErrorBanner message={((quarantine.error ?? reindex.error ?? remove.error) as Error).message || "Thao tác không thành công"} /></div>
                 ) : null}
                 <div className="flex gap-2">
-                  <button type="button" disabled className={`${btn.base} ${btn.outline} h-9 rounded-lg px-3`} title="Chưa nối API"><Pencil className="size-4" />Sửa thông tin</button>
-                  <button type="button" disabled className={`${btn.base} ${btn.outline} h-9 rounded-lg px-3`} title="Chưa nối API"><FileUp className="size-4" />Thay bản mới</button>
-                  <button type="button" disabled={isBusy(reindex)} onClick={() => reindex.mutate([data.docId])} className={`${btn.base} ${btn.outline} h-9 rounded-lg px-3`}>Nạp lại</button>
+                  <Button type="button" variant="outline" size="lg" disabled title="Chưa nối API" className="px-3"><Pencil />Sửa thông tin</Button>
+                  <Button type="button" variant="outline" size="lg" disabled title="Chưa nối API" className="px-3"><FileUp />Thay bản mới</Button>
+                  <Button type="button" variant="outline" size="lg" disabled={isBusy(reindex)} onClick={() => reindex.mutate([data.docId])} className="px-3">Nạp lại</Button>
                 </div>
               </div>
 
-              <div className="sticky top-0 z-10 mt-5 bg-p-surface px-6">
-                <div role="tablist" className="flex gap-2 shadow-[inset_0_-1px_0_color-mix(in_srgb,var(--p-fg)_10%,transparent)]">
-                  {tabs.map((t) => {
-                    const on = activeTab === t.id;
-                    return (
-                      <button
-                        key={t.id}
-                        role="tab"
-                        aria-selected={on}
-                        onClick={() => setTab({ docId: shownId, value: t.id })}
-                        className={`relative box-content h-10 cursor-pointer px-2 pb-px text-sm font-medium outline-hidden after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full ${
-                          on ? "text-p-fg after:bg-p-fg" : "text-p-fg/70 after:bg-transparent hover:text-p-fg"
-                        }`}
-                      >
-                        {t.label}{t.count !== undefined ? <span className="ml-1 tabular-nums text-p-muted">{t.count}</span> : null}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+              <Tabs
+                value={activeTab}
+                onValueChange={(v) => setTab({ docId: shownId, value: v as Tab })}
+                className="sticky top-0 z-10 mt-5 gap-0 border-b bg-card px-6"
+              >
+                <TabsList variant="line" className="h-10 gap-2 p-0">
+                  {tabs.map((t) => (
+                    <TabsTrigger key={t.id} value={t.id} className="flex-none px-2">
+                      {t.label}{t.count !== undefined ? <span className="ml-1 tabular-nums text-muted-foreground">{t.count}</span> : null}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
 
               {activeTab === "info" ? <InfoTab d={data} /> : null}
               {activeTab === "chunks" ? <ChunksTab d={data} /> : null}
@@ -237,7 +235,7 @@ export function DetailPanel({ open, docId, onClose }: Props) {
           onCancel={() => setConfirmDelete(false)}
           onConfirm={() => remove.mutate([data.docId], { onSuccess: () => { setConfirmDelete(false); onClose(); } })}
         >
-          <span className="font-medium text-p-fg">{data.title}</span> cùng {data.chunkCount} đoạn đã index sẽ bị xoá. Trợ lý không tra cứu được nữa và không khôi phục được.
+          <span className="font-medium text-foreground">{data.title}</span> cùng {data.chunkCount} đoạn đã index sẽ bị xoá. Trợ lý không tra cứu được nữa và không khôi phục được.
         </ConfirmDialog>
       ) : null}
     </>

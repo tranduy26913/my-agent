@@ -6,17 +6,16 @@ Bước 2: đọc danh sách, chi tiết (kèm ngoại lệ tài liệu Mật + 
 from datetime import date
 
 import pytest
-from sqlalchemy import select
 
 from app.models import AuditLog
 from app.rag.kb_service import DocNotFound, check_access, get_detail, get_row, history_text, list_documents
-from tests.kb_testkit import _kb_db, add_doc, add_employee, add_user  # noqa: F401  (_kb_db = fixture kb_db)
+from tests.kb_testkit import _kb_db, add_doc, add_employee, add_user, audit_since_start  # noqa: F401  (_kb_db = fixture kb_db)
 
 TODAY = date(2026, 11, 23)
 
 
 def audit_rows(db, event="kb_view_classified"):
-    return db.execute(select(AuditLog).where(AuditLog.event == event).order_by(AuditLog.id)).scalars().all()
+    return audit_since_start(db, event)
 
 
 # ---------------------------------------------------------------- history_text (thuần)

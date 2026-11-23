@@ -9,7 +9,7 @@ Bộ mặt giữ nguyên theo `DESIGN.md`: phong cách Clean (P13), sidebar tr�
 | Đường dẫn | Ai thấy | Nội dung | Backend | Trạng thái |
 |---|---|---|---|---|
 | `/` | mọi người | Trang chủ: lời chào, lối tắt tới công cụ, nút "Hỏi Trợ lý" | `GET /api/me` | **Đã làm** (dùng `getMe()` giả) |
-| `/tools/tra-cuu` | mọi người | Ô hỏi đáp về quy chế, câu trả lời có trích dẫn, chọn ngày hiệu lực | `POST /api/kb/ask` (cùng service với `ask_knowledge`) | Chưa làm |
+| `/tools/tra-cuu` | mọi người | Ô hỏi đáp về quy chế, câu trả lời có trích dẫn, chọn ngày hiệu lực | `POST /api/kb/ask` (cùng hàm `ask` với `ask_knowledge`) | **Đã làm** (mô-đun `features/lookup`, backend `app/api/ask.py`) |
 | `/tools/van-ban` | mọi người | Duyệt các văn bản **mình được xem**, có lọc theo loại/phòng/hiệu lực | `GET /api/kb/library` (đã lọc qua `acl_sql`) | Chưa làm |
 | `/tools/nghi-phep` | mọi người; quản lý có thêm tab "Nhóm của tôi" | Số ngày phép còn lại, đơn nghỉ; quản lý xem đơn của cấp dưới | `/api/hr/*` (ADR-003) | Chưa làm, chờ hr service |
 | `/tools/danh-ba` | mọi người | Tìm đồng nghiệp; số điện thoại hiện theo `can_view_phone` | `/api/hr/directory` | Chưa làm |
@@ -82,13 +82,11 @@ Hàng rào ESLint "mô-đun không import `next/*`" **nên giữ**. Lý do khôn
 
 **Gọi API:** mọi mô-đun gọi đường dẫn tương đối `/api/...` tới BFF của portal. Không còn `NEXT_PUBLIC_KB_API_URL` trỏ thẳng tới FastAPI. Trình duyệt không cầm token, nên `getHeaders` của `createHttpKbApi` không cần dùng nữa; chỉ cần `credentials: "same-origin"`.
 
-## 4. Token màu
+## 4. Thành phần và token màu — **đã chuyển sang shadcn/ui (2026-11-23)**
 
-Hiện mọi token đều có tiền tố `kb-*`. Khung và các mô-đun mới dùng chung một bộ, nên nên đổi tiền tố thành `--p-*` (portal). Có hai cách:
-- **Cách nhanh:** giữ `kb-*` cho tất cả, chấp nhận tên hơi lệch nghĩa.
-- **Cách sạch:** đổi tên một lần bằng tìm và thay trong `theme.css`/`tokens.css` và các class `*-kb-*`, rồi chạy `typecheck` và `lint`.
+Portal dùng shadcn/ui (base Radix, style nova): component nằm ở `src/components/ui/`, thêm bằng `npx shadcn@latest add <ten>`. Token màu theo quy ước của shadcn (`background`, `card`, `primary`, `muted-foreground`, `input`...), giá trị là bộ mặt Clean ở khối `:root` của `src/app/globals.css`; trạng thái ngoài bộ chuẩn là `success` và `warning`. Tiền tố `p-*` và thư mục `src/styles/` đã bỏ.
 
-Nên chọn cách sạch, và làm **trước** khi thêm mô-đun thứ hai.
+Hàng rào ESLint đổi theo: mô-đun trong `src/features/` vẫn không import `next/*`, và chỉ được import `@/components/ui/*` cùng `@/lib/utils` từ ngoài mô-đun.
 
 ## 5. Trạng thái mà trang nào cũng phải có
 

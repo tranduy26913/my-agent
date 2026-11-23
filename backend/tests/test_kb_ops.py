@@ -8,16 +8,16 @@ from sqlalchemy import func, select
 
 from app.api.deps import UserInfo, get_current_user, get_db
 from app.main import create_app
-from app.models import AuditLog, Chunk, Document
+from app.models import Chunk, Document
 from app.rag import kb_service
-from tests.kb_testkit import _kb_db, _kb_env, add_doc  # noqa: F401  (_kb_db, _kb_env = fixture)
+from tests.kb_testkit import _kb_db, _kb_env, add_doc, audit_since_start  # noqa: F401  (_kb_db, _kb_env = fixture)
 from tests.test_kb_upload import FRONTMATTER_MD, MD, META, PDF, PLAIN_MD, make_pdf, post, saved_files
 
 URL = "/api/kb/documents"
 
 
 def audit(db, event):
-    return db.execute(select(AuditLog).where(AuditLog.event == event).order_by(AuditLog.id)).scalars().all()
+    return audit_since_start(db, event)
 
 
 def doc_of(db, doc_id):

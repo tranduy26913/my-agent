@@ -115,13 +115,18 @@ def test_403_khong_lo_chi_tiet_noi_bo(real_auth):
 HTTP_METHODS = {"get", "post", "put", "patch", "delete"}
 
 
+# Route dưới /api/kb dành cho MỌI nhân viên (xác thực bằng X-Portal-Token, kiểm ở test_kb_ask.py).
+# Danh sách miễn phải tường minh: route mới ở /api/kb mà không có tên ở đây vẫn bị bắt buộc có cổng admin.
+NOT_ADMIN_ROUTES = {("POST", "/api/kb/ask")}
+
+
 def kb_operations(app) -> list[tuple[str, str]]:
-    """Mọi (method, path) dưới /api/kb, lấy từ OpenAPI nên tự gồm cả route thêm sau này."""
+    """Mọi (method, path) dưới /api/kb phải có cổng admin, lấy từ OpenAPI nên tự gồm cả route thêm sau này."""
     paths = app.openapi()["paths"]
     return [
         (m.upper(), p)
         for p, ops in paths.items() if p.startswith("/api/kb")
-        for m in ops if m in HTTP_METHODS
+        for m in ops if m in HTTP_METHODS and (m.upper(), p) not in NOT_ADMIN_ROUTES
     ]
 
 

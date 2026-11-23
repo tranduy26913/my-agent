@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Providers } from "@/host/providers";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
+// Inter có subset tiếng Việt; Geist (mặc định của shadcn) thì không, dấu sẽ rơi về font hệ thống.
 const inter = Inter({ subsets: ["latin", "vietnamese"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
@@ -14,7 +16,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="vi" className={inter.variable}>
       <body className="font-sans">
-        <Providers>{children}</Providers>
+        <Providers>
+          <TooltipProvider>{children}</TooltipProvider>
+        </Providers>
       </body>
     </html>
   );

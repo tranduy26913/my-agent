@@ -76,6 +76,9 @@ class Settings(BaseSettings):
     # Bí mật dùng chung giữa LibreChat và knowledge-mcp. Header X-User-Email chỉ được tin
     # khi request mang đúng token này (chứng minh request đến từ LibreChat, không phải ai đó tự gọi).
     kb_mcp_token: str = ""
+    # TẠM (đến khi có Zitadel, docs/06 giai đoạn 4): bí mật dùng chung giữa BFF của portal và FastAPI.
+    # /api/kb/ask chỉ tin header X-User-Email khi request mang đúng token này. Khác hẳn kb_mcp_token.
+    portal_bff_token: str = ""
 
     # --- Agent ---
     agent_max_steps: int = 8

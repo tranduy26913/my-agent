@@ -1,20 +1,32 @@
 import type { NextRequest } from "next/server";
-import { getBackendToken } from "@/lib/backend-token.server";
+import { getAskerHeaders, getBackendToken } from "@/lib/backend-token.server";
 import { ROLE_ADMIN, hasAnyRole } from "@/lib/me";
 import { getMe } from "@/lib/me.server";
 
 /**
- * BFF (ADR-004): trình duyệt gọi `/api/...` cùng origin, file này gắn Bearer rồi chuyển tiếp tới FastAPI.
+ * BFF (ADR-004): trình duyệt gọi `/api/...` cùng origin, file này gắn danh tính rồi chuyển tiếp tới FastAPI.
  * Nhờ vậy backend không cần CORS và token không nằm trong trình duyệt.
  *
- * Chỉ chuyển tiếp những nhóm đường dẫn khai ở ROUTES, mỗi nhóm kèm vai trò tối thiểu. Đây là lớp chặn sớm;
- * FastAPI vẫn tự kiểm quyền, không dựa vào lớp này.
+ * Chỉ chuyển tiếp những đường dẫn khai ở ROUTES. Mỗi dòng nói rõ ai được gọi và xưng danh kiểu nào. Dòng đứng
+ * trước thắng, nên mục cụ thể (kb/ask) phải đặt trước mục chung (kb). Đây là lớp chặn sớm; FastAPI vẫn tự kiểm
+ * quyền, không dựa vào lớp này.
  */
 const BACKEND_URL = (process.env.BACKEND_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
-const ROUTES: Record<string, { roles?: string[] }> = {
-  kb: { roles: [ROLE_ADMIN] },
-};
+interface Rule {
+  /** Đường dẫn sau /api/, khớp nguyên văn hoặc làm tiền tố. */
+  path: string;
+  /** Không khai = mọi người đã đăng nhập. */
+  roles?: string[];
+  /** Không khai = mọi method. */
+  methods?: string[];
+  auth: "bearer" | "asker";
+}
+
+const ROUTES: Rule[] = [
+  { path: "kb/ask", methods: ["POST"], auth: "asker" },
+  { path: "kb", roles: [ROLE_ADMIN], auth: "bearer" },
+];
 
 type Ctx = { params: Promise<{ path: string[] }> };
 
@@ -24,8 +36,10 @@ function problem(status: number, detail: string) {
 
 async function proxy(req: NextRequest, ctx: Ctx): Promise<Response> {
   const { path } = await ctx.params;
-  const rule = ROUTES[path[0]];
+  const joined = path.join("/");
+  const rule = ROUTES.find((r) => joined === r.path || joined.startsWith(`${r.path}/`));
   if (!rule) return problem(404, "Không có đường dẫn này");
+  if (rule.methods && !rule.methods.includes(req.method)) return problem(405, "Method không được hỗ trợ");
 
   const me = await getMe();
   if (!hasAnyRole(me, rule.roles)) return problem(403, "Cần vai trò admin");
@@ -36,8 +50,12 @@ async function proxy(req: NextRequest, ctx: Ctx): Promise<Response> {
   const headers = new Headers();
   const contentType = req.headers.get("content-type");
   if (contentType) headers.set("content-type", contentType);
-  const token = await getBackendToken();
-  if (token) headers.set("authorization", `Bearer ${token}`);
+  if (rule.auth === "bearer") {
+    const token = await getBackendToken();
+    if (token) headers.set("authorization", `Bearer ${token}`);
+  } else {
+    for (const [k, v] of Object.entries(getAskerHeaders(me))) headers.set(k, v);
+  }
 
   const hasBody = req.method !== "GET" && req.method !== "HEAD";
   let upstream: Response;

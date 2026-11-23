@@ -34,7 +34,7 @@ export interface NavItem {
 export const NAV: NavItem[] = [
   { href: "/", label: "Trang chủ", icon: House, group: "main", description: "Lối tắt tới các công cụ.", ready: true },
 
-  { href: "/tools/tra-cuu", label: "Tra cứu", icon: Search, group: "tools", description: "Hỏi đáp về quy chế, có trích dẫn nguồn.", ready: false },
+  { href: "/tools/tra-cuu", label: "Tra cứu", icon: Search, group: "tools", description: "Hỏi đáp về quy chế, có trích dẫn nguồn.", ready: true },
   { href: "/tools/van-ban", label: "Văn bản", icon: FileText, group: "tools", description: "Duyệt các văn bản bạn được xem.", ready: false },
   { href: "/tools/nghi-phep", label: "Nghỉ phép", icon: CalendarDays, group: "tools", description: "Số ngày phép còn lại và đơn nghỉ.", ready: false },
   { href: "/tools/danh-ba", label: "Danh bạ", icon: BookUser, group: "tools", description: "Tìm đồng nghiệp theo tên, phòng ban.", ready: false },
