@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docs Viewer</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" id="hljs-light">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" id="hljs-dark" disabled>
+<style>
+:root{
+  --bg:#ffffff; --panel:#f6f7f9; --text:#1f2328; --muted:#6a737d; --border:#e1e4e8;
+  --accent:#2563eb; --accent-bg:#e8f0fe; --code-bg:#f3f4f6; --quote:#d0d7de;
+}
+:root[data-theme="dark"]{
+  --bg:#0f1115; --panel:#161920; --text:#d8dce2; --muted:#8b93a1; --border:#262b34;
+  --accent:#6ea8fe; --accent-bg:#1c2a44; --code-bg:#1c2028; --quote:#3a414d;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:15px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);display:flex}
+
+/* sidebar */
+#sidebar{width:300px;min-width:200px;max-width:60vw;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh}
+#sb-head{padding:12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+#sb-title{display:flex;align-items:center;justify-content:space-between;font-weight:600}
+#sb-title small{color:var(--muted);font-weight:400}
+.row{display:flex;gap:6px}
+button{font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:6px;cursor:pointer}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{color:#fff;opacity:.9}
+#search{flex:1;font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:6px;min-width:0}
+#search:focus{outline:2px solid var(--accent-bg);border-color:var(--accent)}
+#tree{flex:1;overflow:auto;padding:8px 6px 24px;font-size:14px}
+.node{user-select:none}
+.item{display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item:hover{background:var(--border)}
+.item.active{background:var(--accent-bg);color:var(--accent);font-weight:600}
+.item .ic{width:16px;flex:none;text-align:center;font-size:12px;color:var(--muted)}
+.item .nm{overflow:hidden;text-overflow:ellipsis}
+.children{margin-left:12px;border-left:1px solid var(--border);padding-left:4px}
+.node.closed>.children{display:none}
+.node.closed>.item .ic::before{content:"▸"}
+.node:not(.closed)>.item .ic.dir::before{content:"▾"}
+.item .ic.file::before{content:"📄";font-size:12px}
+.hide{display:none!important}
+.empty{color:var(--muted);padding:12px;font-size:13px}
+
+/* resizer */
+#resizer{width:5px;cursor:col-resize;margin-left:-3px;z-index:5}
+#resizer:hover,#resizer.drag{background:var(--accent-bg)}
+
+/* main */
+#main{flex:1;display:flex;flex-direction:column;min-width:0;height:100vh}
+#topbar{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--border);font-size:13px;color:var(--muted)}
+#crumb{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#menu{display:none}
+#scroll{flex:1;overflow:auto;display:flex;justify-content:center;scroll-behavior:smooth}
+#content{flex:1;max-width:860px;padding:28px 36px 80px;min-width:0}
+#toc{width:220px;flex:none;position:sticky;top:0;align-self:flex-start;max-height:100vh;overflow:auto;padding:28px 12px;font-size:13px}
+#toc a{display:block;color:var(--muted);text-decoration:none;padding:2px 0 2px 8px;border-left:2px solid var(--border)}
+#toc a:hover{color:var(--accent)}
+#toc a.l3{padding-left:20px}
+#toc a.on{color:var(--accent);border-left-color:var(--accent)}
+#toc h4{margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+
+/* welcome */
+#welcome{margin:auto;text-align:center;max-width:460px;padding:40px;color:var(--muted)}
+#welcome h2{color:var(--text);margin:0 0 8px}
+
+/* markdown */
+.md h1,.md h2,.md h3,.md h4{line-height:1.3;margin:1.6em 0 .6em;scroll-margin-top:12px}
+.md h1{font-size:2em;padding-bottom:.3em;border-bottom:1px solid var(--border);margin-top:0}
+.md h2{font-size:1.5em;padding-bottom:.25em;border-bottom:1px solid var(--border)}
+.md h3{font-size:1.2em}
+.md a{color:var(--accent)}
+.md p,.md ul,.md ol,.md blockquote,.md pre,.md table{margin:0 0 1em}
+.md img{max-width:100%}
+.md code{background:var(--code-bg);padding:.15em .4em;border-radius:5px;font:.88em ui-monospace,SFMono-Regular,Consolas,monospace}
+.md pre{background:var(--code-bg);padding:14px 16px;border-radius:8px;overflow:auto}
+.md pre code{background:none;padding:0;font-size:13px}
+.md pre code.hljs{background:none;padding:0}
+.md blockquote{border-left:4px solid var(--quote);margin-left:0;padding:.1em 1em;color:var(--muted)}
+.md table{border-collapse:collapse;display:block;overflow:auto;max-width:100%}
+.md th,.md td{border:1px solid var(--border);padding:6px 12px}
+.md th{background:var(--panel)}
+.md tr:nth-child(even) td{background:color-mix(in srgb,var(--panel) 50%,transparent)}
+.md hr{border:0;border-top:1px solid var(--border);margin:2em 0}
+.md li{margin:.2em 0}
+.md input[type=checkbox]{margin-right:6px}
+.err{color:#d1242f}
+
+@media (max-width:1100px){#toc{display:none}}
+@media (max-width:760px){
+  #sidebar{position:fixed;z-index:20;left:0;top:0;transform:translateX(-100%);transition:transform .2s;width:84vw!important}
+  body.nav-open #sidebar{transform:none;box-shadow:0 0 40px #0006}
+  #menu{display:inline-block}
+  #resizer{display:none}
+  #content{padding:20px 18px 60px}
+}
+</style>
+</head>
+<body>
+
+<aside id="sidebar">
+  <div id="sb-head">
+    <div id="sb-title"><span>📚 <span id="root-name">Docs</span></span><small id="count"></small></div>
+    <div class="row">
+      <button id="btn-open" class="primary">Chọn thư mục</button>
+      <button id="btn-theme" title="Đổi giao diện sáng/tối">🌓</button>
+      <button id="btn-fold" title="Thu gọn / mở rộng tất cả">⇅</button>
+    </div>
+    <div class="row"><input id="search" type="search" placeholder="Lọc file…  ( / )"></div>
+  </div>
+  <div id="tree"><div class="empty">Chưa mở thư mục nào.</div></div>
+</aside>
+<div id="resizer"></div>
+
+<section id="main">
+  <div id="topbar">
+    <button id="menu">☰</button>
+    <span id="crumb"></span>
+    <span id="reopen"></span>
+  </div>
+  <div id="scroll">
+    <article id="content" class="md">
+      <div id="welcome">
+        <h2>Docs Viewer</h2>
+        <p>Bấm <b>Chọn thư mục</b> rồi chọn thư mục <code>docs</code>. Trình duyệt chỉ đọc file trên máy bạn, không upload đi đâu.</p>
+        <p style="font-size:13px">Dùng Chrome / Edge để nhớ thư mục cho lần sau (File System Access API).</p>
+      </div>
+    </article>
+    <nav id="toc" class="hide"><h4>Trên trang này</h4><div id="toc-list"></div></nav>
+  </div>
+</section>
+
+<input id="fallback" type="file" webkitdirectory multiple hidden>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const files = new Map();      // path -> {name, read():Promise<File>}
+let rootName = 'Docs', current = null, blobUrls = [];
+const IMG = /\.(png|jpe?g|gif|svg|webp|bmp)$/i;
+
+/* ---------- theme ---------- */
+function setTheme(t){
+  document.documentElement.dataset.theme = t;
+  $('#hljs-light').disabled = t === 'dark';
+  $('#hljs-dark').disabled = t !== 'dark';
+  try{localStorage.setItem('dv-theme',t)}catch{}
+}
+let saved=null; try{saved=localStorage.getItem('dv-theme')}catch{}
+setTheme(saved || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+$('#btn-theme').onclick = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+
+/* ---------- IndexedDB: nhớ thư mục ---------- */
+const idb = (mode, fn) => new Promise((res, rej) => {
+  const o = indexedDB.open('docs-viewer', 1);
+  o.onupgradeneeded = () => o.result.createObjectStore('kv');
+  o.onerror = () => rej(o.error);
+  o.onsuccess = () => {
+    const tx = o.result.transaction('kv', mode), r = fn(tx.objectStore('kv'));
+    tx.oncomplete = () => res(r.result); tx.onerror = () => rej(tx.error);
+  };
+});
+const saveHandle = h => idb('readwrite', s => s.put(h, 'dir')).catch(()=>{});
+const loadHandle = () => idb('readonly', s => s.get('dir')).catch(()=>null);
+
+/* ---------- mở thư mục ---------- */
+async function walk(dirHandle, prefix){
+  for await (const [name, h] of dirHandle.entries()){
+    if (name.startsWith('.') || name === 'node_modules') continue;
+    const p = prefix + name;
+    if (h.kind === 'directory') await walk(h, p + '/');
+    else if (/\.md$/i.test(name) || IMG.test(name)) files.set(p, {name, read: () => h.getFile()});
+  }
+}
+async function openHandle(h){
+  files.clear(); rootName = h.name;
+  await walk(h, '');
+  afterLoad();
+}
+async function pickDir(){
+  if (window.showDirectoryPicker){
+    try{
+      const h = await showDirectoryPicker({mode:'read'});
+      await saveHandle(h);
+      await openHandle(h);
+    }catch(e){ if (e.name !== 'AbortError') alert(e.message); }
+  } else $('#fallback').click();
+}
+$('#btn-open').onclick = pickDir;
+$('#fallback').onchange = e => {
+  files.clear();
+  const list = [...e.target.files];
+  if (!list.length) return;
+  rootName = list[0].webkitRelativePath.split('/')[0];
+  for (const f of list){
+    const p = f.webkitRelativePath.split('/').slice(1).join('/');
+    if (p.split('/').some(s => s.startsWith('.'))) continue;
+    if (/\.md$/i.test(p) || IMG.test(p)) files.set(p, {name: f.name, read: async () => f});
+  }
+  afterLoad();
+};
+
+/* ---------- cây thư mục ---------- */
+function buildTree(){
+  const root = {dirs:{}, files:[]};
+  for (const p of files.keys()){
+    if (!/\.md$/i.test(p)) continue;
+    const parts = p.split('/'); let n = root;
+    for (const d of parts.slice(0,-1)) n = n.dirs[d] ??= {dirs:{}, files:[]};
+    n.files.push({path:p, name:parts.at(-1)});
+  }
+  return root;
+}
+const collator = new Intl.Collator('vi', {numeric:true, sensitivity:'base'});
+function renderNode(n, parent, depth, openSet){
+  for (const d of Object.keys(n.dirs).sort(collator.compare)){
+    const el = document.createElement('div');
+    el.className = 'node' + (depth > 0 && !openSet ? ' closed' : '');
+    el.dataset.dir = '1';
+    el.innerHTML = `<div class="item"><span class="ic dir"></span><span class="nm"></span></div><div class="children"></div>`;
+    el.querySelector('.nm').textContent = d;
+    el.querySelector('.item').onclick = () => el.classList.toggle('closed');
+    renderNode(n.dirs[d], el.querySelector('.children'), depth + 1, openSet);
+    parent.append(el);
+  }
+  for (const f of n.files.sort((a,b) => collator.compare(a.name,b.name))){
+    const el = document.createElement('div');
+    el.className = 'node'; el.dataset.path = f.path;
+    el.innerHTML = `<div class="item"><span class="ic file"></span><span class="nm"></span></div>`;
+    el.querySelector('.nm').textContent = f.name.replace(/\.md$/i,'');
+    el.querySelector('.item').title = f.path;
+    el.querySelector('.item').onclick = () => { location.hash = encodeURIComponent(f.path); document.body.classList.remove('nav-open'); };
+    parent.append(el);
+  }
+}
+function afterLoad(){
+  $('#root-name').textContent = rootName;
+  const tree = $('#tree'); tree.innerHTML = '';
+  const mdCount = [...files.keys()].filter(p => /\.md$/i.test(p)).length;
+  $('#count').textContent = mdCount + ' file';
+  if (!mdCount){ tree.innerHTML = '<div class="empty">Không tìm thấy file .md nào.</div>'; return; }
+  renderNode(buildTree(), tree, 0, false);
+  $('#reopen').textContent = '';
+  const target = decodeURIComponent(location.hash.slice(1).split('#')[0] || '');
+  const first = files.has(target) ? target : ['README.md', ...[...files.keys()].filter(p=>/\.md$/i.test(p)).sort(collator.compare)].find(p => files.has(p));
+  show(first, false);
+}
+
+/* ---------- hiển thị file ---------- */
+function openParents(el){ for (let n = el.parentElement; n && n.id !== 'tree'; n = n.parentElement) if (n.classList.contains('node')) n.classList.remove('closed'); }
+function resolve(base, rel){
+  const out = base.split('/').slice(0,-1);
+  for (const s of rel.split('/')){ if (s === '..') out.pop(); else if (s && s !== '.') out.push(s); }
+  return out.join('/');
+}
+const slug = s => s.toLowerCase().trim().replace(/[^\p{L}\p{N}\s-]/gu,'').replace(/\s+/g,'-');
+
+async function show(path, scrollTop = true){
+  if (!path || !files.has(path)) return;
+  current = path;
+  document.querySelectorAll('.item.active').forEach(e => e.classList.remove('active'));
+  const node = [...document.querySelectorAll('#tree .node[data-path]')].find(n => n.dataset.path === path);
+  if (node){ node.querySelector('.item').classList.add('active'); openParents(node); node.scrollIntoView({block:'nearest'}); }
+  $('#crumb').textContent = rootName + ' / ' + path.replaceAll('/', ' / ');
+  document.title = path.split('/').pop() + ' · Docs Viewer';
+
+  const c = $('#content');
+  try{
+    const text = await (await files.get(path).read()).text();
+    const html = DOMPurify.sanitize(marked.parse(text, {gfm:true, breaks:false}));
+    c.innerHTML = html;
+  }catch(e){ c.innerHTML = '<p class="err">Không đọc được file: ' + e.message + '</p>'; return; }
+
+  blobUrls.forEach(URL.revokeObjectURL); blobUrls = [];
+  // heading ids + toc
+  const used = {}, heads = [...c.querySelectorAll('h1,h2,h3')];
+  heads.forEach(h => { let id = slug(h.textContent) || 'h', k = used[id] = (used[id]||0)+1; h.id = k>1 ? id+'-'+(k-1) : id; });
+  const toc = $('#toc-list'); toc.innerHTML = '';
+  heads.filter(h => h.tagName !== 'H1').forEach(h => {
+    const a = document.createElement('a'); a.textContent = h.textContent; a.href = '#'; a.dataset.id = h.id;
+    if (h.tagName === 'H3') a.className = 'l3';
+    a.onclick = e => { e.preventDefault(); h.scrollIntoView(); };
+    toc.append(a);
+  });
+  $('#toc').classList.toggle('hide', !toc.children.length);
+
+  // code highlight
+  c.querySelectorAll('pre code').forEach(b => { try{ hljs.highlightElement(b) }catch{} });
+  // links & images
+  c.querySelectorAll('a[href]').forEach(a => {
+    const href = a.getAttribute('href');
+    if (/^(https?:|mailto:)/i.test(href)){ a.target = '_blank'; a.rel = 'noopener'; return; }
+    if (href.startsWith('#')){
+      a.onclick = e => { e.preventDefault(); c.querySelector('[id="'+CSS.escape(decodeURIComponent(href.slice(1)))+'"]')?.scrollIntoView(); };
+      return;
+    }
+    const [rel, anchor] = decodeURIComponent(href).split('#');
+    const target = resolve(path, rel);
+    if (files.has(target) && /\.md$/i.test(target)){
+      a.onclick = e => { e.preventDefault(); location.hash = encodeURIComponent(target) + (anchor ? '#' + anchor : ''); };
+    }
+  });
+  c.querySelectorAll('img[src]').forEach(async img => {
+    const src = img.getAttribute('src');
+    if (/^(https?:|data:)/i.test(src)) return;
+    const t = resolve(path, decodeURIComponent(src));
+    if (files.has(t)){ const u = URL.createObjectURL(await files.get(t).read()); blobUrls.push(u); img.src = u; }
+  });
+  if (scrollTop) $('#scroll').scrollTo({top:0, behavior:'instant'});
+  const anchor = location.hash.split('#')[2];
+  if (anchor) c.querySelector('[id="'+CSS.escape(anchor)+'"]')?.scrollIntoView();
+}
+
+// scroll-spy cho TOC
+$('#scroll').addEventListener('scroll', () => {
+  const hs = [...document.querySelectorAll('#content h2, #content h3')]; let cur = null;
+  for (const h of hs){ if (h.getBoundingClientRect().top < 120) cur = h.id; else break; }
+  document.querySelectorAll('#toc-list a').forEach(a => a.classList.toggle('on', a.dataset.id === cur));
+}, {passive:true});
+
+window.addEventListener('hashchange', () => {
+  const p = decodeURIComponent(location.hash.slice(1).split('#')[0]);
+  if (p && p !== current) show(p);
+});
+
+/* ---------- lọc ---------- */
+$('#search').addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase();
+  const tree = $('#tree');
+  tree.querySelectorAll('.node').forEach(n => n.classList.remove('hide'));
+  if (!q) return;
+  const nodes = [...tree.querySelectorAll('.node[data-path]')];
+  nodes.forEach(n => n.classList.toggle('hide', !n.dataset.path.toLowerCase().includes(q)));
+  [...tree.querySelectorAll('.node[data-dir]')].reverse().forEach(d => {
+    const any = d.querySelector('.node[data-path]:not(.hide)');
+    d.classList.toggle('hide', !any); if (any) d.classList.remove('closed');
+  });
+});
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)){ e.preventDefault(); $('#search').focus(); }
+});
+
+/* ---------- thu gọn / mở rộng ---------- */
+let allOpen = false;
+$('#btn-fold').onclick = () => {
+  allOpen = !allOpen;
+  document.querySelectorAll('#tree .node[data-dir]').forEach(n => n.classList.toggle('closed', !allOpen));
+  if (!allOpen && current){ const n = document.querySelector('#tree .node[data-path="'+CSS.escape(current)+'"]'); n && openParents(n); }
+};
+
+/* ---------- sidebar resize & mobile ---------- */
+$('#menu').onclick = () => document.body.classList.toggle('nav-open');
+(() => {
+  const r = $('#resizer'), sb = $('#sidebar'); let drag = false;
+  r.onmousedown = () => { drag = true; r.classList.add('drag'); document.body.style.userSelect = 'none'; };
+  addEventListener('mouseup', () => { drag = false; r.classList.remove('drag'); document.body.style.userSelect = ''; });
+  addEventListener('mousemove', e => { if (drag) sb.style.width = Math.max(200, e.clientX) + 'px'; });
+})();
+
+/* ---------- tự mở lại thư mục đã chọn ---------- */
+(async () => {
+  if (!window.showDirectoryPicker) return;
+  const h = await loadHandle();
+  if (!h) return;
+  try{
+    if (await h.queryPermission({mode:'read'}) === 'granted') return openHandle(h);
+  }catch{}
+  const b = document.createElement('button');
+  b.textContent = 'Mở lại “' + h.name + '”'; b.className = 'primary';
+  b.onclick = async () => {
+    try{ if (await h.requestPermission({mode:'read'}) === 'granted') await openHandle(h); }
+    catch(e){ alert(e.message); }
+  };
+  $('#reopen').append(b);
+})();
+</script>
+</body>
+</html>
