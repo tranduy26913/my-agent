@@ -1,20 +1,23 @@
 import { Construction } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { findNavItem } from "./nav";
 
 /** Trang tạm cho mục đã có trong nav.ts nhưng chưa làm. Đọc mô tả từ nav.ts để khỏi viết hai nơi. */
 export function ComingSoon({ href, note }: { href: string; note?: string }) {
   const item = findNavItem(href);
   return (
-    <Card className="mx-auto mt-10 max-w-md">
-      <CardContent className="flex flex-col items-center px-6 py-6 text-center">
-        <span className="flex size-12 items-center justify-center rounded-full bg-warning/10 text-warning">
-          <Construction className="size-6" />
-        </span>
-        <h2 className="mt-4 text-base font-semibold">{item?.label ?? "Trang này"} đang được phát triển</h2>
-        {item && <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>}
-        {note && <p className="mt-3 text-xs text-muted-foreground">{note}</p>}
-      </CardContent>
+    <Card className="mx-auto mt-10 max-w-md py-6">
+      <Empty className="border-0">
+        <EmptyHeader>
+          <EmptyMedia variant="icon" className="size-12 rounded-full bg-warning/10 text-warning [&_svg:not([class*='size-'])]:size-6">
+            <Construction />
+          </EmptyMedia>
+          <EmptyTitle className="text-base font-semibold">{item?.label ?? "Trang này"} đang được phát triển</EmptyTitle>
+          {item && <EmptyDescription>{item.description}</EmptyDescription>}
+          {note && <EmptyDescription className="text-xs">{note}</EmptyDescription>}
+        </EmptyHeader>
+      </Empty>
     </Card>
   );
 }

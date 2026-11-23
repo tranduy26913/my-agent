@@ -1,13 +1,16 @@
-import { useState, type ReactNode } from "react";
+import { Fragment, useState, type ReactNode } from "react";
 import { FileUp, Pencil, ShieldCheck, ShieldX } from "lucide-react";
 import { useKbHost } from "../host";
 import { isBusy, useDocument, useKbMutations } from "../hooks";
 import { fmtDate, fmtDateTime } from "../format";
 import { VISIBILITY_META, docTypeLabel } from "../labels";
 import type { AccessCheck, KbDocumentDetail } from "../types";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Item, ItemContent, ItemDescription, ItemGroup, ItemSeparator, ItemTitle } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -47,23 +50,27 @@ function AccessChecker({ docId }: { docId: string }) {
   }
 
   return (
-    <div className="mt-6 rounded-xl bg-background p-4">
-      <p className="text-sm font-medium">Kiểm tra quyền đọc</p>
-      <p className="mt-1 text-sm text-muted-foreground">Nhập email để xem người đó có đọc được văn bản này không, theo đúng luật lọc của trợ lý</p>
-      <form onSubmit={(e) => { e.preventDefault(); void run(); }} className="mt-3 flex gap-2">
+    <Card className="mt-6 gap-3 bg-background">
+      <CardHeader>
+        <CardTitle className="text-sm font-medium">Kiểm tra quyền đọc</CardTitle>
+        <CardDescription>Nhập email để xem người đó có đọc được văn bản này không, theo đúng luật lọc của trợ lý</CardDescription>
+      </CardHeader>
+      <CardContent>
+      <form onSubmit={(e) => { e.preventDefault(); void run(); }} className="flex gap-2">
         <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ten@saoviet.vn" aria-label="Email nhân viên" className="h-10 min-w-0 flex-1 bg-card" />
         <Button type="submit" variant="outline" size="lg" disabled={busy || !email.trim()} className="h-10 shrink-0 px-3">Kiểm tra</Button>
       </form>
       {result ? (
-        <div className={`mt-3 flex gap-2 rounded-lg p-3 text-sm ${result.allowed ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
-          {result.allowed ? <ShieldCheck className="mt-0.5 size-4 shrink-0" /> : <ShieldX className="mt-0.5 size-4 shrink-0" />}
-          <p>
+        <Alert className={`mt-3 border-0 ${result.allowed ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
+          {result.allowed ? <ShieldCheck /> : <ShieldX />}
+          <AlertDescription className="text-current">
             <span className="font-medium">{result.person ? `${result.person}: ` : ""}{result.allowed ? "Đọc được" : "Không đọc được"}.</span> {result.reason}
-          </p>
-        </div>
+          </AlertDescription>
+        </Alert>
       ) : null}
       {error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -105,18 +112,23 @@ function ChunksTab({ d }: { d: KbDocumentDetail }) {
   return (
     <div className="px-6 py-5">
       {d.accessLogged ? <p className="mb-3 rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">Văn bản Mật: lượt xem này đã được ghi nhật ký.</p> : null}
-      <ol className="divide-y divide-border">
-        {d.chunks.map((c) => (
-          <li key={c.ordinal} className="py-3 first:pt-0">
-            <div className="flex items-baseline gap-3 text-xs text-muted-foreground">
-              <span className="tabular-nums">#{c.ordinal}</span>
-              <span className="truncate font-medium text-foreground">{c.section || "Không có mục"}</span>
-              {c.page ? <span className="ml-auto shrink-0 tabular-nums">tr. {c.page}</span> : null}
-            </div>
-            <p className="mt-1 line-clamp-3 text-sm text-foreground/80">{c.content}</p>
-          </li>
+      <ItemGroup className="gap-0">
+        {d.chunks.map((c, i) => (
+          <Fragment key={c.ordinal}>
+            {i > 0 ? <ItemSeparator className="my-0" /> : null}
+            <Item className="px-0 py-3">
+              <ItemContent className="min-w-0 gap-1">
+                <div className="flex items-baseline gap-3 text-xs text-muted-foreground">
+                  <span className="tabular-nums">#{c.ordinal}</span>
+                  <span className="truncate font-medium text-foreground">{c.section || "Không có mục"}</span>
+                  {c.page ? <span className="ml-auto shrink-0 tabular-nums">tr. {c.page}</span> : null}
+                </div>
+                <ItemDescription className="line-clamp-3 text-foreground/80">{c.content}</ItemDescription>
+              </ItemContent>
+            </Item>
+          </Fragment>
         ))}
-      </ol>
+      </ItemGroup>
       {d.chunkCount > d.chunks.length ? <p className="mt-2 text-sm text-muted-foreground">Còn {d.chunkCount - d.chunks.length} đoạn</p> : null}
     </div>
   );
@@ -124,14 +136,19 @@ function ChunksTab({ d }: { d: KbDocumentDetail }) {
 
 function HistoryTab({ d }: { d: KbDocumentDetail }) {
   return (
-    <ol className="grid gap-4 px-6 py-5 text-sm">
+    <ItemGroup className="gap-0 px-6 py-3">
       {d.history.map((h, i) => (
-        <li key={i}>
-          <p>{h.text}</p>
-          <p className="text-xs text-muted-foreground">{fmtDateTime(h.at)} · {h.by}</p>
-        </li>
+        <Fragment key={i}>
+          {i > 0 ? <ItemSeparator className="my-0" /> : null}
+          <Item className="px-0 py-3">
+            <ItemContent className="gap-0.5">
+              <ItemTitle className="font-normal">{h.text}</ItemTitle>
+              <ItemDescription className="text-xs">{fmtDateTime(h.at)} · {h.by}</ItemDescription>
+            </ItemContent>
+          </Item>
+        </Fragment>
       ))}
-    </ol>
+    </ItemGroup>
   );
 }
 

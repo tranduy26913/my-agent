@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { RefreshCw, Search, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -109,9 +110,9 @@ export function KbAdminPage() {
           </div>
 
           <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)} className="hidden min-w-0 sm:block">
-            <TabsList aria-label="Lọc theo trạng thái" className="h-10 max-w-full overflow-x-auto bg-secondary/70 p-1">
+            <TabsList aria-label="Lọc theo trạng thái" className="max-w-full overflow-x-auto">
               {tabs.map((t) => (
-                <TabsTrigger key={t.id} value={t.id} className="px-3">
+                <TabsTrigger key={t.id} value={t.id}>
                   {t.label} <span className="ml-1 tabular-nums">{counts[t.id]}</span>
                 </TabsTrigger>
               ))}
@@ -141,7 +142,7 @@ export function KbAdminPage() {
       {/* Backend thật có thể từ chối hoặc xong một phần; thông báo lỗi lấy từ `detail` của API */}
       {mutationError ? <ErrorBanner message={mutationError instanceof Error ? mutationError.message : "Thao tác không thành công"} /> : null}
 
-      <section className="@container overflow-hidden rounded-xl border bg-card">
+      <Card className="@container gap-0 rounded-xl border py-0">
         <DocumentTable
           rows={rows}
           loading={isLoading}
@@ -152,13 +153,13 @@ export function KbAdminPage() {
           emptyText={emptyText}
         />
         {docs.length > 0 ? (
-          <div className="border-t px-4 py-3">
+          <CardFooter className="border-t bg-transparent px-4 py-3">
             <p className="text-sm tabular-nums text-muted-foreground">
               {rows.length === docs.length ? `${docs.length} tài liệu` : `${rows.length} trong ${docs.length} tài liệu`} · {docs.reduce((n, d) => n + d.chunkCount, 0)} đoạn đã index
             </p>
-          </div>
+          </CardFooter>
         ) : null}
-      </section>
+      </Card>
 
       <UploadPanel open={route.panel === "upload"} onClose={route.close} />
       <DetailPanel open={route.panel === "detail"} docId={route.docId} onClose={route.close} />

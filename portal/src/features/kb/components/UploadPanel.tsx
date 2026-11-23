@@ -1,4 +1,4 @@
-import { useRef, useState, type DragEvent } from "react";
+import { Fragment, useRef, useState, type DragEvent } from "react";
 import { CircleAlert, CircleCheck, File as FileIcon, FileImage, FileText, Upload, X } from "lucide-react";
 import { useKbHost } from "../host";
 import { useDocuments, useKbMutations } from "../hooks";
@@ -8,14 +8,18 @@ import { DEPARTMENTS, DOC_TYPES, ROLES, VISIBILITY_META } from "../labels";
 import type { UploadMeta, Visibility } from "../types";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { FieldLegend, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Item, ItemActions, ItemContent, ItemGroup, ItemMedia, ItemSeparator } from "@/components/ui/item";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import { Drawer } from "./Drawer";
-import { Field, ToggleChip } from "./ui";
+import { Field } from "./ui";
 
 /** Radix Select không cho SelectItem có value rỗng, nên "không chọn" dùng giá trị này. */
 const NONE = "__none__";
@@ -57,7 +61,6 @@ const EMPTY_FORM: FormState = {
 
 let seq = 0;
 const nextId = () => `u${++seq}`;
-const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 
 /** Cắt giữa, giữ đuôi: "bien-ban-hop-giao-ban…kinh-doanh.pdf" */
 function MiddleTruncate({ name }: { name: string }) {
@@ -113,7 +116,7 @@ export function UploadPanel({ open, onClose }: Props) {
     setItems((cur) => [...cur, ...incoming]);
   }
 
-  function onDrop(e: DragEvent<HTMLLabelElement>) {
+  function onDrop(e: DragEvent<HTMLDivElement>) {
     e.preventDefault();
     setDragging(false);
     if (e.dataTransfer.files.length) void addFiles(e.dataTransfer.files);
@@ -184,16 +187,16 @@ export function UploadPanel({ open, onClose }: Props) {
       }
     >
       <div className="flex-1 overflow-y-auto px-6 pb-6 pt-2">
-        <label
+        <div
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
           onDrop={onDrop}
           className={cn(
-            "flex cursor-pointer flex-col items-center rounded-xl border border-dashed px-6 py-8 text-center transition-colors",
-            dragging ? "border-foreground/40 bg-background" : "border-input bg-background/60 hover:bg-background",
+            "flex flex-col items-center rounded-xl border border-dashed px-6 py-8 text-center transition-colors",
+            dragging ? "border-foreground/40 bg-background" : "border-input bg-background/60",
           )}
         >
-          <input
+          <Input
             ref={inputRef}
             type="file"
             multiple
@@ -203,19 +206,25 @@ export function UploadPanel({ open, onClose }: Props) {
           />
           <p className="text-sm font-medium [@media(hover:none)]:hidden">{dragging ? "Thả tệp để tải lên" : "Kéo thả tài liệu vào đây"}</p>
           <p className="mt-1 text-pretty text-sm text-muted-foreground">Markdown, PDF, Word, ảnh scan JPG hoặc PNG. Tối đa {MAX_FILE_BYTES / 1024 / 1024} MB mỗi tệp</p>
-          <span className="mt-4 inline-flex h-9 items-center gap-1.5 rounded-lg border bg-background px-3 text-sm font-medium"><Upload className="size-4" />Chọn tệp</span>
-        </label>
+          <Button type="button" variant="outline" size="sm" className="mt-4" onClick={() => inputRef.current?.click()}>
+            <Upload />Chọn tệp
+          </Button>
+        </div>
 
         {items.length > 0 ? (
-          <ul className="mt-4 divide-y divide-border">
-            {items.map((it) => {
+          <ItemGroup className="mt-4 gap-0">
+            {items.map((it, idx) => {
               const kind = fileKindOf(it.file.name);
               const Icon = kind === "image" ? FileImage : kind === "other" ? FileIcon : FileText;
               const canRemove = it.state !== "done" && it.state !== "uploading";
               return (
-                <li key={it.id} className="flex items-center gap-3 py-3">
-                  <Icon className="size-5 shrink-0 text-muted-foreground" />
-                  <div className="min-w-0 flex-1">
+                <Fragment key={it.id}>
+                  {idx > 0 ? <ItemSeparator className="my-0" /> : null}
+                  <Item className="flex-nowrap px-0 py-3">
+                  <ItemMedia variant="icon">
+                    <Icon className="size-5 text-muted-foreground" />
+                  </ItemMedia>
+                  <ItemContent className="min-w-0 flex-1 gap-0">
                     <div className="flex items-baseline gap-3">
                       <MiddleTruncate name={it.file.name} />
                       {it.state === "uploading" ? <p className="shrink-0 text-sm tabular-nums text-muted-foreground">{it.progress}%</p> : null}
@@ -241,8 +250,8 @@ export function UploadPanel({ open, onClose }: Props) {
                         </>
                       )}
                     </div>
-                  </div>
-                  <div className="flex w-8 shrink-0 justify-end">
+                  </ItemContent>
+                  <ItemActions className="w-8 justify-end">
                     {canRemove ? (
                       <Button
                         type="button"
@@ -255,15 +264,17 @@ export function UploadPanel({ open, onClose }: Props) {
                         <X />
                       </Button>
                     ) : null}
-                  </div>
-                </li>
+                  </ItemActions>
+                  </Item>
+                </Fragment>
               );
             })}
-          </ul>
+          </ItemGroup>
         ) : null}
 
         {showForm ? (
-          <div className="mt-6 border-t border-border pt-6">
+          <div className="mt-6">
+            <Separator className="mb-6" />
             <h3 className="text-sm font-semibold">
               Thông tin cho {needInfo.length === 1 ? needInfo[0].file.name : `${needInfo.length} tệp chưa có thông tin`}
             </h3>
@@ -293,8 +304,8 @@ export function UploadPanel({ open, onClose }: Props) {
                 </Field>
               </div>
 
-              <fieldset className="grid gap-2">
-                <legend className="mb-1.5 text-sm font-medium">Ai được xem <span className="text-destructive">*</span></legend>
+              <FieldSet className="gap-2">
+                <FieldLegend variant="label">Ai được xem <span className="text-destructive">*</span></FieldLegend>
                 <RadioGroup value={form.visibility} onValueChange={(v) => set("visibility", v as Visibility)} className="gap-2">
                   {(Object.keys(VISIBILITY_META) as Visibility[]).map((v) => {
                     const meta = VISIBILITY_META[v];
@@ -314,22 +325,22 @@ export function UploadPanel({ open, onClose }: Props) {
                     );
                   })}
                 </RadioGroup>
-              </fieldset>
+              </FieldSet>
 
               {scopeNeedsList ? (
                 <>
                   <Field label="Phòng được xem">
-                    <div className="flex flex-wrap gap-1.5">
-                      {DEPARTMENTS.map((d) => <ToggleChip key={d} on={form.depts.includes(d)} onToggle={() => set("depts", toggle(form.depts, d))}>{d}</ToggleChip>)}
-                    </div>
+                    <ToggleGroup type="multiple" variant="outline" spacing={1.5} value={form.depts} onValueChange={(v) => set("depts", v)} className="flex-wrap justify-start">
+                      {DEPARTMENTS.map((d) => <ToggleGroupItem key={d} value={d}>{d}</ToggleGroupItem>)}
+                    </ToggleGroup>
                   </Field>
                   <Field
                     label="Vai trò được xem"
                     hint={form.depts.length + form.roles.length === 0 ? "Chọn ít nhất một phòng hoặc một vai trò, nếu không sẽ không ai xem được" : undefined}
                   >
-                    <div className="flex flex-wrap gap-1.5">
-                      {ROLES.map((r) => <ToggleChip key={r.value} on={form.roles.includes(r.value)} onToggle={() => set("roles", toggle(form.roles, r.value))}>{r.label}</ToggleChip>)}
-                    </div>
+                    <ToggleGroup type="multiple" variant="outline" spacing={1.5} value={form.roles} onValueChange={(v) => set("roles", v)} className="flex-wrap justify-start">
+                      {ROLES.map((r) => <ToggleGroupItem key={r.value} value={r.value}>{r.label}</ToggleGroupItem>)}
+                    </ToggleGroup>
                   </Field>
                 </>
               ) : null}

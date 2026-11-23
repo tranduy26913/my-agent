@@ -1,9 +1,10 @@
-import { LoaderCircle, TriangleAlert } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import type { ReactNode } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Field as ShadField, FieldDescription, FieldLabel } from "@/components/ui/field";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import type { DocStatus } from "../types";
 import { STATUS_META } from "../labels";
@@ -12,37 +13,22 @@ export function StatusBadge({ status, className }: { status: DocStatus; classNam
   const meta = STATUS_META[status];
   return (
     <Badge variant="secondary" className={cn(meta.cls, className)}>
-      {status === "processing" ? <LoaderCircle className="animate-spin motion-reduce:animate-none" /> : null}
+      {status === "processing" ? <Spinner className="size-3 motion-reduce:animate-none" aria-label="Đang xử lý" /> : null}
       {meta.label}
     </Badge>
   );
 }
 
+/** Một trường biểu mẫu: nhãn + điều khiển + gợi ý, dựng trên Field của shadcn. */
 export function Field({ label, required, hint, htmlFor, children }: { label: string; required?: boolean; hint?: string; htmlFor?: string; children: ReactNode }) {
   return (
-    <div className="grid gap-1.5">
-      <Label htmlFor={htmlFor}>
+    <ShadField className="gap-1.5">
+      <FieldLabel htmlFor={htmlFor}>
         {label} {required ? <span className="text-destructive">*</span> : null}
-      </Label>
+      </FieldLabel>
       {children}
-      {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
-    </div>
-  );
-}
-
-/** Chip bật / tắt dùng cho chọn phòng ban, vai trò */
-export function ToggleChip({ on, onToggle, children }: { on: boolean; onToggle: () => void; children: ReactNode }) {
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      size="sm"
-      aria-pressed={on}
-      onClick={onToggle}
-      className={cn("h-8 px-3 text-sm", on && "border-transparent bg-foreground/8 font-medium hover:bg-foreground/8")}
-    >
-      {children}
-    </Button>
+      {hint ? <FieldDescription className="text-xs">{hint}</FieldDescription> : null}
+    </ShadField>
   );
 }
 

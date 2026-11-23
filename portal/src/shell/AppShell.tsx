@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./SidebarNav";
 import { UserMenu } from "./UserMenu";
@@ -21,8 +20,8 @@ export function AppShell({ children, title }: { children: ReactNode; title?: str
       <AppSidebar />
       <SidebarInset className="min-w-0">
         <header className="sticky top-0 z-20 flex h-16 items-center gap-2 border-b bg-card px-3 sm:px-6">
-          <SidebarTrigger className="-ml-1 size-9" aria-label="Mở hoặc thu gọn menu" />
-          <Separator orientation="vertical" className="mr-1 h-5" />
+          {/* Chỉ hiện trên điện thoại để mở drawer; máy tính luôn thấy sidebar như bản cũ */}
+          <SidebarTrigger className="size-10 md:hidden" aria-label="Mở menu" />
           <h1 className="min-w-0 flex-1 truncate text-lg font-semibold">{heading}</h1>
           <UserMenu />
         </header>

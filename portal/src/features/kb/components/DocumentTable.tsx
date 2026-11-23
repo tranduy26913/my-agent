@@ -1,6 +1,7 @@
 import { File as FileIcon, FileImage, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Empty, EmptyDescription } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { KbDocument } from "../types";
@@ -76,7 +77,11 @@ export function DocumentTable({ rows, loading, selected, onToggle, onToggleAll, 
 
         {!loading && rows.length === 0 ? (
           <TableRow className="hover:bg-transparent">
-            <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">{emptyText}</TableCell>
+            <TableCell colSpan={6}>
+              <Empty className="py-8">
+                <EmptyDescription>{emptyText}</EmptyDescription>
+              </Empty>
+            </TableCell>
           </TableRow>
         ) : null}
 

@@ -22,6 +22,10 @@ import { CHAT_URL, GROUP_LABEL, NAV, findNavItem, type NavGroup } from "./nav";
 
 const GROUPS: NavGroup[] = ["main", "tools", "admin"];
 
+/** Mục menu kiểu cũ: cao 40px, chữ mờ, rê chuột nền xám; mục đang mở nền chàm nhạt, chữ chàm, đậm. */
+const NAV_BUTTON =
+  "h-10 text-sm text-foreground/70 hover:bg-muted hover:text-foreground data-active:bg-primary/8 data-active:font-medium data-active:text-primary data-active:hover:bg-primary/8 data-active:hover:text-primary";
+
 /** Sidebar của portal. Trên điện thoại shadcn tự biến thành drawer (Sheet), có bẫy phím Tab và đóng bằng Esc. */
 export function AppSidebar() {
   const pathname = usePathname();
@@ -45,12 +49,12 @@ export function AppSidebar() {
           const label = GROUP_LABEL[group];
           return (
             <SidebarGroup key={group}>
-              {label && <SidebarGroupLabel className="uppercase tracking-wide">{label}</SidebarGroupLabel>}
+              {label && <SidebarGroupLabel className="px-3 uppercase tracking-wide text-muted-foreground">{label}</SidebarGroupLabel>}
               <SidebarGroupContent>
                 <SidebarMenu>
                   {items.map((item) => (
                     <SidebarMenuItem key={item.href}>
-                      <SidebarMenuButton asChild isActive={current?.href === item.href} className="h-10 text-sm">
+                      <SidebarMenuButton asChild isActive={current?.href === item.href} className={NAV_BUTTON}>
                         <Link href={item.href} onClick={() => setOpenMobile(false)}>
                           <item.icon />
                           {item.label}
@@ -68,7 +72,7 @@ export function AppSidebar() {
       <SidebarFooter className="p-3">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="h-10 text-sm">
+            <SidebarMenuButton asChild className={NAV_BUTTON}>
               <a href={CHAT_URL}>
                 <MessageSquare />
                 Mở Trợ lý

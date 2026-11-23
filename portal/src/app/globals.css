@@ -2,6 +2,10 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* Lớp dark: chỉ bật khi có class .dark (hiện không bao giờ). Không khai thì Tailwind dùng prefers-color-scheme
+   và các lớp dark:* của shadcn sẽ bật theo cài đặt tối của hệ điều hành, làm giao diện lệch. */
+@custom-variant dark (&:is(.dark *));
+
 /*
  * Token màu theo quy ước của shadcn/ui (background, foreground, primary, muted...), giá trị là bộ mặt Clean của
  * portal: nền xám, thẻ và sidebar trắng, màu nhấn Chàm. Đổi giao diện = sửa khối :root ở cuối file.
@@ -22,6 +26,9 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-button-hover: var(--button-hover);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
@@ -44,13 +51,6 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 @layer base {
@@ -88,8 +88,11 @@
 
   --primary: #4f46e5;
   --primary-foreground: #ffffff;
+  --primary-hover: #6159ea;
   --secondary: #e7e8ec;
   --secondary-foreground: #2c2c2c;
+  --secondary-hover: #dbdce2;
+  --button-hover: #f1f1f3;
   --muted: #f4f4f6;
   --muted-foreground: #707070;
   --accent: #f4f4f6;
@@ -102,7 +105,7 @@
   --border: #f0f0f2;
   --input: #e2e2e6;
   --ring: #4f46e5;
-  --radius: 0.75rem;
+  --radius: 0.5rem; /* thang bo góc là mặc định của Tailwind (lg 8, xl 12, 2xl 16) như bản cũ */
 
   --sidebar: #ffffff;
   --sidebar-foreground: #2c2c2c;

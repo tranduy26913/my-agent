@@ -28,7 +28,10 @@ Thêm một trang công cụ: thêm một dòng vào `src/shell/nav.ts` + một 
 
 - Màu theo quy ước của shadcn (`bg-background`, `bg-card`, `text-muted-foreground`, `bg-primary`, `border-input`...), giá trị khai ở khối `:root` cuối `src/app/globals.css`. Muốn đổi bộ mặt thì sửa khối đó. Trạng thái ngoài bộ chuẩn: `success`, `warning` (dùng `bg-success/10 text-success`).
 - Font Inter (có subset tiếng Việt). Không dùng Geist mặc định của shadcn vì không có subset này.
-- Chưa có chế độ tối nên không khai khối `.dark`.
+- Mọi phần tử giao diện dựng từ component shadcn (Button, Input, Select, Checkbox, RadioGroup, ToggleGroup, Field, Item, Empty, Spinner, Avatar, Card, Table, Tabs, Sheet, AlertDialog, DropdownMenu, Sidebar...). Không viết lại bằng thẻ HTML thuần; cần phần tử mới thì `shadcn add` trước.
+- Ô nhập (Input, Textarea, Select) không có viền: nền xám nhạt `bg-muted`, chỉ hiện vòng chàm khi focus. Đặt trên nền xám của trang thì thêm `bg-card` để ô vẫn nổi.
+- Các component trong `src/components/ui/` đã được chỉnh về bộ mặt Clean cũ (nút cao 40px bo 12px, thẻ bo 16px không viền, tab phẳng, lớp phủ nhạt không mờ, hộp xoá bo 16px). Thang bo góc là mặc định của Tailwind. Khi chạy `shadcn add` hoặc cập nhật component, kiểm tra lại các tệp này bằng mắt.
+- Chưa có chế độ tối nên không khai khối `.dark`, và `globals.css` khai `@custom-variant dark` để các lớp `dark:*` của shadcn không tự bật theo cài đặt tối của hệ điều hành.
 - `src/hooks/use-mobile.ts` đã sửa sang `useSyncExternalStore` vì bản gốc của shadcn vi phạm luật `set-state-in-effect` của lint.
 - Thêm component mới: `npx shadcn@latest add <ten>` trong thư mục `portal/`. Kiểm tra lại file sinh ra bằng `npm run lint`.
 

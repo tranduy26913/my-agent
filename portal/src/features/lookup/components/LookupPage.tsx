@@ -1,12 +1,15 @@
 import { useEffect, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { LoaderCircle, Lock, SearchX, Send, TriangleAlert } from "lucide-react";
+import { Lock, SearchX, Send, TriangleAlert } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Item, ItemContent, ItemGroup, ItemMedia, ItemTitle } from "@/components/ui/item";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import type { AskRequest, AskResult, LookupApi } from "../types";
 
@@ -88,16 +91,20 @@ function ResultCard({ turn }: { turn: Turn }) {
         {result.citations.length > 0 ? (
           <div>
             <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Nguồn</h3>
-            <ol className="grid gap-1.5">
+            <ItemGroup className="gap-0">
               {result.citations.map((c) => (
-                <li key={c.n} className="flex items-start gap-2 text-sm">
-                  <Badge variant="secondary" className="mt-0.5 h-4 rounded px-1 text-[0.7rem] tabular-nums text-primary">
-                    {c.n}
-                  </Badge>
-                  <span className="min-w-0 [overflow-wrap:anywhere]">{c.label}</span>
-                </li>
+                <Item key={c.n} size="xs" className="items-start px-0 py-1">
+                  <ItemMedia>
+                    <Badge variant="secondary" className="h-4 rounded px-1 text-[0.7rem] tabular-nums text-primary">
+                      {c.n}
+                    </Badge>
+                  </ItemMedia>
+                  <ItemContent>
+                    <ItemTitle className="min-w-0 font-normal [overflow-wrap:anywhere]">{c.label}</ItemTitle>
+                  </ItemContent>
+                </Item>
               ))}
-            </ol>
+            </ItemGroup>
           </div>
         ) : null}
 
@@ -185,7 +192,7 @@ export function LookupPage({ api }: { api: LookupApi }) {
                   </span>
                 ) : null}
                 <Button type="submit" size="lg" disabled={!canSend} className="h-10 px-4">
-                  {ask.isPending ? <LoaderCircle className="animate-spin motion-reduce:animate-none" /> : <Send />}
+                  {ask.isPending ? <Spinner className="motion-reduce:animate-none" /> : <Send />}
                   Hỏi
                 </Button>
               </div>
@@ -193,7 +200,8 @@ export function LookupPage({ api }: { api: LookupApi }) {
           </form>
 
           {turns.length === 0 && !ask.isPending ? (
-            <div className="mt-4 border-t pt-4">
+            <div className="mt-4">
+              <Separator className="mb-4" />
               <p className="mb-2 text-xs text-muted-foreground">Thử hỏi:</p>
               <div className="flex flex-wrap gap-2">
                 {SUGGESTIONS.map((s) => (
@@ -212,7 +220,7 @@ export function LookupPage({ api }: { api: LookupApi }) {
           <CardContent className="grid gap-3">
             <p className="text-sm font-medium">{ask.variables?.question}</p>
             <p className="flex items-center gap-2 text-sm text-muted-foreground">
-              <LoaderCircle className="size-4 animate-spin motion-reduce:animate-none" />
+              <Spinner className="motion-reduce:animate-none" />
               Đang tra cứu tài liệu… {waited > 0 ? `${waited} giây` : null}
               {waited >= 15 ? " (lần đầu có thể mất khoảng một phút)" : null}
             </p>

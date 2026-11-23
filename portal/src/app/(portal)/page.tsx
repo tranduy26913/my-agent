@@ -19,8 +19,8 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-8">
-      <Card>
-        <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <Card className="py-6">
+        <CardContent className="flex flex-col gap-4 px-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-xl font-semibold">Xin chào, {firstName(me.name)}</h2>
             <p className="mt-1 text-sm text-muted-foreground">Chọn một công cụ bên dưới, hoặc hỏi Trợ lý ngay.</p>
