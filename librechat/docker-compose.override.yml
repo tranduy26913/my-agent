@@ -1,0 +1,44 @@
+# docker-compose.override.yml – phần tùy biến của dự án.
+# docker-compose.yml trong thư mục này là BẢN SAO NGUYÊN VẸN của LibreChat v0.8.9: không sửa nó.
+# Docker Compose tự gộp file này đè lên docker-compose.yml khi chạy `docker compose up`.
+
+services:
+  api:
+    # Ghim phiên bản phát hành, không dùng -dev:latest như file gốc
+    # (latest = mỗi lần pull có thể nhận bản khác -> không tái lập được, khó rollback).
+    image: registry.librechat.ai/librechat-ai/librechat:v0.8.9
+    volumes:
+      - type: bind
+        source: ./librechat.yaml
+        target: /app/librechat.yaml
+        read_only: true
+
+  admin-panel:
+    # Admin panel đánh số phiên bản riêng (không có tag v0.8.9) và GĐ0 chưa cần.
+    # Đưa vào profile "admin": chỉ chạy khi gọi `docker compose --profile admin up -d`.
+    profiles: ["admin"]
+
+  # CSDL riêng của backend (kho tri thức có ACL, audit, usage). KHÔNG dùng chung vectordb của rag_api:
+  # rag_api phục vụ "chat với file người dùng upload", không có phân quyền theo phòng ban.
+  # Chỉ bind 127.0.0.1 -> máy khác trong mạng LAN không kết nối thẳng vào DB được.
+  agent-db:
+    container_name: agent-db
+    image: docker.io/pgvector/pgvector:0.8.0-pg15-trixie
+    environment:
+      POSTGRES_DB: agent
+      POSTGRES_USER: agent
+      POSTGRES_PASSWORD: ${AGENT_DB_PASSWORD:-agent}
+    ports:
+      - "127.0.0.1:5433:5432"
+    restart: always
+    volumes:
+      - agentdb:/var/lib/postgresql/data
+
+  # Ngày 6+: thêm service Python của bạn ở đây, ví dụ:
+  # hr-mcp:
+  #   build: ../services/hr-mcp
+  #   environment:
+  #     - DATABASE_URL=${HR_DATABASE_URL}
+
+volumes:
+  agentdb:

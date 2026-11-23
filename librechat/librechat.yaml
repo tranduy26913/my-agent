@@ -1,0 +1,70 @@
+# librechat.yaml – cấu hình "Trợ lý số SVT" (GĐ0)
+# Đối chiếu: librechat-src/librechat.example.yaml (LibreChat v0.8.9)
+# Nguyên tắc: file này commit được -> KHÔNG ghi bí mật ở đây, bí mật để trong .env và tham chiếu bằng ${TEN_BIEN}.
+
+# Phiên bản schema cấu hình. Nâng cấp LibreChat mà schema đổi -> server báo lỗi validate (kịch bản K09).
+version: 1.3.19
+
+cache: true
+
+interface:
+  customWelcome: 'Trợ lý số SVT – môi trường học tập (GĐ0)'
+  # GĐ0 Ngày 2 sẽ thử bật/tắt các quyền này theo role.
+
+registration:
+  # GĐ0 chỉ dùng đăng nhập email/mật khẩu (ALLOW_EMAIL_LOGIN trong .env).
+  # Ngày 2 thử thêm 'openid' (Keycloak hoặc Entra ID).
+  socialLogins: []
+
+# Ngân sách token theo user (M1). Bật thì giao dịch token luôn được ghi.
+balance:
+  enabled: true
+  startBalance: 20000
+  autoRefillEnabled: false
+
+# LibreChat chặn MCP trỏ vào địa chỉ nội bộ (chống SSRF). Chỉ mở đúng cổng của knowledge-mcp.
+mcpSettings:
+  allowedAddresses:
+    - 'host.docker.internal:8100'
+
+mcpServers:
+  # Kho tri thức SVT (backend/app/knowledge_mcp.py) chạy trên máy host: python -m app.knowledge_mcp
+  knowledge-mcp:
+    type: streamable-http
+    url: http://host.docker.internal:8100/mcp
+    timeout: 120000 # embed + truy xuất + sinh câu trả lời có thể mất vài chục giây
+    headers:
+      # Email người đang chat -> knowledge-mcp tra phòng ban/vai trò trong DB để lọc quyền tài liệu
+      X-User-Email: "{{LIBRECHAT_USER_EMAIL}}"
+      # Bí mật dùng chung (librechat/.env) -> chứng minh request đến từ LibreChat
+      X-KB-Token: "${KB_MCP_TOKEN}"
+
+# Ngày 6 sẽ thêm hr-mcp vào mcpServers ở trên:
+#   hr-mcp:
+#     type: streamable-http
+#     url: http://hr-mcp:8000/mcp
+#     headers:
+#       X-User-Email: "{{LIBRECHAT_USER_EMAIL}}"
+
+# Model chat local (LocalAI, GPU RTX 2060 Super). Container local-ai cùng mạng librechat_default.
+endpoints:
+  custom:
+    - name: 'LocalAI'
+      apiKey: 'local-ai' # LocalAI không kiểm tra key, chỉ cần có giá trị
+      baseURL: 'http://local-ai:8080/v1'
+      models:
+        default: ['qwen3-4b']
+        fetch: false
+      titleConvo: true
+      titleModel: 'qwen3-4b'
+      modelDisplayLabel: 'Qwen3 4B (local)'
+      # Thử nghiệm: tắt streaming để LibreChat nhận tool call trọn vẹn (chế độ stream làm mất tham số tool).
+      addParams:
+        disableStreaming: true
+
+# Ngày 7 sẽ thêm agent-service làm custom endpoint (thêm vào danh sách custom ở trên):
+#   custom:
+#     - name: 'agent-service'
+#       baseURL: 'http://agent-service:8000/v1'
+#       apiKey: '${AGENT_SERVICE_KEY}'
+#       models: { default: ['svt-agent'] }

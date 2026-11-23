@@ -1,0 +1,10 @@
+# Bí mật và dữ liệu chạy – không commit
+.env
+data-node/
+meili_data_*/
+images/
+uploads/
+logs/
+
+# Mật khẩu tài khoản demo
+persona-accounts.txt
