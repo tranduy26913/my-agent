@@ -1,0 +1,32 @@
+# Repo con có .git riêng (upstream / dự án độc lập) — không nhúng vào repo này
+/librechat-src/
+/portfolio/
+
+# Bí mật & cấu hình cục bộ
+.env
+.env.*
+!.env.example
+.claude/settings.local.json
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# LibreChat: dữ liệu chạy + mật khẩu demo
+/librechat/data-node/
+/librechat/meili_data_*/
+/librechat/images/
+/librechat/uploads/
+/librechat/logs/
+/librechat/persona-accounts.txt

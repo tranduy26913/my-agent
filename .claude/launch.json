@@ -1,0 +1,57 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "portfolio",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "portfolio",
+        "run",
+        "dev"
+      ],
+      "port": 3000
+    },
+    {
+      "name": "wireframe",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "4173",
+        "-d",
+        "C:/Users/PC/AppData/Local/Temp/evon-design"
+      ],
+      "port": 4173
+    },
+    {
+      "name": "kb-admin",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "kb-admin",
+        "run",
+        "dev"
+      ],
+      "port": 3100
+    },
+    {
+      "name": "api",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "cd backend && .venv\\Scripts\\python.exe -m uvicorn app.main:app --port 8000"
+      ],
+      "port": 8000
+    },
+    {
+      "name": "knowledge-mcp",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "cd backend && .venv\\Scripts\\python.exe -m app.knowledge_mcp"
+      ],
+      "port": 8100
+    }
+  ]
+}
