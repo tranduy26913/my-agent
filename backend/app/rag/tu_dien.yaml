@@ -1,0 +1,25 @@
+# Từ điển viết tắt / đồng nghĩa cho nhánh FULL-TEXT của hybrid search.
+# Nhánh vector đã tự hiểu ngữ nghĩa ("lấy vợ" ≈ "kết hôn") nên từ điển chỉ cần bù cho nhánh từ khóa.
+# Khóa và giá trị viết KHÔNG DẤU, chữ thường (hệ thống tự bỏ dấu câu hỏi trước khi so).
+# Đây là dữ liệu nghiệp vụ: phòng ban tự bổ sung khi thấy câu hỏi trả lời sai trong log, không cần sửa code.
+
+ctp: [cong tac phi]
+lay vo: [ket hon]
+lay chong: [ket hon]
+cuoi vo: [ket hon]
+cuoi chong: [ket hon]
+dam cuoi: [ket hon]
+wfh: [lam viec tu xa]
+lam o nha: [lam viec tu xa]
+remote: [lam viec tu xa]
+phep nam: [nghi phep nam]
+phep ton: [phep nam chua su dung, chuyen sang nam sau]
+luong thang 13: [thuong thang luong thu 13]
+om: [nghi om]
+sep: [quan ly truc tiep]
+pm: [giam doc du an, quan ly du an]
+go-live: [van hanh chinh thuc, go live]
+golive: [van hanh chinh thuc, go live]
+mat khau: [password]
+pass: [mat khau]
+nghi tet: [nghi le tet]
