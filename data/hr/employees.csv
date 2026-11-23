@@ -1,0 +1,25 @@
+ma_nv,ho_ten,email,phong_ban,chuc_danh,cap_bac,ma_quan_ly,vai_tro,ngay_vao_lam,loai_hop_dong,trang_thai,so_dien_thoai
+NV001,Phạm Đức Long,long.pham@saoviet.example,BGD,Tổng Giám đốc,L6,,executive,2014-03-01,khong-xac-dinh,dang-lam,0912 754 214
+NV002,Vũ Thị Hạnh,hanh.vu@saoviet.example,BGD,Giám đốc Tài chính,L6,NV001,executive,2015-07-01,khong-xac-dinh,dang-lam,0913 125 859
+NV003,Nguyễn Thị Lan,lan.nguyen@saoviet.example,HCNS,Trưởng phòng Hành chính – Nhân sự,L5,NV001,hr|manager|truong-phong,2016-04-15,khong-xac-dinh,dang-lam,0914 381 350
+NV004,Bùi Văn Tâm,tam.bui@saoviet.example,TCKT,Kế toán trưởng,L5,NV002,manager|truong-phong,2017-01-09,khong-xac-dinh,dang-lam,0915 328 242
+NV005,Đỗ Quang Huy,huy.do@saoviet.example,CNTT,Trưởng phòng CNTT,L5,NV001,manager|admin|truong-phong,2016-08-01,khong-xac-dinh,dang-lam,0916 854 204
+NV006,Lê Hoàng Nam,nam.le@saoviet.example,KD,Trưởng phòng Kinh doanh,L5,NV001,manager|truong-phong,2015-10-05,khong-xac-dinh,dang-lam,0917 792 858
+NV007,Trần Thu Trang,trang.tran@saoviet.example,DA,Trưởng phòng Dự án,L5,NV001,manager|truong-phong,2014-06-02,khong-xac-dinh,dang-lam,0918 658 189
+NV010,Phạm Thu Hà,ha.pham@saoviet.example,HCNS,Chuyên viên C&B,L2,NV003,hr,2021-09-06,khong-xac-dinh,dang-lam,0919 704 532
+NV011,Trần Quốc Bảo,bao.tran@saoviet.example,HCNS,Chuyên viên tuyển dụng,L2,NV003,hr,2023-02-13,xac-dinh-24-thang,dang-lam,0920 132 130
+NV012,Nguyễn Minh Anh,anh.nguyen@saoviet.example,HCNS,Nhân viên hành chính,L1,NV003,employee,2025-08-04,xac-dinh-12-thang,dang-lam,0921 195 323
+NV013,Ngô Thị Mai,mai.ngo@saoviet.example,TCKT,Kế toán thanh toán,L2,NV004,employee,2020-05-18,khong-xac-dinh,dang-lam,0922 338 617
+NV014,Lương Văn Hùng,hung.luong@saoviet.example,TCKT,Kế toán quản trị,L3,NV004,employee,2019-11-04,khong-xac-dinh,dang-lam,0923 716 127
+NV015,Đặng Văn Khoa,khoa.dang@saoviet.example,CNTT,Kỹ sư hệ thống,L3,NV005,employee|admin,2018-03-12,khong-xac-dinh,dang-lam,0924 674 303
+NV016,Vương Thị Thảo,thao.vuong@saoviet.example,CNTT,Chuyên viên hỗ trợ CNTT,L1,NV005,employee,2024-06-03,xac-dinh-24-thang,dang-lam,0925 833 765
+NV017,Lê Văn Bình,binh.le@saoviet.example,KD,Chuyên viên kinh doanh,L2,NV006,employee,2022-04-11,khong-xac-dinh,dang-lam,0926 818 658
+NV018,Hồ Thị Phương,phuong.ho@saoviet.example,KD,Chuyên viên kinh doanh,L2,NV006,employee,2024-01-08,xac-dinh-24-thang,dang-lam,0927 529 325
+NV019,Cao Minh Trí,tri.cao@saoviet.example,KD,Nhân viên kinh doanh,L1,NV006,employee,2026-09-14,thu-viec,dang-lam,0928 559 703
+NV020,Hoàng Minh Đức,duc.hoang@saoviet.example,DA,Giám đốc dự án,L4,NV007,manager,2017-09-11,khong-xac-dinh,dang-lam,0929 384 928
+NV021,Trịnh Văn Sơn,son.trinh@saoviet.example,DA,Trưởng nhóm kỹ thuật,L4,NV020,manager,2018-07-02,khong-xac-dinh,dang-lam,0930 990 106
+NV022,Mai Thị Ngọc,ngoc.mai@saoviet.example,DA,Chuyên viên phân tích nghiệp vụ,L3,NV020,employee,2020-10-19,khong-xac-dinh,dang-lam,0931 877 925
+NV023,Đinh Công Tuấn,tuan.dinh@saoviet.example,DA,Lập trình viên,L2,NV021,employee,2022-12-05,khong-xac-dinh,dang-lam,0932 263 814
+NV024,Lý Thị Hoa,hoa.ly@saoviet.example,DA,Lập trình viên,L2,NV021,employee,2023-07-17,xac-dinh-24-thang,dang-lam,0933 532 448
+NV025,Phan Văn Lộc,loc.phan@saoviet.example,DA,Kiểm thử viên,L2,NV020,employee,2021-03-22,khong-xac-dinh,dang-lam,0934 384 259
+NV026,Kiều Thanh Tùng,tung.kieu@saoviet.example,DA,Lập trình viên,L2,NV021,employee,2019-05-06,khong-xac-dinh,da-nghi-viec,0935 320 881
