@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 from pydantic import ValidationError
 from sqlalchemy import select
 
-from app.api.deps import UserInfo, get_current_user, get_db
+from app.api.deps import UserInfo, get_db, get_legacy_user
 from app.api.kb import (
     DocIdsIn,
     KbDocumentDetailOut,
@@ -171,7 +171,7 @@ def as_user(role: str, db, user_id: int = 1):
     app = create_app()
     app.dependency_overrides[get_db] = lambda: db
     user = UserInfo(user_id, "test.admin", role, "CNTT", "Quản trị thử")
-    app.dependency_overrides[get_current_user] = lambda: user
+    app.dependency_overrides[get_legacy_user] = lambda: user
     return TestClient(app, raise_server_exceptions=False)
 
 

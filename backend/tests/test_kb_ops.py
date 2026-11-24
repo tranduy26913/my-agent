@@ -6,7 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 
-from app.api.deps import UserInfo, get_current_user, get_db
+from app.api.deps import UserInfo, get_db, get_legacy_user
 from app.main import create_app
 from app.models import Chunk, Document
 from app.rag import kb_service
@@ -51,7 +51,7 @@ def test_ghi_can_dang_nhap_va_admin(method, path, body):
     app = create_app()
     app.dependency_overrides[get_db] = lambda: None
     assert getattr(TestClient(app), method)(path, json=body).status_code == 401
-    app.dependency_overrides[get_current_user] = lambda: UserInfo(2, "nv", "manager", "KD")
+    app.dependency_overrides[get_legacy_user] = lambda: UserInfo(2, "nv", "manager", "KD")
     assert getattr(TestClient(app), method)(path, json=body).status_code == 403
 
 

@@ -15,7 +15,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api import ask, health, kb, ocr
+from app.api import admin, ask, health, kb, me, ocr
 from app.ocr import jobs
 
 log = logging.getLogger("api")
@@ -35,7 +35,9 @@ def create_app() -> FastAPI:
     app.include_router(kb.router, prefix="/api/kb")
     app.include_router(ask.router, prefix="/api/kb")
     # ^ /api/kb/ask dành cho mọi nhân viên, khác phần còn lại của /api/kb (chỉ admin)
-    # Router nghiệp vụ khác (/api/me...) thêm ở đây, mỗi cái một dòng.
+    app.include_router(me.router, prefix="/api/me")
+    app.include_router(admin.router, prefix="/api/admin")
+    # Router nghiệp vụ khác thêm ở đây, mỗi cái một dòng.
     return app
 
 

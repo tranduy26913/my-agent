@@ -30,3 +30,15 @@ next-env.d.ts
 /librechat/uploads/
 /librechat/logs/
 /librechat/persona-accounts.txt
+
+# Zitadel: PAT khởi tạo (IAM_OWNER) - bí mật
+/librechat/zitadel-bootstrap/
+/infra/zitadel/out/
+
+# Bản sao lưu Mongo của LibreChat (chứa hội thoại người dùng)
+/librechat/backups/
+
+# OCR engine: model (~7 GB) và log tải về
+/ocr-engine/model/
+/ocr-engine/download.log
+/ocr-engine/models/

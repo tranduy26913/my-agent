@@ -170,7 +170,7 @@ def test_khong_import_thang_app_security(name):
 
 def test_router_kb_chi_import_xac_thuc_tu_deps():
     src = (APP_DIR / "api" / "kb.py").read_text(encoding="utf-8")
-    assert "from app.api.deps import" in src and "require_roles" in src
+    assert "from app.api.deps import" in src and "get_kb_admin" in src
 
 
 def test_khong_bat_cors():

@@ -15,7 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from pydantic.alias_generators import to_camel
 from sqlalchemy.orm import Session
 
-from app.api.deps import UserInfo, get_db, require_roles
+from app.api.deps import Actor, get_db, get_kb_admin
 from app.config import settings
 from app.models import Document
 from app.rag import kb_service
@@ -24,7 +24,7 @@ from app.rag.kb_service import DocNotFound, KbError
 # Mọi endpoint của module này chỉ dành cho admin.
 # Xác thực import từ app/api/deps.py, không import thẳng app.security.
 router = APIRouter(tags=["kb"])
-admin_only = require_roles("admin")
+admin_only = get_kb_admin  # JWT cũ (role admin) hoặc token Zitadel của nhân viên có vai trò admin
 
 
 class CamelModel(BaseModel):
@@ -191,7 +191,7 @@ def to_kb_detail(detail: kb_service.DocDetail) -> KbDocumentDetailOut:
 # SQLAlchemy Session đồng bộ thì `def` + thread pool là cách đơn giản và đúng.)
 
 @router.get("/documents", response_model=list[KbDocumentOut])
-def list_documents(user: UserInfo = Depends(admin_only), db: Session = Depends(get_db)):
+def list_documents(user: Actor = Depends(admin_only), db: Session = Depends(get_db)):
     return [to_kb_document(r.document, r.username, r.chunk_count) for r in kb_service.list_documents(db)]
 
 
@@ -217,31 +217,31 @@ _BATCH_RESPONSES = {207: {"description": "Một số tài liệu lỗi; các tà
 
 
 @router.post("/documents:reindex", status_code=204, responses=_BATCH_RESPONSES)
-def reindex_documents(body: DocIdsIn, user: UserInfo = Depends(admin_only), db: Session = Depends(get_db)):
+def reindex_documents(body: DocIdsIn, user: Actor = Depends(admin_only), db: Session = Depends(get_db)):
     # Đồng bộ: embed nặng CPU, lô lớn có thể lâu (trạng thái `processing` thật + hàng đợi: để sau, docs/08)
-    return _batch_response(kb_service.reindex_documents(db, body.doc_ids, user.id), "Nạp lại")
+    return _batch_response(kb_service.reindex_documents(db, body.doc_ids, user.id, user.name), "Nạp lại")
 
 
 @router.post("/documents:delete", status_code=204, responses=_BATCH_RESPONSES)
-def delete_documents(body: DocIdsIn, user: UserInfo = Depends(admin_only), db: Session = Depends(get_db)):
-    return _batch_response(kb_service.delete_documents(db, body.doc_ids, user.id), "Xoá")
+def delete_documents(body: DocIdsIn, user: Actor = Depends(admin_only), db: Session = Depends(get_db)):
+    return _batch_response(kb_service.delete_documents(db, body.doc_ids, user.id, user.name), "Xoá")
 
 
 @router.put("/documents/{doc_id}/quarantine", status_code=204)
 def set_quarantine(
-    doc_id: str, body: QuarantineIn, user: UserInfo = Depends(admin_only), db: Session = Depends(get_db)
+    doc_id: str, body: QuarantineIn, user: Actor = Depends(admin_only), db: Session = Depends(get_db)
 ):
     try:
-        kb_service.set_quarantine(db, doc_id, body.on, user.id)
+        kb_service.set_quarantine(db, doc_id, body.on, user.id, user.name)
     except DocNotFound as e:
         raise HTTPException(404, "Không tìm thấy tài liệu") from e
     return Response(status_code=204)
 
 
 @router.get("/documents/{doc_id}", response_model=KbDocumentDetailOut)
-def get_document(doc_id: str, user: UserInfo = Depends(admin_only), db: Session = Depends(get_db)):
+def get_document(doc_id: str, user: Actor = Depends(admin_only), db: Session = Depends(get_db)):
     try:
-        detail = kb_service.get_detail(db, doc_id, actor_id=user.id)
+        detail = kb_service.get_detail(db, doc_id, actor_id=user.id, actor_name=user.name)
     except DocNotFound as e:
         raise HTTPException(404, "Không tìm thấy tài liệu") from e
     return to_kb_detail(detail)
@@ -251,7 +251,7 @@ def get_document(doc_id: str, user: UserInfo = Depends(admin_only), db: Session 
 def check_access(
     doc_id: str,
     email: str = Query(..., min_length=3, description="Email nhân viên cần kiểm tra"),
-    user: UserInfo = Depends(admin_only),
+    user: Actor = Depends(admin_only),
     db: Session = Depends(get_db),
 ):
     try:
@@ -267,7 +267,7 @@ def check_access(
 def upload_document(
     file: UploadFile = File(...),
     meta: str | None = Form(None, description="Chuỗi JSON UploadMeta; bỏ trống khi .md đã có frontmatter"),
-    user: UserInfo = Depends(admin_only),
+    user: Actor = Depends(admin_only),
     db: Session = Depends(get_db),
 ):
     # `def` thường: embed và OCR nặng CPU, chạy trong thread pool để không chặn event loop.
@@ -288,7 +288,7 @@ def upload_document(
     try:
         row = kb_service.upload_document(
             db, data=data, filename=file.filename or "", content_type=file.content_type,
-            meta=doc_meta, actor_id=user.id,
+            meta=doc_meta, actor_id=user.id, actor_name=user.name,
         )
     except KbError as e:
         raise HTTPException(e.status_code, str(e)) from e

@@ -83,7 +83,7 @@ def _kb_env(kb_db, tmp_path, monkeypatch):
     """
     from fastapi.testclient import TestClient
 
-    from app.api.deps import UserInfo, get_current_user, get_db
+    from app.api.deps import UserInfo, get_db, get_legacy_user
     from app.main import create_app
     from app.rag.embeddings import get_embedder
 
@@ -93,6 +93,6 @@ def _kb_env(kb_db, tmp_path, monkeypatch):
     admin = add_user(kb_db)
     app = create_app()
     app.dependency_overrides[get_db] = lambda: kb_db
-    app.dependency_overrides[get_current_user] = lambda: UserInfo(admin.id, "test.admin", "admin", "CNTT")
+    app.dependency_overrides[get_legacy_user] = lambda: UserInfo(admin.id, "test.admin", "admin", "CNTT")
     yield TestClient(app, raise_server_exceptions=False), kb_db, admin, tmp_path / "uploads"
     get_embedder.cache_clear()

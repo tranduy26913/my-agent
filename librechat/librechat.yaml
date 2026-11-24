@@ -12,9 +12,9 @@ interface:
   # GĐ0 Ngày 2 sẽ thử bật/tắt các quyền này theo role.
 
 registration:
-  # GĐ0 chỉ dùng đăng nhập email/mật khẩu (ALLOW_EMAIL_LOGIN trong .env).
-  # Ngày 2 thử thêm 'openid' (Keycloak hoặc Entra ID).
-  socialLogins: []
+  # Đăng nhập một lần qua Zitadel (OIDC; biến OPENID_* trong .env, docs/06 giai đoạn 3). Đăng nhập email/mật
+  # khẩu (ALLOW_EMAIL_LOGIN) còn bật cho đến khi OIDC chạy ổn, rồi mới tắt cùng OPENID_AUTO_REDIRECT=true.
+  socialLogins: ['openid']
 
 # Ngân sách token theo user (M1). Bật thì giao dịch token luôn được ghi.
 balance:
@@ -34,9 +34,13 @@ mcpServers:
     url: http://host.docker.internal:8100/mcp
     timeout: 120000 # embed + truy xuất + sinh câu trả lời có thể mất vài chục giây
     headers:
-      # Email người đang chat -> knowledge-mcp tra phòng ban/vai trò trong DB để lọc quyền tài liệu
+      # ĐÍCH: access token Zitadel của người đang chat (cần OPENID_REUSE_TOKENS=true). knowledge-mcp tự kiểm chữ
+      # ký và lấy email đã xác minh trong token, nên không còn tin email do client khai. Người dùng đăng nhập bằng
+      # email/mật khẩu thì LibreChat không có token để thay: biến giữ nguyên, knowledge-mcp bỏ qua dòng này.
+      Authorization: "Bearer {{LIBRECHAT_OPENID_ACCESS_TOKEN}}"
+      # TẠM (đến khi bỏ đăng nhập mật khẩu, rồi đặt KB_MCP_ALLOW_SHARED_TOKEN=false ở backend và xoá hai dòng dưới):
+      # email người đang chat + bí mật dùng chung chứng minh request đến từ LibreChat.
       X-User-Email: "{{LIBRECHAT_USER_EMAIL}}"
-      # Bí mật dùng chung (librechat/.env) -> chứng minh request đến từ LibreChat
       X-KB-Token: "${KB_MCP_TOKEN}"
 
 # Ngày 6 sẽ thêm hr-mcp vào mcpServers ở trên:

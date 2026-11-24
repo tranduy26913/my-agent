@@ -2,11 +2,15 @@
 
     python -m app.knowledge_mcp          # nghe ở 0.0.0.0:8100/mcp
 
-Xác thực 2 lớp:
-1. X-KB-Token  : bí mật dùng chung với LibreChat -> chứng minh request đến từ LibreChat.
-2. X-User-Email: LibreChat điền {{LIBRECHAT_USER_EMAIL}} của người đang chat. CHỈ tin header này khi
-   token đúng; sau đó tra phòng ban/vai trò trong DB (không nhận vai trò do client gửi).
-Không có token đúng -> từ chối hết (fail closed), kể cả khi chạy dev.
+Xác thực (docs/06 giai đoạn 4.3), thử theo thứ tự:
+1. Authorization: Bearer <access token Zitadel> (đường đích); LibreChat điền
+   {{LIBRECHAT_OPENID_ACCESS_TOKEN}};
+   token được kiểm chữ ký/iss/aud rồi lấy email đã xác minh trong đó, không tin email do client tự khai.
+2. TẠM (cờ KB_MCP_ALLOW_SHARED_TOKEN, mặc định bật đến khi chuyển xong, giai đoạn 6 xoá):
+   X-KB-Token (bí mật dùng chung với LibreChat) + X-User-Email ({{LIBRECHAT_USER_EMAIL}}); chỉ tin email
+   khi token đúng.
+Có Bearer mà sai thì từ chối luôn, không lùi về đường 2. Sau khi có email, phòng ban/vai trò tra trong DB
+(không nhận vai trò do client gửi). Không có gì hợp lệ -> từ chối hết (fail closed), kể cả khi chạy dev.
 """
 
 import hmac
@@ -17,6 +21,7 @@ import anyio
 from mcp.server.mcpserver import Context, MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
 
+from app.auth.oidc import OidcError, OidcVerifier, get_verifier
 from app.config import settings
 from app.db import SessionLocal
 from app.rag.acl import load_principal
@@ -33,15 +38,34 @@ mcp = MCPServer(
 )
 
 
-def _authenticate(ctx: Context) -> str:
-    headers = {k.lower(): v for k, v in (ctx.headers or {}).items()}
+def authenticate_headers(headers: dict[str, str], verifier: OidcVerifier | None) -> str:
+    """Email của người đang chat, hoặc PermissionError. Tách khỏi Context để test không cần dựng MCP."""
+    headers = {k.lower(): v for k, v in headers.items()}
+    auth = headers.get("authorization", "").strip()
+    # "{{" (hoặc chuỗi rỗng sau "Bearer") = LibreChat chưa thay biến vì người dùng không đăng nhập bằng OIDC
+    # (vd vẫn dùng email/mật khẩu): coi như không có Bearer.
+    if auth.lower().startswith("bearer ") and "{{" not in auth and auth[7:].strip():
+        if verifier is None:
+            raise PermissionError("knowledge-mcp: chưa cấu hình OIDC để kiểm Bearer token")
+        try:
+            return verifier.identity(auth[7:].strip()).email
+        except OidcError as e:
+            raise PermissionError(f"knowledge-mcp: {e}") from e
+    if not settings.kb_mcp_allow_shared_token:
+        raise PermissionError("knowledge-mcp: thiếu Bearer token")
     token = headers.get("x-kb-token", "")
-    if not settings.kb_mcp_token or not hmac.compare_digest(token, settings.kb_mcp_token):
+    expected = settings.kb_mcp_token.encode()
+    # So sánh bytes: compare_digest với str chỉ nhận ASCII, header chứa ký tự lạ sẽ thành lỗi 500.
+    if not expected or not hmac.compare_digest(token.encode(), expected):
         raise PermissionError("knowledge-mcp: thiếu hoặc sai X-KB-Token")
     email = headers.get("x-user-email", "").strip()
     if not email or "{{" in email:  # placeholder chưa được LibreChat thay = cấu hình sai
         raise PermissionError("knowledge-mcp: không xác định được người dùng (X-User-Email)")
     return email
+
+
+def _authenticate(ctx: Context) -> str:
+    return authenticate_headers(dict(ctx.headers or {}), get_verifier())
 
 
 def _ask_sync(email: str, question: str, as_of: date | None) -> str:

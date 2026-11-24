@@ -71,7 +71,7 @@ Nhờ vậy, một người không thể xem được trên portal mà lại b�
   - Mọi dịch vụ phụ thuộc vào `auth.tranduyai.id.vn`: Zitadel sập thì không ai đăng nhập được.
   - Zitadel không export cấu hình ra một file như realm của Keycloak, nên phải viết script khởi tạo chạy lại được nhiều lần.
 - **Rủi ro cần kiểm chứng:**
-  - LibreChat có tự gắn tài khoản persona cũ (Mongo) vào tài khoản OIDC theo email không.
+  - ~~LibreChat có tự gắn tài khoản persona cũ (Mongo) vào tài khoản OIDC theo email không.~~ **Không** (đã đọc mã v0.8.9, 2026-11-23): tài khoản có `provider` khác `openid` bị từ chối đăng nhập OIDC. Các persona cũ đã bị xoá và tạo mới qua OIDC (docs/06 giai đoạn 3).
   - `{{LIBRECHAT_OPENID_ACCESS_TOKEN}}` có được truyền sang MCP qua `streamable-http` không.
   - Khi `OPENID_REUSE_TOKENS=true`, token có được làm mới đúng lúc không.
 

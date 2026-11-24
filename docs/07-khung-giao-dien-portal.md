@@ -13,11 +13,11 @@ Bộ mặt giữ nguyên theo `DESIGN.md`: phong cách Clean (P13), sidebar tr�
 | `/tools/van-ban` | mọi người | Duyệt các văn bản **mình được xem**, có lọc theo loại/phòng/hiệu lực | `GET /api/kb/library` (đã lọc qua `acl_sql`) | Chưa làm |
 | `/tools/nghi-phep` | mọi người; quản lý có thêm tab "Nhóm của tôi" | Số ngày phép còn lại, đơn nghỉ; quản lý xem đơn của cấp dưới | `/api/hr/*` (ADR-003) | Chưa làm, chờ hr service |
 | `/tools/danh-ba` | mọi người | Tìm đồng nghiệp; số điện thoại hiện theo `can_view_phone` | `/api/hr/directory` | Chưa làm |
-| `/tools/ocr` | mọi người (hoặc theo vai trò, xem mục 6) | Tải ảnh/PDF lên, nhận lại văn bản | **Session OCR quyết định** | Chừa chỗ |
+| `/tools/ocr` | mọi người | Tải ảnh/PDF lên, nhận lại văn bản (đồng bộ hoặc job nền) | `/api/ocr/recognize`, `/api/ocr/jobs` (ADR-005) | Đang làm (mục 6) |
 | `/admin/kb` | `admin` | Kho tri thức: mô-đun `features/kb` đã có | `/api/kb/*` | **Đã làm**; backend `/api/kb` có sẵn, nối qua BFF (cần `API_DEV_TOKEN` để dùng dữ liệu thật) |
 | `/admin/users` | `admin` | Tài khoản: tạo, khoá/mở, đặt lại mật khẩu; liên kết với `employees` | `/api/admin/users` → Zitadel User Service (API v2) | Chưa làm |
-| `/admin/audit` | `admin` | Nhật ký: lọc theo người, sự kiện, thời gian; làm nổi `kb_view_classified` và `tool_denied` | `GET /api/admin/audit` | Chưa làm |
-| `/admin/usage` | `admin` | Chi phí và lượt gọi theo người, theo model, theo tháng | `GET /api/admin/usage` (`usage_logs`) | Chưa làm |
+| `/admin/audit` | `admin` | Nhật ký: lọc theo người, sự kiện, thời gian; làm nổi `kb_view_classified` và `tool_denied` | `GET /api/admin/audit` | **Đã làm** (2026-11-23): `features/audit`, `backend/app/api/admin.py`; bộ lọc theo sự kiện, người, ngày; phân trang bằng con trỏ. **Không trả nội dung nhạy cảm** (câu hỏi của nhân viên, tham số/kết quả tool): `detail` lọc theo danh sách trắng từng sự kiện |
+| `/admin/usage` | `admin` | Chi phí và lượt gọi theo người, theo model, theo tháng | `GET /api/admin/usage` (`usage_logs`) | **Đã làm** (2026-11-23): `features/usage`; chọn tháng, số tổng, bảng theo người (so với ngân sách) / mô hình / mục đích / ngày |
 | `/403`, `/not-found` | | Trang báo lỗi, nói rõ lý do và cách xử lý | | **Đã làm** |
 
 Nên làm theo thứ tự: khung + `/` → `/admin/kb` (gắn API thật) → `/admin/users` → `/tools/tra-cuu` → các trang còn lại.
@@ -99,16 +99,18 @@ Hàng rào ESLint đổi theo: mô-đun trong `src/features/` vẫn không impor
 | 403 | Ghi rõ lý do backend trả về, ví dụ "Chưa có trong danh bạ nhân sự" hoặc "Cần vai trò admin" |
 | Đã ghi nhật ký | Với các thao tác có ghi audit (xem tài liệu Mật, tạo tài khoản): hiện một dòng nhỏ báo cho người dùng biết |
 
-## 6. Phần OCR: phối hợp với session đang làm OCR
+## 6. Phần OCR (đã có API, ADR-005)
 
-Phần OCR đang được làm ở một session khác, nên tài liệu này **chỉ chừa chỗ, không đặt hợp đồng API thay cho bên đó**.
-- Mục `ocr` có sẵn trong `nav.ts`. Trang `/tools/ocr` tạm hiện trạng thái "Đang phát triển".
-- Khi bên OCR chốt endpoint, mô-đun `features/ocr/` viết `types.ts` theo đúng hợp đồng đó. Các trạng thái chắc chắn sẽ cần: đang tải lên (có %), đang xử lý (OCR chậm, mỗi trang vài giây), kết quả theo từng trang, lỗi định dạng hoặc lỗi quá cỡ.
-- Ba câu cần bên OCR trả lời trước khi làm giao diện:
-  1. Xử lý đồng bộ, hay trả `jobId` rồi để portal hỏi lại trạng thái?
-  2. Kết quả có được lưu không, hay chỉ trả về một lần?
-  3. Có cho "đưa kết quả vào kho tri thức" không? Nếu có thì đi qua `/api/kb/documents` (có quyền và metadata), không tạo đường riêng.
-- Upload trong `/admin/kb` đã có xử lý OCR phía backend (`ocr_pages`). Trang `/tools/ocr` khác ở chỗ người dùng chỉ lấy chữ ra, **không** nạp vào kho.
+Backend OCR (`/api/ocr/*`) đã chốt hợp đồng. Ba câu hỏi cũ được trả lời như sau:
+1. **Đồng bộ hay job:** có cả hai. `/recognize` đồng bộ cho file nhỏ (≤ 20 MB, ≤ 10 trang); `/jobs` bất đồng bộ cho file lớn (≤ 50 MB, ≤ 100 trang), portal hỏi lại trạng thái bằng `GET /jobs/{id}` (chưa có SSE).
+2. **Có lưu kết quả không:** chỉ job được lưu (văn bản kết quả, không lưu file gốc, không lưu tên file), hết hạn sau 7 ngày, chỉ chủ job xem được. `/recognize` trả một lần, không lưu.
+3. **Đưa vào kho tri thức:** không. Trang `/tools/ocr` chỉ lấy chữ ra. Muốn nạp kho thì dùng `/admin/kb` (đi qua phạm vi truy cập và làm sạch prompt injection).
+
+**Đã làm (2026-11-24):** `features/ocr/` + trang `/tools/ocr`, gọi qua BFF bằng Bearer của chính người dùng (OCR đã chuyển sang Zitadel, ADR-005 mục 5).
+- **Quy tắc chọn đường:** ảnh (PNG, JPEG, TIFF, BMP) là một trang nên gọi `/recognize` đồng bộ (≤ 20 MB); PDF gọi `/jobs` (≤ 50 MB) vì portal không biết số trang và OCR mỗi trang mất vài giây. Mỗi người tối đa 3 job đang chạy (429 khi vượt).
+- Hiện kết quả theo từng trang kèm nhãn nguồn `text-layer` hoặc `ocr`, nút sao chép từng trang và cả tài liệu.
+- Danh sách job gần đây (7 ngày) với tiến độ `pages_done/pages_total`, mở lại kết quả, xoá job.
+- **Chưa làm:** `/extract` (trích xuất phiếu công tác phí: đồng bộ 7–13 giây, ADR-005 mục 8); chọn engine (chỉ dùng engine mặc định).
 
 ## 7. Đổi tên `kb-admin` thành `portal`
 
@@ -127,4 +129,4 @@ Ghi chú khi làm: không đổi tên thẳng được `kb-admin` vì một ti�
 4. Tạm dùng `getMe()` dạng mock, có công tắc đổi vai trò admin/nhân viên ở chế độ dev, để thử menu theo vai trò khi chưa có Zitadel.
 5. Chạy `npm run typecheck`, `npm run lint`, rồi mở portal ở cỡ điện thoại và cỡ máy tính, với cả hai vai trò, để kiểm.
 
-Khi Zitadel xong (giai đoạn 5 của 06), chỉ cần thay `getMe()` mock bằng phiên thật và bật `middleware.ts`.
+Đã làm ở giai đoạn 5 của 06 (2026-11-23): `getMe()` đọc phiên Auth.js rồi gọi `GET /api/me`, `src/proxy.ts` (tên mới của middleware ở Next 16) chặn route; xem [portal/README.md](../portal/README.md). Người dùng giả chỉ còn khi `PORTAL_DEV_AUTH=1`.

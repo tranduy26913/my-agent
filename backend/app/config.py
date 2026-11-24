@@ -41,7 +41,23 @@ class Settings(BaseSettings):
     ocr_lang: str = "vie+eng"
 
     # --- Dịch vụ OCR (ADR-005) ---
-    ocr_engine: str = "tesseract"  # engine mặc định: tesseract | (sau này) unlimited
+    ocr_engine: str = "tesseract"  # engine mặc định: tesseract | unlimited
+    # Engine unlimited (Unlimited-OCR-2 qua SGLang, thư mục ocr-engine/). Để URL rỗng = engine tắt (503).
+    ocr_sglang_url: str = ""  # ví dụ http://127.0.0.1:10000
+    ocr_sglang_api_key: str = ""
+    ocr_sglang_model: str = "Unlimited-OCR-2"
+    ocr_sglang_prompt: str = "<PAGE><image>Multi page parsing."  # theo model card; chưa kiểm với server thật
+    ocr_sglang_max_tokens: int = 8000  # mỗi trang
+    ocr_sglang_crop_mode: bool = True  # True = chia ô "gundam" cho trang chi tiết; False = base
+    ocr_sglang_timeout: float = 180.0
+    # Chuỗi custom_logit_processor (chống lặp n-gram) do SGLang sinh một lần; rỗng = không dùng.
+    ocr_sglang_logit_processor: str = ""
+    # Engine paddleocr_vl (PaddleOCR-VL-1.6, server ở ocr-engine/run-paddle.sh). URL rỗng = engine tắt.
+    ocr_paddlevl_url: str = ""  # ví dụ http://127.0.0.1:10001
+    ocr_paddlevl_timeout: float = 300.0  # mỗi vùng ảnh; lần gọi đầu còn phải nạp model (~10 giây)
+    ocr_paddlevl_split_tables: bool = True  # cắt trang ở khung bảng để mỗi dòng bảng nằm trên một dòng chữ
+    # Engine dự phòng khi engine MẶC ĐỊNH chưa sẵn sàng (vd server OCR tắt). Rỗng = không dự phòng, trả 503.
+    ocr_fallback_engine: str = ""
     # Đường dẫn tesseract.exe. Để rỗng = tự tìm trong PATH, rồi thư mục cài mặc định trên Windows.
     tesseract_cmd: str = ""
     # Khử nhiễu + nhị phân + xóa đường kẻ bảng trước khi đưa vào Tesseract (app/ocr/preprocess.py).
@@ -76,9 +92,19 @@ class Settings(BaseSettings):
     # Bí mật dùng chung giữa LibreChat và knowledge-mcp. Header X-User-Email chỉ được tin
     # khi request mang đúng token này (chứng minh request đến từ LibreChat, không phải ai đó tự gọi).
     kb_mcp_token: str = ""
+    # TẠM: còn nhận X-KB-Token + X-User-Email khi không có Bearer. Đặt false khi LibreChat đã gửi Bearer.
+    kb_mcp_allow_shared_token: bool = True
     # TẠM (đến khi có Zitadel, docs/06 giai đoạn 4): bí mật dùng chung giữa BFF của portal và FastAPI.
     # /api/kb/ask chỉ tin header X-User-Email khi request mang đúng token này. Khác hẳn kb_mcp_token.
     portal_bff_token: str = ""
+
+    # --- Đăng nhập Zitadel (docs/06, ADR-004). Rỗng = chưa bật: mọi Bearer token bị từ chối (fail closed) ---
+    oidc_issuer: str = ""  # vd https://auth.tranduyai.id.vn: `iss` trong token phải khớp CHÍNH XÁC
+    oidc_project_id: str = ""  # id project `svt` (infra/zitadel/out/generated.json): `aud` phải chứa nó
+    # Địa chỉ gọi Zitadel từ backend (JWKS, userinfo). Rỗng = dùng oidc_issuer. Dev khi chưa có route tunnel:
+    # http://127.0.0.1:8180 kèm oidc_host_header=auth.tranduyai.id.vn (Zitadel chọn instance theo Host).
+    oidc_internal_url: str = ""
+    oidc_host_header: str = ""
 
     # --- Agent ---
     agent_max_steps: int = 8

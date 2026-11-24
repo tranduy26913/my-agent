@@ -122,6 +122,14 @@ def get_row(db: Session, doc_id: str) -> DocRow:
     return DocRow(d, name, int(n))
 
 
+def _audit(actor_id: int | None, actor_name: str | None, event: str, detail: dict) -> AuditLog:
+    """Dòng audit của thao tác quản trị. Người dùng Zitadel chưa có dòng trong bảng users (actor_id = None),
+    nên ghi email vào detail["actor"]; KHÔNG nhét employee_id vào user_id vì hai không gian id sẽ lẫn nhau."""
+    if actor_id is None and actor_name:
+        detail = {**detail, "actor": actor_name}
+    return AuditLog(user_id=actor_id, event=event, detail=detail)
+
+
 def history_text(event: str, detail: dict) -> str:
     """Câu tiếng Việt cho một dòng audit. Sự kiện lạ vẫn hiện (tên sự kiện), không giấu."""
     match event:
@@ -148,12 +156,14 @@ def _history(db: Session, doc_id: str) -> list[HistoryRow]:
         .order_by(AuditLog.ts.desc(), AuditLog.id.desc())
     )
     return [
-        HistoryRow(ts, username or "hệ thống", history_text(event, detail or {}))
+        HistoryRow(
+            ts, username or (detail or {}).get("actor") or "hệ thống", history_text(event, detail or {})
+        )
         for ts, event, detail, username in db.execute(stmt).all()
     ]
 
 
-def get_detail(db: Session, doc_id: str, actor_id: int) -> DocDetail:
+def get_detail(db: Session, doc_id: str, actor_id: int | None, actor_name: str | None = None) -> DocDetail:
     """Chi tiết một tài liệu: chunk theo thứ tự + lịch sử.
 
     Ngoại lệ ADR-004 mục 4: admin được xem chunk tài liệu Mật nhưng PHẢI để lại dấu vết. Ghi audit (flush)
@@ -165,10 +175,8 @@ def get_detail(db: Session, doc_id: str, actor_id: int) -> DocDetail:
     row = get_row(db, doc_id)
     classified = row.document.classification == "Mat"
     if classified:
-        db.add(AuditLog(
-            user_id=actor_id, event=EV_VIEW_CLASSIFIED,
-            detail={"doc_id": doc_id, "chunks": row.chunk_count},
-        ))
+        info = {"doc_id": doc_id, "chunks": row.chunk_count}
+        db.add(_audit(actor_id, actor_name, EV_VIEW_CLASSIFIED, info))
         db.flush()
 
     chunks = [
@@ -433,7 +441,7 @@ def _check_meta(meta: DocMeta) -> None:
 
 def upload_document(
     db: Session, *, data: bytes, filename: str, content_type: str | None, meta: DocMeta | None,
-    actor_id: int, today: date | None = None,
+    actor_id: int | None, actor_name: str | None = None, today: date | None = None,
 ) -> DocRow:
     """Nạp một tài liệu mới. Toàn bộ ghi DB (tài liệu, chunk, thay thế bản cũ, audit) trong MỘT transaction.
 
@@ -499,7 +507,7 @@ def upload_document(
             n_chunks = len(chunks)
             db.add(doc)
         # Riêng tư: không ghi tên tệp vào audit (cùng nguyên tắc với /api/ocr)
-        db.add(AuditLog(user_id=actor_id, event=EV_UPLOAD, detail={
+        db.add(_audit(actor_id, actor_name, EV_UPLOAD, {
             "doc_id": doc_id, "kind": ext.lstrip("."), "bytes": len(data), "chunks": n_chunks,
             "ocr_pages": ocr_pages, "supersedes": supersedes,
         }))
@@ -566,7 +574,7 @@ def _run_batch(db: Session, doc_ids: list[str], action) -> list[BatchItem]:
 
 # ---- nạp lại
 
-def _reindex_one(db: Session, doc_id: str, actor_id: int) -> None:
+def _reindex_one(db: Session, doc_id: str, actor_id: int | None, actor_name: str | None) -> None:
     """Cắt đoạn và tạo vector lại từ bản gốc (`source`), GIỮ NGUYÊN metadata trong DB.
 
     Cố ý không dùng ingest_markdown(force=True): nó ghi đè mọi cột từ frontmatter, kể cả `superseded_by` và
@@ -589,24 +597,28 @@ def _reindex_one(db: Session, doc_id: str, actor_id: int) -> None:
         c.document_id = doc.id
     db.add_all(chunks)
     doc.ocr_pages = ocr_pages
-    db.add(AuditLog(user_id=actor_id, event=EV_REINDEX, detail={"doc_id": doc_id, "chunks": len(chunks)}))
+    db.add(_audit(actor_id, actor_name, EV_REINDEX, {"doc_id": doc_id, "chunks": len(chunks)}))
     db.commit()
 
 
-def reindex_documents(db: Session, doc_ids: list[str], actor_id: int) -> list[BatchItem]:
-    return _run_batch(db, doc_ids, lambda s, d: _reindex_one(s, d, actor_id))
+def reindex_documents(
+    db: Session, doc_ids: list[str], actor_id: int | None, actor_name: str | None = None
+) -> list[BatchItem]:
+    return _run_batch(db, doc_ids, lambda s, d: _reindex_one(s, d, actor_id, actor_name))
 
 
 # ---- cách ly
 
-def set_quarantine(db: Session, doc_id: str, on: bool, actor_id: int) -> bool:
+def set_quarantine(
+    db: Session, doc_id: str, on: bool, actor_id: int | None, actor_name: str | None = None
+) -> bool:
     """Bật/tắt cờ cách ly (retriever.py đã lọc `quarantined` trong SQL). Trả True nếu có đổi.
     Đặt lại đúng giá trị hiện tại thì không làm gì và không ghi audit."""
     doc = _get_doc(db, doc_id)
     if doc.quarantined == on:
         return False
     doc.quarantined = on
-    db.add(AuditLog(user_id=actor_id, event=EV_QUARANTINE, detail={"doc_id": doc_id, "on": on}))
+    db.add(_audit(actor_id, actor_name, EV_QUARANTINE, {"doc_id": doc_id, "on": on}))
     db.commit()
     return True
 
@@ -628,7 +640,7 @@ def _remove_stored_file(db: Session, source: str) -> None:
         log.warning("Không xoá được bản gốc của tài liệu đã gỡ: %s", type(e).__name__)
 
 
-def _delete_one(db: Session, doc_id: str, actor_id: int) -> None:
+def _delete_one(db: Session, doc_id: str, actor_id: int | None, actor_name: str | None) -> None:
     doc = _get_doc(db, doc_id)
     source = doc.source
     n_chunks = db.execute(
@@ -642,12 +654,14 @@ def _delete_one(db: Session, doc_id: str, actor_id: int) -> None:
     # DELETE trực tiếp thay vì db.delete(doc): ORM sẽ nạp cả collection chunks (kèm vector) để xoá từng dòng
     db.execute(delete(Chunk).where(Chunk.document_id == doc.id))
     db.execute(delete(Document).where(Document.id == doc.id))
-    db.add(AuditLog(user_id=actor_id, event=EV_DELETE, detail={
+    db.add(_audit(actor_id, actor_name, EV_DELETE, {
         "doc_id": doc_id, "chunks": n_chunks, "classified": classified,
     }))
     db.commit()
     _remove_stored_file(db, source)  # sau commit: DB lỗi thì tệp vẫn còn để thử lại
 
 
-def delete_documents(db: Session, doc_ids: list[str], actor_id: int) -> list[BatchItem]:
-    return _run_batch(db, doc_ids, lambda s, d: _delete_one(s, d, actor_id))
+def delete_documents(
+    db: Session, doc_ids: list[str], actor_id: int | None, actor_name: str | None = None
+) -> list[BatchItem]:
+    return _run_batch(db, doc_ids, lambda s, d: _delete_one(s, d, actor_id, actor_name))

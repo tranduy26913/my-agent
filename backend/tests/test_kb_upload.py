@@ -12,7 +12,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
-from app.api.deps import UserInfo, get_current_user, get_db
+from app.api.deps import UserInfo, get_db, get_legacy_user
 from app.config import settings
 from app.main import create_app
 from app.models import Document
@@ -77,7 +77,7 @@ def env(kb_db, tmp_path, monkeypatch):
     admin = add_user(kb_db)
     app = create_app()
     app.dependency_overrides[get_db] = lambda: kb_db
-    app.dependency_overrides[get_current_user] = lambda: UserInfo(admin.id, "test.admin", "admin", "CNTT")
+    app.dependency_overrides[get_legacy_user] = lambda: UserInfo(admin.id, "test.admin", "admin", "CNTT")
     yield TestClient(app, raise_server_exceptions=False), kb_db, admin, tmp_path / "uploads"
     get_embedder.cache_clear()
 
@@ -136,7 +136,7 @@ def test_upload_can_dang_nhap_va_admin():
     app.dependency_overrides[get_db] = lambda: None
     files = {"file": ("a.md", b"# x", MD)}
     assert TestClient(app).post(URL, files=files).status_code == 401
-    app.dependency_overrides[get_current_user] = lambda: UserInfo(2, "nv", "staff", "KD")
+    app.dependency_overrides[get_legacy_user] = lambda: UserInfo(2, "nv", "staff", "KD")
     assert TestClient(app).post(URL, files=files).status_code == 403
 
 

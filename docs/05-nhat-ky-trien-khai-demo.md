@@ -86,6 +86,16 @@ Sau đó đo lại bằng đúng quy trình này.
 
 **Sự cố trong lúc đo:** sau khi restart WSL, backend bị `agent-db` từ chối mật khẩu của role `agent`, dù phía client không đổi gì. Lúc 12:30 vẫn đăng nhập được, nên mật khẩu lưu trong DB đã bị đổi trong khoảng 12:31–12:40. Chưa rõ ai đổi, vì Postgres không ghi log câu lệnh. Đã đặt lại bằng `ALTER ROLE agent PASSWORD ...` về giá trị trong `config.py`. Nếu gặp lại lỗi này: kiểm tra xem có session hoặc script nào khác chạy `ALTER ROLE` không.
 
+### 4.2 Zitadel giai đoạn 1 đã chạy (2026-11-23)
+
+- Service `zitadel` trong `librechat/docker-compose.override.yml`: ảnh `ghcr.io/zitadel/zitadel:v4.20.5`, cổng `127.0.0.1:8180`, DB `zitadel` nằm trong `agent-db` (user `zitadel` riêng, không đọc được DB `agent` của backend).
+- **RAM: khoảng 79 MB** (`docker stats`, lúc rảnh, CPU ~1%), thấp hơn nhiều so với ước tính 512 MB; `mem_limit` vẫn để 512m. Máy còn khoảng 2,3 GB khả dụng sau khi bật, trước đó 2,8 GB. Chưa đo lúc đỉnh (nạp model).
+- **Login V1, không có container `zitadel-login`:** đặt `ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED=false` (mặc định của v4 là `true`). Docs Zitadel nói ở lại Login V1 là cách được hỗ trợ ở v4. Kiểm: `/ui/login/loginname` trả 200, `/ui/v2/login/` trả 404 (đúng như mong đợi).
+- **Healthcheck:** lệnh `zitadel ready` đọc `TLS.Enabled` từ cấu hình chứ không đọc cờ `--tlsMode`, nên phải thêm `ZITADEL_TLS_ENABLED=false`, nếu không nó gọi `https://localhost:8080` và báo "not ready" mãi.
+- Kiểm bằng `curl -H "Host: auth.tranduyai.id.vn" http://127.0.0.1:8180/.well-known/openid-configuration`: `issuer` là `https://auth.tranduyai.id.vn`. Zitadel chọn instance theo header Host, nên vào thẳng `localhost:8180` bằng trình duyệt sẽ không được; cần route tunnel (hoặc dòng trong file hosts).
+- Bí mật (`ZITADEL_MASTERKEY`, `ZITADEL_DB_PASSWORD`, `ZITADEL_ADMIN_PASSWORD`) nằm trong `librechat/.env`; PAT khởi tạo nằm ở `librechat/zitadel-bootstrap/bootstrap.pat` (đã `.gitignore`). **Sao lưu `ZITADEL_MASTERKEY` cùng DB `zitadel`.**
+- **Việc còn lại của giai đoạn 1 (phải làm trên Cloudflare, tunnel chạy bằng token nên route cấu hình trên dashboard):** thêm Public hostname `auth.tranduyai.id.vn` → `HTTP://localhost:8180`, bật HTTP/2 origin; thêm Access policy cho `auth.tranduyai.id.vn/ui/console*`.
+
 ## 5. Vấn đề còn tồn tại
 
 1. **Chậm cho demo**: nghi chế độ suy nghĩ của Qwen3 tốn nhiều token (chưa đo tách từng bước).
@@ -93,7 +103,7 @@ Sau đó đo lại bằng đúng quy trình này.
 3. **`local-ai` đang ở chế độ debug** (`LOCALAI_LOG_LEVEL=debug`). Tạo lại container sẽ chạy lại tác vụ "gallery warm-up" khoảng 4 phút, ngốn CPU và khoảng 3.7 GB mạng; trong lúc đó request đầu bị chậm hoặc lỗi 500.
 4. **`knowledge-mcp` đang chạy nền theo phiên làm việc**, không tự chạy lại khi khởi động máy.
 5. **Qwen3-4B gọi tool chưa ổn định**: có lượt trả lời bằng kiến thức riêng, lẫn chữ Hán; chưa nhắc rõ trong mô tả Agent.
-6. **`kb-admin` chưa dùng được**: backend không có ứng dụng FastAPI/đường dẫn `/api/kb` mà nó gọi (`NEXT_PUBLIC_KB_API_URL`).
+6. ~~`kb-admin` chưa dùng được~~ — đã xong: portal gọi `/api/kb` thật qua BFF (docs/07, docs/08).
 7. Container `local-ai` được tạo bằng `docker run`, không nằm trong `docker-compose.yml`. Container cũ `local-ai-cpu-old` (bản CPU) còn ở trạng thái dừng.
 
 ## 6. Cách chạy lại sau khi khởi động máy
