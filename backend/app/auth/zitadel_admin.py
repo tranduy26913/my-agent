@@ -154,6 +154,14 @@ class ZitadelAdmin:
         }
         return self._call("POST", "/v2/users/human", body)["userId"]
 
+    def change_login(self, user_id: str, *, username: str, email: str) -> None:
+        """Đổi tên đăng nhập và email (đánh dấu đã xác minh, không cần SMTP). Giữ nguyên user id và mật khẩu."""
+        self._call(
+            "PUT",
+            f"/v2/users/human/{user_id}",
+            {"username": username, "email": {"email": email, "isVerified": True}},
+        )
+
     def deactivate(self, user_id: str) -> None:
         self._call("POST", f"/v2/users/{user_id}/deactivate", {})
 
