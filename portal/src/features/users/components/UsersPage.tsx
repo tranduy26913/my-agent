@@ -352,7 +352,7 @@ export function UsersPage({ api }: { api: UsersApi }) {
         <AlertDialog open onOpenChange={(open) => !open && !run.isPending && setPending(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogMedia className={COPY[pending.kind].destructive ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"}>
+              <AlertDialogMedia className={COPY[pending.kind].destructive ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary-ink"}>
                 {(() => {
                   const Icon = ACTION_ICON[pending.kind];
                   return <Icon />;

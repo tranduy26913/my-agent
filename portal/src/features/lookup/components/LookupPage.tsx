@@ -55,7 +55,7 @@ function AnswerText({ text }: { text: string }) {
       {parts.map((part, i) => {
         const m = /^\[(\d+)\]$/.exec(part);
         return m ? (
-          <Badge key={i} variant="secondary" className="mx-0.5 h-4 rounded px-1 align-baseline text-[0.7rem] tabular-nums text-primary">
+          <Badge key={i} variant="secondary" className="mx-0.5 h-4 rounded px-1 align-baseline text-[0.7rem] tabular-nums text-primary-ink">
             {m[1]}
           </Badge>
         ) : (
@@ -95,7 +95,7 @@ function ResultCard({ turn }: { turn: Turn }) {
               {result.citations.map((c) => (
                 <Item key={c.n} size="xs" className="items-start px-0 py-1">
                   <ItemMedia>
-                    <Badge variant="secondary" className="h-4 rounded px-1 text-[0.7rem] tabular-nums text-primary">
+                    <Badge variant="secondary" className="h-4 rounded px-1 text-[0.7rem] tabular-nums text-primary-ink">
                       {c.n}
                     </Badge>
                   </ItemMedia>
@@ -161,7 +161,7 @@ export function LookupPage({ api }: { api: LookupApi }) {
   }
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4">
+    <div className="w-full flex flex-col gap-4">
       <Card>
         <CardContent>
           <form onSubmit={submit} className="grid gap-3">

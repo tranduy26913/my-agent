@@ -260,7 +260,7 @@ export function LeavePage({ api }: { api: LeaveApi }) {
   );
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-4 text-foreground">
+    <div className="w-full flex flex-col gap-4 text-foreground">
       {d.canViewTeam ? (
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList aria-label="Chế độ xem">

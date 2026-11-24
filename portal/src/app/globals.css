@@ -2,14 +2,12 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* Lớp dark: chỉ bật khi có class .dark (hiện không bao giờ). Không khai thì Tailwind dùng prefers-color-scheme
-   và các lớp dark:* của shadcn sẽ bật theo cài đặt tối của hệ điều hành, làm giao diện lệch. */
+/* Lớp dark: bật khi <html> có class .dark (ThemeToggle + script trong layout.tsx quản lý). */
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Token màu theo quy ước của shadcn/ui (background, foreground, primary, muted...), giá trị là bộ mặt Clean của
- * portal: nền xám, thẻ và sidebar trắng, màu nhấn Chàm. Đổi giao diện = sửa khối :root ở cuối file.
- * Chưa có chế độ tối (DESIGN.md), nên không khai khối .dark.
+ * Token màu theo quy ước của shadcn/ui (background, foreground, primary, muted...), giá trị là bộ mặt dashboard của
+ * portal: màu nhấn xanh dương nhạt, có hai bộ :root (sáng) và .dark (tối). Đổi giao diện = sửa hai khối cuối file.
  */
 
 @theme inline {
@@ -27,6 +25,7 @@
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-primary-hover: var(--primary-hover);
+  --color-primary-ink: var(--primary-ink);
   --color-secondary-hover: var(--secondary-hover);
   --color-button-hover: var(--button-hover);
   --color-muted: var(--muted);
@@ -79,40 +78,82 @@
 ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 9999px; }
 
 :root {
-  --background: #f4f4f6;
-  --foreground: #2c2c2c;
+  --background: #f3f7fc;
+  --foreground: #1b2a3d;
   --card: #ffffff;
-  --card-foreground: #2c2c2c;
+  --card-foreground: #1b2a3d;
   --popover: #ffffff;
-  --popover-foreground: #2c2c2c;
+  --popover-foreground: #1b2a3d;
 
-  --primary: #4f46e5;
-  --primary-foreground: #ffffff;
-  --primary-hover: #6159ea;
-  --secondary: #e7e8ec;
-  --secondary-foreground: #2c2c2c;
-  --secondary-hover: #dbdce2;
-  --button-hover: #f1f1f3;
-  --muted: #f4f4f6;
-  --muted-foreground: #707070;
-  --accent: #f4f4f6;
-  --accent-foreground: #2c2c2c;
+  /* Xanh dương nhạt; chữ trên nền primary dùng xanh navy để đủ tương phản. primary-ink = bản đậm hơn dùng làm màu chữ/icon. */
+  --primary: #3d9bf5;
+  --primary-foreground: #04203a;
+  --primary-hover: #2f8ae6;
+  --primary-ink: #0a58a6;
+  --secondary: #e4eefa;
+  --secondary-foreground: #1b2a3d;
+  --secondary-hover: #d5e4f6;
+  --button-hover: #eef4fc;
+  --muted: #eef3fa;
+  --muted-foreground: #5f7289;
+  --accent: #e8f1fd;
+  --accent-foreground: #1b2a3d;
 
   --destructive: #c70036;
   --success: #007a55;
   --warning: #bb4d00;
 
-  --border: #f0f0f2;
-  --input: #e2e2e6;
-  --ring: #4f46e5;
-  --radius: 0.5rem; /* thang bo góc là mặc định của Tailwind (lg 8, xl 12, 2xl 16) như bản cũ */
+  --border: #e0e8f2;
+  --input: #d3dfee;
+  --ring: #3d9bf5;
+  --radius: 0.625rem;
 
   --sidebar: #ffffff;
-  --sidebar-foreground: #2c2c2c;
-  --sidebar-primary: #4f46e5;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: color-mix(in srgb, #4f46e5 7%, transparent);
-  --sidebar-accent-foreground: #4f46e5;
-  --sidebar-border: #f0f0f2;
-  --sidebar-ring: #4f46e5;
+  --sidebar-foreground: #1b2a3d;
+  --sidebar-primary: #3d9bf5;
+  --sidebar-primary-foreground: #06243f;
+  --sidebar-accent: #e3f0fe;
+  --sidebar-accent-foreground: #0b63b8;
+  --sidebar-border: #e0e8f2;
+  --sidebar-ring: #3d9bf5;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: #0b121c;
+  --foreground: #e6eef8;
+  --card: #121b28;
+  --card-foreground: #e6eef8;
+  --popover: #161f2d;
+  --popover-foreground: #e6eef8;
+
+  --primary: #55aaf8;
+  --primary-foreground: #04203a;
+  --primary-hover: #6ab8ff;
+  --primary-ink: #8ccaff;
+  --secondary: #1d2a3b;
+  --secondary-foreground: #e6eef8;
+  --secondary-hover: #26364b;
+  --button-hover: #1a2638;
+  --muted: #172232;
+  --muted-foreground: #8ea3bb;
+  --accent: #1a2a40;
+  --accent-foreground: #e6eef8;
+
+  --destructive: #ff6b8b;
+  --success: #3ecf9b;
+  --warning: #ffa04d;
+
+  --border: #223046;
+  --input: #2b3b53;
+  --ring: #6bb8ff;
+
+  --sidebar: #0f1824;
+  --sidebar-foreground: #e6eef8;
+  --sidebar-primary: #6bb8ff;
+  --sidebar-primary-foreground: #04203a;
+  --sidebar-accent: #172a43;
+  --sidebar-accent-foreground: #8ccaff;
+  --sidebar-border: #223046;
+  --sidebar-ring: #6bb8ff;
 }

@@ -52,7 +52,7 @@ export function DirectoryPage({ api }: { api: DirectoryApi }) {
   const loading = isLoading || isPlaceholderData;
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-4 text-foreground">
+    <div className="w-full flex flex-col gap-4 text-foreground">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <Input
           value={q}

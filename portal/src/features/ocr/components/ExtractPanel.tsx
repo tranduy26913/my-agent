@@ -205,7 +205,7 @@ export function ExtractPanel({ api }: { api: OcrApi }) {
   }
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4">
+    <div className="w-full flex flex-col gap-4">
       <Card>
         <CardContent>
           <form onSubmit={submit} className="grid gap-4">

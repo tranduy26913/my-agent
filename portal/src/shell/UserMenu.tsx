@@ -27,7 +27,7 @@ export function UserMenu() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="h-10 gap-2 px-2">
           <Avatar className="size-7">
-            <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">{initial}</AvatarFallback>
+            <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary-ink">{initial}</AvatarFallback>
           </Avatar>
           <span className="hidden max-w-40 truncate sm:block">{me.name}</span>
           <ChevronDown className="text-muted-foreground" />

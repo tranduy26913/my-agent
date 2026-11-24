@@ -102,7 +102,7 @@ function TextPanel({ api }: { api: OcrApi }) {
   const percent = job && job.pagesTotal > 0 ? Math.round((job.pagesDone / job.pagesTotal) * 100) : 0;
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4">
+    <div className="w-full flex flex-col gap-4">
       <Card>
         <CardContent>
           <form onSubmit={submit} className="grid gap-4">
@@ -249,7 +249,7 @@ function TextPanel({ api }: { api: OcrApi }) {
  */
 export function OcrPage({ api }: { api: OcrApi }) {
   return (
-    <Tabs defaultValue="text" className="mx-auto max-w-3xl gap-4">
+    <Tabs defaultValue="text" className="w-full gap-4">
       <TabsList aria-label="Chế độ">
         <TabsTrigger value="text">Đọc chữ</TabsTrigger>
         <TabsTrigger value="extract">Phiếu công tác phí</TabsTrigger>

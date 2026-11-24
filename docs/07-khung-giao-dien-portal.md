@@ -14,6 +14,7 @@ Bộ mặt giữ nguyên theo `DESIGN.md`: phong cách Clean (P13), sidebar tr�
 | `/tools/nghi-phep` | mọi người; quản lý có thêm tab "Nhóm của tôi" | Số ngày phép còn lại, đơn nghỉ; quản lý xem đơn của cấp dưới | `/api/hr/leave/*` (ADR-003) | **Đã làm** (2026-11-24, mục 9.3) |
 | `/tools/danh-ba` | mọi người | Tìm đồng nghiệp; số điện thoại hiện theo `can_view_phone` | `/api/hr/directory` | **Đã làm** (2026-11-24, mục 9.3) |
 | `/tools/ocr` | mọi người | Tải ảnh/PDF lên, nhận lại văn bản (đồng bộ hoặc job nền) | `/api/ocr/recognize`, `/api/ocr/jobs` (ADR-005) | **Đã làm**, gồm `/extract` (mục 6, 9.4) |
+| `/tools/prompt` | mọi người | Thư viện prompt: mẫu chuẩn cho việc hằng ngày, ai cũng thêm được (mục 10) | `/api/prompts` | **Đã làm** (2026-11-24, mục 10); chưa kiểm bằng trình duyệt |
 | `/admin/kb` | `admin` | Kho tri thức: mô-đun `features/kb` đã có | `/api/kb/*` | **Đã làm**; backend `/api/kb` có sẵn, nối qua BFF (cần `API_DEV_TOKEN` để dùng dữ liệu thật) |
 | `/admin/users` | `admin` | Tài khoản: tạo, khoá/mở, đặt lại mật khẩu; liên kết với `employees` | `/api/admin/users` → Zitadel User Service (API v2) | **Đã làm** (2026-11-24, mục 9.1) |
 | `/admin/audit` | `admin` | Nhật ký: lọc theo người, sự kiện, thời gian; làm nổi `kb_view_classified` và `tool_denied` | `GET /api/admin/audit` | **Đã làm** (2026-11-23): `features/audit`, `backend/app/api/admin.py`; bộ lọc theo sự kiện, người, ngày; phân trang bằng con trỏ. **Không trả nội dung nhạy cảm** (câu hỏi của nhân viên, tham số/kết quả tool): `detail` lọc theo danh sách trắng từng sự kiện |
@@ -228,3 +229,42 @@ Sau mỗi thay đổi giao diện: `npm run typecheck`, `npm run lint`, mở b�
 **Đã làm sau đó (2026-11-24, buổi chiều, được người dùng cho phép):** `python -m app.seed_hr` trên agent-db thật (24 nhân viên, 24 số dư phép, 143 đơn nghỉ, 24 số điện thoại; chạy lại lần hai không nhân đôi; sao lưu `librechat/backups/agent-2026-11-24-before-seed-hr.sql` trước đó); `ZITADEL_ADMIN_PAT` đã đặt trong `backend/.env` (lấy từ `infra/zitadel/out/generated.json`, `portalAdminApiPat`); FastAPI (8000) và knowledge-mcp (8100) đã khởi động lại, `/openapi.json` có `/api/hr/*`, `/api/admin/users`, `/api/kb/library`, `/api/stt/*`; route cần token trả 401 khi không có token. Backend 494 test đạt.
 
 **Chưa kiểm sau khi khởi động lại:** gọi `/api/admin/users` và `/api/hr/*` bằng token Zitadel thật (cần đăng nhập portal bằng trình duyệt).
+
+## 10. Thư viện prompt `/tools/prompt` (2026-11-24)
+
+Kho prompt mẫu dùng chung cho việc hằng ngày (viết email, biên bản họp, tóm tắt, phân tích, lập trình, dịch, nhân sự). Mọi nhân viên đang làm việc xem và thêm được.
+
+**Quyền** (do backend quyết định, `app/prompts/service.py`; BFF chỉ cho GET/POST/PUT/DELETE tới `prompts`):
+- Xem, thêm: mọi nhân viên đang làm việc.
+- Sửa, xoá: người tạo hoặc `admin`; người khác nhận 403.
+- Cờ `official` ("Mẫu chuẩn", nổi lên đầu danh sách): chỉ `admin` đặt được; người thường gửi cờ này vẫn bị bỏ qua.
+
+**API** (`app/api/prompts.py`, JSON camelCase):
+
+| Method | Đường dẫn | Việc |
+|---|---|---|
+| GET | `/api/prompts?q=&category=&mine=&page=&page_size=` | Danh sách phân trang (mặc định 10/trang, tối đa 50), kèm `total`, `page`, `pageSize`, `categories`, `isAdmin`; mỗi dòng có `mine`, `canManage` |
+| POST | `/api/prompts` | Thêm: `title` (≤120), `description` (≤300), `body` (≤8000), `category` |
+| PUT | `/api/prompts/{id}` | Sửa (người tạo hoặc admin) |
+| DELETE | `/api/prompts/{id}` | Xoá (người tạo hoặc admin) |
+
+**Dữ liệu:** bảng `prompt_templates` (`PromptTemplate` trong `models.py`), tự tạo khi FastAPI khởi động (`prompts/service.startup`, giống OCR/STT), không cần migration. Nếu bảng trống, nạp 13 prompt chuẩn từ `app/prompts/seed.py` (tác giả "Hệ thống", `official = true`); đã có dòng nào thì không nạp lại. Nhóm cố định: `viet-email`, `hop-hanh-chinh`, `phan-tich`, `lap-trinh`, `dich-thuat`, `nhan-su`, `khac` (nhãn tiếng Việt ở `features/prompts/labels.ts`). Biến cần điền viết `{{ten_bien}}`, giao diện tô nổi.
+
+**Giao diện:** `features/prompts` (bảng có phân trang; bấm một dòng mở hộp thoại xem với nút "Sao chép prompt"; thêm/sửa cũng là hộp thoại, dùng `components/ui/dialog.tsx`; hộp xác nhận xoá), adapter `host/PromptsNextHost.tsx`.
+
+**Chưa làm:** đếm lượt dùng, đánh giá/ghim, phiên bản prompt, riêng tư theo phòng ban (hiện mọi prompt hiện cho cả công ty; nhắc người dùng không dán dữ liệu mật vào prompt). Test: `tests/test_prompts_api.py` (8 test, đạt). Typecheck portal sạch; chưa kiểm bằng trình duyệt với đăng nhập thật.
+
+## 11. Ẩn Văn bản, Nghỉ phép, Danh bạ khỏi menu (2026-11-24)
+
+Tạm thời chưa dùng ba trang **Văn bản** (`/tools/van-ban`), **Nghỉ phép** (`/tools/nghi-phep`) và **Danh bạ** (`/tools/danh-ba`), nên đã ẩn khỏi sidebar và khỏi lối tắt/thống kê ở trang chủ.
+
+- Cách làm: thêm trường `hidden?: boolean` vào `NavItem` ở `portal/src/shell/nav.ts`, đặt `hidden: true` cho ba mục; `SidebarNav.tsx` và `(portal)/page.tsx` lọc bỏ mục `hidden`.
+- **Không xoá gì:** trang, feature, API backend (`/api/hr/*`, thư viện văn bản) và quyền vẫn nguyên; vào bằng đường dẫn trực tiếp vẫn được, tiêu đề header vẫn đúng.
+- **Bật lại:** xoá `hidden: true` ở dòng tương ứng trong `nav.ts`.
+
+## 12. Mục Gateway AI `/admin/gateway` (2026-11-24)
+
+Thêm mục **Gateway AI** vào nhóm Quản trị (chỉ admin) để sau này xây cổng quản lý các tài khoản AI (nhà cung cấp, khoá API, hạn mức, định tuyến model).
+
+- Hiện chỉ có **khung**: dòng trong `nav.ts` (`ready: false`) và `app/(portal)/admin/gateway/page.tsx` hiển thị `ComingSoon`. Quyền chặn ở `admin/layout.tsx`.
+- **Chưa có:** backend, dữ liệu, giao diện chi tiết. Khi làm: tạo feature `features/gateway`, adapter `host/`, API `/api/gateway/*`, rồi đổi `ready: true` và thay `ComingSoon`.
