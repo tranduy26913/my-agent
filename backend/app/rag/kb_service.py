@@ -21,7 +21,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.models import AuditLog, Chunk, Document, User
+from app.models import AuditLog, Chunk, Document
 from app.rag.acl import can_read, load_principal
 from app.rag.chunking import chunk_markdown, chunk_text
 from app.rag.embeddings import get_embedder
@@ -57,7 +57,7 @@ class KbError(Exception):
 @dataclass(frozen=True)
 class DocRow:
     document: Document
-    username: str | None  # người nạp (join users); None nếu nạp từ thư mục data/knowledge
+    username: str | None  # email người nạp (documents.uploaded_by); None nếu nạp từ thư mục data/knowledge
     chunk_count: int
 
 
@@ -94,7 +94,7 @@ class AccessResult:
 # ---------------------------------------------------------------- đọc danh sách / một tài liệu
 
 def _rows_stmt():
-    """Một truy vấn lấy tài liệu + username + số chunk (subquery count, không N+1).
+    """Một truy vấn lấy tài liệu + email người nạp + số chunk (subquery count, không N+1).
 
     .NET/EF Core: tương đương `.Include(d => d.UploadedBy)` + `d.Chunks.Count` trong projection, EF cũng sinh
     một câu SQL. SQLAlchemy không tự làm vậy: phải viết outerjoin tường minh.
@@ -103,8 +103,7 @@ def _rows_stmt():
         select(Chunk.document_id, func.count().label("n")).group_by(Chunk.document_id).subquery()
     )
     return (
-        select(Document, User.username, func.coalesce(counts.c.n, 0))
-        .outerjoin(User, User.id == Document.uploaded_by)
+        select(Document, Document.uploaded_by, func.coalesce(counts.c.n, 0))
         .outerjoin(counts, counts.c.document_id == Document.id)
     )
 
@@ -120,6 +119,14 @@ def get_row(db: Session, doc_id: str) -> DocRow:
         raise DocNotFound(doc_id)
     d, name, n = found
     return DocRow(d, name, int(n))
+
+
+def _audit(actor: str | None, event: str, detail: dict) -> AuditLog:
+    """Dòng audit của thao tác quản trị. Người thực hiện là email Zitadel, ghi vào detail["actor"];
+    `user_id` để trống (không có bảng người dùng riêng: danh tính nằm ở Zitadel + bảng employees)."""
+    if actor:
+        detail = {**detail, "actor": actor}
+    return AuditLog(user_id=None, event=event, detail=detail)
 
 
 def history_text(event: str, detail: dict) -> str:
@@ -142,18 +149,17 @@ def history_text(event: str, detail: dict) -> str:
 def _history(db: Session, doc_id: str) -> list[HistoryRow]:
     # Chưa có index trên detail->>'doc_id'; bảng audit còn nhỏ. Lớn lên thì thêm index biểu thức.
     stmt = (
-        select(AuditLog.ts, AuditLog.event, AuditLog.detail, User.username)
-        .outerjoin(User, User.id == AuditLog.user_id)
+        select(AuditLog.ts, AuditLog.event, AuditLog.detail)
         .where(AuditLog.event.in_(KB_EVENTS), AuditLog.detail["doc_id"].astext == doc_id)
         .order_by(AuditLog.ts.desc(), AuditLog.id.desc())
     )
     return [
-        HistoryRow(ts, username or "hệ thống", history_text(event, detail or {}))
-        for ts, event, detail, username in db.execute(stmt).all()
+        HistoryRow(ts, (detail or {}).get("actor") or "hệ thống", history_text(event, detail or {}))
+        for ts, event, detail in db.execute(stmt).all()
     ]
 
 
-def get_detail(db: Session, doc_id: str, actor_id: int) -> DocDetail:
+def get_detail(db: Session, doc_id: str, actor: str | None) -> DocDetail:
     """Chi tiết một tài liệu: chunk theo thứ tự + lịch sử.
 
     Ngoại lệ ADR-004 mục 4: admin được xem chunk tài liệu Mật nhưng PHẢI để lại dấu vết. Ghi audit (flush)
@@ -165,10 +171,8 @@ def get_detail(db: Session, doc_id: str, actor_id: int) -> DocDetail:
     row = get_row(db, doc_id)
     classified = row.document.classification == "Mat"
     if classified:
-        db.add(AuditLog(
-            user_id=actor_id, event=EV_VIEW_CLASSIFIED,
-            detail={"doc_id": doc_id, "chunks": row.chunk_count},
-        ))
+        info = {"doc_id": doc_id, "chunks": row.chunk_count}
+        db.add(_audit(actor, EV_VIEW_CLASSIFIED, info))
         db.flush()
 
     chunks = [
@@ -433,7 +437,7 @@ def _check_meta(meta: DocMeta) -> None:
 
 def upload_document(
     db: Session, *, data: bytes, filename: str, content_type: str | None, meta: DocMeta | None,
-    actor_id: int, today: date | None = None,
+    actor: str | None, today: date | None = None,
 ) -> DocRow:
     """Nạp một tài liệu mới. Toàn bộ ghi DB (tài liệu, chunk, thay thế bản cũ, audit) trong MỘT transaction.
 
@@ -477,7 +481,7 @@ def upload_document(
             except (ValueError, yaml.YAMLError) as e:
                 raise KbError(f"Không nạp được tệp: {e}", 422) from e
             doc = db.execute(select(Document).where(Document.doc_id == doc_id)).scalar_one()
-            doc.uploaded_by = actor_id
+            doc.uploaded_by = actor
             n_chunks = db.execute(
                 select(func.count()).select_from(Chunk).where(Chunk.document_id == doc.id)
             ).scalar_one()
@@ -493,13 +497,13 @@ def upload_document(
                 allowed_departments=depts, allowed_roles=roles,
                 classification="Mat" if meta.classified else "thuong",
                 effective_from=meta.effective_from, supersedes=meta.supersedes,
-                uploaded_by=actor_id, ocr_pages=ocr_pages, content_hash=sha,
+                uploaded_by=actor, ocr_pages=ocr_pages, content_hash=sha,
             )
             doc.chunks = chunks
             n_chunks = len(chunks)
             db.add(doc)
         # Riêng tư: không ghi tên tệp vào audit (cùng nguyên tắc với /api/ocr)
-        db.add(AuditLog(user_id=actor_id, event=EV_UPLOAD, detail={
+        db.add(_audit(actor, EV_UPLOAD, {
             "doc_id": doc_id, "kind": ext.lstrip("."), "bytes": len(data), "chunks": n_chunks,
             "ocr_pages": ocr_pages, "supersedes": supersedes,
         }))
@@ -566,7 +570,7 @@ def _run_batch(db: Session, doc_ids: list[str], action) -> list[BatchItem]:
 
 # ---- nạp lại
 
-def _reindex_one(db: Session, doc_id: str, actor_id: int) -> None:
+def _reindex_one(db: Session, doc_id: str, actor: str | None) -> None:
     """Cắt đoạn và tạo vector lại từ bản gốc (`source`), GIỮ NGUYÊN metadata trong DB.
 
     Cố ý không dùng ingest_markdown(force=True): nó ghi đè mọi cột từ frontmatter, kể cả `superseded_by` và
@@ -589,24 +593,28 @@ def _reindex_one(db: Session, doc_id: str, actor_id: int) -> None:
         c.document_id = doc.id
     db.add_all(chunks)
     doc.ocr_pages = ocr_pages
-    db.add(AuditLog(user_id=actor_id, event=EV_REINDEX, detail={"doc_id": doc_id, "chunks": len(chunks)}))
+    db.add(_audit(actor, EV_REINDEX, {"doc_id": doc_id, "chunks": len(chunks)}))
     db.commit()
 
 
-def reindex_documents(db: Session, doc_ids: list[str], actor_id: int) -> list[BatchItem]:
-    return _run_batch(db, doc_ids, lambda s, d: _reindex_one(s, d, actor_id))
+def reindex_documents(
+    db: Session, doc_ids: list[str], actor: str | None
+) -> list[BatchItem]:
+    return _run_batch(db, doc_ids, lambda s, d: _reindex_one(s, d, actor))
 
 
 # ---- cách ly
 
-def set_quarantine(db: Session, doc_id: str, on: bool, actor_id: int) -> bool:
+def set_quarantine(
+    db: Session, doc_id: str, on: bool, actor: str | None
+) -> bool:
     """Bật/tắt cờ cách ly (retriever.py đã lọc `quarantined` trong SQL). Trả True nếu có đổi.
     Đặt lại đúng giá trị hiện tại thì không làm gì và không ghi audit."""
     doc = _get_doc(db, doc_id)
     if doc.quarantined == on:
         return False
     doc.quarantined = on
-    db.add(AuditLog(user_id=actor_id, event=EV_QUARANTINE, detail={"doc_id": doc_id, "on": on}))
+    db.add(_audit(actor, EV_QUARANTINE, {"doc_id": doc_id, "on": on}))
     db.commit()
     return True
 
@@ -628,7 +636,7 @@ def _remove_stored_file(db: Session, source: str) -> None:
         log.warning("Không xoá được bản gốc của tài liệu đã gỡ: %s", type(e).__name__)
 
 
-def _delete_one(db: Session, doc_id: str, actor_id: int) -> None:
+def _delete_one(db: Session, doc_id: str, actor: str | None) -> None:
     doc = _get_doc(db, doc_id)
     source = doc.source
     n_chunks = db.execute(
@@ -642,12 +650,14 @@ def _delete_one(db: Session, doc_id: str, actor_id: int) -> None:
     # DELETE trực tiếp thay vì db.delete(doc): ORM sẽ nạp cả collection chunks (kèm vector) để xoá từng dòng
     db.execute(delete(Chunk).where(Chunk.document_id == doc.id))
     db.execute(delete(Document).where(Document.id == doc.id))
-    db.add(AuditLog(user_id=actor_id, event=EV_DELETE, detail={
+    db.add(_audit(actor, EV_DELETE, {
         "doc_id": doc_id, "chunks": n_chunks, "classified": classified,
     }))
     db.commit()
     _remove_stored_file(db, source)  # sau commit: DB lỗi thì tệp vẫn còn để thử lại
 
 
-def delete_documents(db: Session, doc_ids: list[str], actor_id: int) -> list[BatchItem]:
-    return _run_batch(db, doc_ids, lambda s, d: _delete_one(s, d, actor_id))
+def delete_documents(
+    db: Session, doc_ids: list[str], actor: str | None
+) -> list[BatchItem]:
+    return _run_batch(db, doc_ids, lambda s, d: _delete_one(s, d, actor))

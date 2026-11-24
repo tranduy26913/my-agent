@@ -1,7 +1,7 @@
 """Nạp kho tri thức Markdown có frontmatter (data/knowledge) vào Postgres.
 
     python -m app.rag.kb_ingest                 # nạp thư mục settings.kb_dir
-    python -m app.rag.kb_ingest --exclude SVT-TL-099 --force
+    python -m app.rag.kb_ingest --exclude CTA-TL-099 --force
 
 Idempotent: băm (nội dung file + tên model embedding). Không đổi -> bỏ qua; đổi -> xóa chunk cũ, nạp lại.
 Đổi model embedding hoặc PIPELINE_VERSION cũng làm hash đổi -> tự nạp lại toàn bộ
@@ -119,7 +119,7 @@ def ingest_markdown(db: Session, path: Path, force: bool = False, commit: bool =
 def ingest_dir(db: Session, directory: Path, exclude: set[str], force: bool = False) -> dict[str, str]:
     results = {}
     for path in sorted(directory.glob("*.md")):
-        doc_id = "-".join(path.stem.split("-")[:3])  # SVT-QC-003-quy-che... -> SVT-QC-003
+        doc_id = "-".join(path.stem.split("-")[:3])  # CTA-QC-003-quy-che... -> CTA-QC-003
         if doc_id in exclude:
             results[path.name] = "excluded"
             continue
@@ -136,7 +136,7 @@ def main() -> None:
 
     ap = argparse.ArgumentParser(description="Nạp kho tri thức Markdown")
     ap.add_argument("--dir", default=settings.kb_dir)
-    ap.add_argument("--exclude", nargs="*", default=[], help="doc_id bỏ qua, vd SVT-TL-099")
+    ap.add_argument("--exclude", nargs="*", default=[], help="doc_id bỏ qua, vd CTA-TL-099")
     ap.add_argument("--force", action="store_true", help="nạp lại kể cả khi không đổi")
     args = ap.parse_args()
 

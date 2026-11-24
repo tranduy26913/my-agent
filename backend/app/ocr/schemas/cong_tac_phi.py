@@ -1,5 +1,5 @@
 # ruff: noqa: E501  (phần lớn là câu thông báo tiếng Việt hiển thị cho người dùng; cắt dòng làm khó đọc)
-"""Giấy đề nghị thanh toán công tác phí (mẫu BM-CTP-03) + quy tắc kiểm tra theo SVT-QD-005 (08/2025/QĐ-SVT).
+"""Giấy đề nghị thanh toán công tác phí (mẫu BM-CTP-03) + quy tắc kiểm tra theo CTA-QD-005 (08/2025/QĐ-CTA).
 
 Nguyên tắc phân vai (ADR-005 mục 8):
 - LLM CHỈ chép dữ liệu từ văn bản OCR ra JSON. Nó không phân loại khoản chi, không tính tổng, không phán vi phạm.
@@ -20,9 +20,9 @@ from pydantic import BaseModel, Field, ValidationError
 
 from app.ocr.schemas.base import ExtractContext, ExtractSchema, Finding
 
-SO_HIEU = "08/2025/QĐ-SVT"
+SO_HIEU = "08/2025/QĐ-CTA"
 
-# --- Định mức (Điều 3, 4, 5, 7, 8 của SVT-QD-005) ---
+# --- Định mức (Điều 3, 4, 5, 7, 8 của CTA-QD-005) ---
 PHU_CAP_NGAY = 300_000  # Điều 3.1
 TAXI_NGAY = 500_000  # Điều 4.4
 KHACH_SAN_DEM_TP_LON = 1_200_000  # Điều 5.1: Hà Nội, TP.HCM, Đà Nẵng
@@ -73,7 +73,7 @@ JSON_SCHEMA = {
 }
 
 SYSTEM_PROMPT = """Bạn là công cụ CHÉP dữ liệu từ văn bản OCR của "Giấy đề nghị thanh toán công tác phí" \
-(mẫu BM-CTP-03) của Công ty Sao Việt ra JSON.
+(mẫu BM-CTP-03) của Công ty A ra JSON.
 
 Quy tắc bắt buộc:
 1. Chỉ chép những gì CÓ trong văn bản trong thẻ <ocr>. Không suy đoán, không tự sửa lỗi chính tả của OCR, \
@@ -451,7 +451,7 @@ SCHEMA = ExtractSchema(
     id="cong-tac-phi",
     title="Giấy đề nghị thanh toán công tác phí",
     description=(
-        "Trích xuất phiếu BM-CTP-03 rồi kiểm tra theo Quy định công tác phí 08/2025/QĐ-SVT: "
+        "Trích xuất phiếu BM-CTP-03 rồi kiểm tra theo Quy định công tác phí 08/2025/QĐ-CTA: "
         "định mức khách sạn/taxi/phụ cấp, hóa đơn, hạn quyết toán, số học."
     ),
     json_schema=JSON_SCHEMA,

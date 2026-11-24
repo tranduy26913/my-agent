@@ -43,22 +43,22 @@ function doc(p: Partial<KbDocument> & Pick<KbDocument, "docId" | "title" | "depa
 }
 
 let store: KbDocument[] = [
-  doc({ docId: "SVT-QC-003", soHieu: "01/2026/QĐ-SVT", title: "Quy chế nghỉ phép (bản 2026)", docType: "quy-che", department: "HCNS", effectiveFrom: "2026-01-01", supersedes: "SVT-QC-002", version: "2", chunkCount: 38 }),
-  doc({ docId: "SVT-QC-002", soHieu: "12/2023/QĐ-SVT", title: "Quy chế nghỉ phép (bản 2024)", docType: "quy-che", department: "HCNS", effectiveFrom: "2024-01-01", effectiveTo: "2026-01-01", supersededBy: "SVT-QC-003", chunkCount: 33 }),
-  doc({ docId: "SVT-QC-004", soHieu: "02/2026/QĐ-SVT", title: "Quy chế tiền lương, thưởng và phụ cấp", docType: "quy-che", department: "HCNS", visibility: "han-che", allowedDepartments: ["HCNS", "BGD"], allowedRoles: ["hr", "executive"], classified: true, effectiveFrom: "2026-02-01", chunkCount: 41 }),
-  doc({ docId: "SVT-DA-011", soHieu: "DA-2026-07/CHARTER", title: "Điều lệ dự án Cổng dịch vụ khách hàng Phương Nam (PNC Portal)", docType: "ho-so-du-an", department: "DA", visibility: "phong-ban", allowedDepartments: ["DA", "KD", "BGD"], classified: true, effectiveFrom: "2026-05-25", chunkCount: 29 }),
+  doc({ docId: "CTA-QC-003", soHieu: "01/2026/QĐ-CTA", title: "Quy chế nghỉ phép (bản 2026)", docType: "quy-che", department: "HCNS", effectiveFrom: "2026-01-01", supersedes: "CTA-QC-002", version: "2", chunkCount: 38 }),
+  doc({ docId: "CTA-QC-002", soHieu: "12/2023/QĐ-CTA", title: "Quy chế nghỉ phép (bản 2024)", docType: "quy-che", department: "HCNS", effectiveFrom: "2024-01-01", effectiveTo: "2026-01-01", supersededBy: "CTA-QC-003", chunkCount: 33 }),
+  doc({ docId: "CTA-QC-004", soHieu: "02/2026/QĐ-CTA", title: "Quy chế tiền lương, thưởng và phụ cấp", docType: "quy-che", department: "HCNS", visibility: "han-che", allowedDepartments: ["HCNS", "BGD"], allowedRoles: ["hr", "executive"], classified: true, effectiveFrom: "2026-02-01", chunkCount: 41 }),
+  doc({ docId: "CTA-DA-011", soHieu: "DA-2026-07/CHARTER", title: "Điều lệ dự án Cổng dịch vụ khách hàng Phương Nam (PNC Portal)", docType: "ho-so-du-an", department: "DA", visibility: "phong-ban", allowedDepartments: ["DA", "KD", "BGD"], classified: true, effectiveFrom: "2026-05-25", chunkCount: 29 }),
   doc({ docId: "SVT-TB-018", title: "SVT-TB-018-dieu-chinh-gio-lam-viec.pdf", docType: "thong-bao", department: "HCNS", fileKind: "pdf", status: "processing", statusNote: "Đang OCR trang 2 / 3", chunkCount: 0, ocrPages: 3, source: "data/scan/SVT-TB-018-dieu-chinh-gio-lam-viec.pdf" }),
   doc({ docId: "CTP-NV017", title: "de-nghi-thanh-toan-CTP-NV017.png", docType: "chung-tu", department: "TCKT", fileKind: "image", visibility: "phong-ban", allowedDepartments: ["TCKT", "BGD"], status: "error", statusNote: "OCR không đọc được bảng số tiền", chunkCount: 0, ocrPages: 1, source: "data/scan/de-nghi-thanh-toan-CTP-NV017.png" }),
-  doc({ docId: "SVT-TL-099", soHieu: "21/2026/TB-SVT", title: "Thông báo lịch nghỉ Tết Dương lịch 2027", docType: "thong-bao", department: "HCNS", effectiveFrom: "2026-11-15", effectiveTo: "2027-01-05", status: "quarantined", statusNote: "Có câu ra lệnh cho trợ lý", chunkCount: 6 }),
-  doc({ docId: "SVT-DA-012", soHieu: "DA-2026-07/BBH-01", title: "Biên bản họp khởi động dự án PNC Portal", docType: "bien-ban-hop", department: "DA", visibility: "phong-ban", allowedDepartments: ["DA", "BGD"], effectiveFrom: "2026-06-05", chunkCount: 14 }),
-  doc({ docId: "SVT-QT-010", soHieu: "02/2026/QT-SVT", title: "Quy trình tuyển dụng", docType: "quy-trinh", department: "HCNS", visibility: "phong-ban", allowedDepartments: ["HCNS", "BGD"], allowedRoles: ["manager"], effectiveFrom: "2026-01-15", chunkCount: 22 }),
-  doc({ docId: "SVT-QT-006", soHieu: "03/2026/QT-SVT", title: "Quy trình mua sắm và thanh toán nội bộ", docType: "quy-trinh", department: "TCKT", visibility: "phong-ban", allowedDepartments: ["TCKT", "BGD"], effectiveFrom: "2026-03-01", chunkCount: 27 }),
-  doc({ docId: "SVT-CS-007", soHieu: "04/2026/CS-SVT", title: "Chính sách an toàn thông tin và sử dụng trí tuệ nhân tạo", docType: "chinh-sach", department: "CNTT", effectiveFrom: "2026-03-01", chunkCount: 31 }),
-  doc({ docId: "SVT-FAQ-013", soHieu: "FAQ-HCNS-2026", title: "Hỏi đáp nhân sự thường gặp", docType: "hoi-dap", department: "HCNS", effectiveFrom: "2026-03-15", version: "4", chunkCount: 19 }),
-  doc({ docId: "SVT-HD-009", soHieu: "HD-HCNS-2026-02", title: "Sổ tay hội nhập nhân viên mới", docType: "huong-dan", department: "HCNS", effectiveFrom: "2026-03-01", version: "2", chunkCount: 26 }),
-  doc({ docId: "SVT-HD-008", soHieu: "HD-CNTT-2026-01", title: "Hướng dẫn sử dụng dịch vụ CNTT", docType: "huong-dan", department: "CNTT", effectiveFrom: "2026-01-05", version: "3", chunkCount: 21 }),
-  doc({ docId: "SVT-QD-005", soHieu: "08/2025/QĐ-SVT", title: "Quy định về chế độ công tác phí", docType: "quy-dinh", department: "TCKT", effectiveFrom: "2025-09-01", chunkCount: 17 }),
-  doc({ docId: "SVT-QC-001", soHieu: "05/2025/QĐ-SVT", title: "Nội quy lao động", docType: "noi-quy", department: "HCNS", effectiveFrom: "2025-07-01", chunkCount: 28 }),
+  doc({ docId: "CTA-TL-099", soHieu: "21/2026/TB-CTA", title: "Thông báo lịch nghỉ Tết Dương lịch 2027", docType: "thong-bao", department: "HCNS", effectiveFrom: "2026-11-15", effectiveTo: "2027-01-05", status: "quarantined", statusNote: "Có câu ra lệnh cho trợ lý", chunkCount: 6 }),
+  doc({ docId: "CTA-DA-012", soHieu: "DA-2026-07/BBH-01", title: "Biên bản họp khởi động dự án PNC Portal", docType: "bien-ban-hop", department: "DA", visibility: "phong-ban", allowedDepartments: ["DA", "BGD"], effectiveFrom: "2026-06-05", chunkCount: 14 }),
+  doc({ docId: "CTA-QT-010", soHieu: "02/2026/QT-CTA", title: "Quy trình tuyển dụng", docType: "quy-trinh", department: "HCNS", visibility: "phong-ban", allowedDepartments: ["HCNS", "BGD"], allowedRoles: ["manager"], effectiveFrom: "2026-01-15", chunkCount: 22 }),
+  doc({ docId: "CTA-QT-006", soHieu: "03/2026/QT-CTA", title: "Quy trình mua sắm và thanh toán nội bộ", docType: "quy-trinh", department: "TCKT", visibility: "phong-ban", allowedDepartments: ["TCKT", "BGD"], effectiveFrom: "2026-03-01", chunkCount: 27 }),
+  doc({ docId: "CTA-CS-007", soHieu: "04/2026/CS-CTA", title: "Chính sách an toàn thông tin và sử dụng trí tuệ nhân tạo", docType: "chinh-sach", department: "CNTT", effectiveFrom: "2026-03-01", chunkCount: 31 }),
+  doc({ docId: "CTA-FAQ-013", soHieu: "FAQ-HCNS-2026", title: "Hỏi đáp nhân sự thường gặp", docType: "hoi-dap", department: "HCNS", effectiveFrom: "2026-03-15", version: "4", chunkCount: 19 }),
+  doc({ docId: "CTA-HD-009", soHieu: "HD-HCNS-2026-02", title: "Sổ tay hội nhập nhân viên mới", docType: "huong-dan", department: "HCNS", effectiveFrom: "2026-03-01", version: "2", chunkCount: 26 }),
+  doc({ docId: "CTA-HD-008", soHieu: "HD-CNTT-2026-01", title: "Hướng dẫn sử dụng dịch vụ CNTT", docType: "huong-dan", department: "CNTT", effectiveFrom: "2026-01-05", version: "3", chunkCount: 21 }),
+  doc({ docId: "CTA-QD-005", soHieu: "08/2025/QĐ-CTA", title: "Quy định về chế độ công tác phí", docType: "quy-dinh", department: "TCKT", effectiveFrom: "2025-09-01", chunkCount: 17 }),
+  doc({ docId: "CTA-QC-001", soHieu: "05/2025/QĐ-CTA", title: "Nội quy lao động", docType: "noi-quy", department: "HCNS", effectiveFrom: "2025-07-01", chunkCount: 28 }),
 ];
 
 const history = new Map<string, KbHistoryEntry[]>();
@@ -92,10 +92,10 @@ function detailOf(d: KbDocument): KbDocumentDetail {
 /* Quy tắc giống can_read() ở backend/app/rag/acl.py */
 interface Principal { name: string; department: string; roles: string[]; active: boolean }
 const PEOPLE: Record<string, Principal> = {
-  "lan@saoviet.vn": { name: "Trần Thị Lan", department: "HCNS", roles: ["hr"], active: true },
-  "minh@saoviet.vn": { name: "Lê Quang Minh", department: "TCKT", roles: [], active: true },
-  "long@saoviet.vn": { name: "Phạm Đức Long", department: "BGD", roles: ["executive"], active: true },
-  "cu@saoviet.vn": { name: "Hoàng Văn Cũ", department: "KD", roles: [], active: false },
+  "lan@cty-a.example": { name: "Trần Thị Lan", department: "HCNS", roles: ["hr"], active: true },
+  "minh@cty-a.example": { name: "Lê Quang Minh", department: "TCKT", roles: [], active: true },
+  "long@cty-a.example": { name: "Phạm Đức Long", department: "BGD", roles: ["executive"], active: true },
+  "cu@cty-a.example": { name: "Hoàng Văn Cũ", department: "KD", roles: [], active: false },
 };
 
 function canRead(p: Principal, v: Visibility, depts: string[], roles: string[]): { allowed: boolean; reason: string } {

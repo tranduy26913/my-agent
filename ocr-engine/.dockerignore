@@ -1,0 +1,6 @@
+# Model (vài GB) không đưa vào build context: image chỉ cần wheel SGLang trong model/wheel/. Model được mount lúc chạy.
+model/*.safetensors
+model/*.json
+model/*.py
+models/
+*.log

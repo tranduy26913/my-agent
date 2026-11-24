@@ -12,8 +12,6 @@ class Settings(BaseSettings):
     # agent-db (docker-compose.override.yml của librechat) map ra cổng 5433 trên máy host.
     # Tách hẳn khỏi vectordb của LibreChat: kho tri thức doanh nghiệp có ACL riêng.
     database_url: str = "postgresql+psycopg://agent:agent@localhost:5433/agent"
-    jwt_secret: str = "change-me-in-production"
-    jwt_expire_minutes: int = 480
 
     # --- LLM ---
     # claude: gọi Claude API qua Anthropic SDK | fake: chạy offline không cần API key (demo/test)
@@ -41,7 +39,23 @@ class Settings(BaseSettings):
     ocr_lang: str = "vie+eng"
 
     # --- Dịch vụ OCR (ADR-005) ---
-    ocr_engine: str = "tesseract"  # engine mặc định: tesseract | (sau này) unlimited
+    ocr_engine: str = "tesseract"  # engine mặc định: tesseract | unlimited
+    # Engine unlimited (Unlimited-OCR-2 qua SGLang, thư mục ocr-engine/). Để URL rỗng = engine tắt (503).
+    ocr_sglang_url: str = ""  # ví dụ http://127.0.0.1:10000
+    ocr_sglang_api_key: str = ""
+    ocr_sglang_model: str = "Unlimited-OCR-2"
+    ocr_sglang_prompt: str = "<PAGE><image>Multi page parsing."  # theo model card; chưa kiểm với server thật
+    ocr_sglang_max_tokens: int = 8000  # mỗi trang
+    ocr_sglang_crop_mode: bool = True  # True = chia ô "gundam" cho trang chi tiết; False = base
+    ocr_sglang_timeout: float = 180.0
+    # Chuỗi custom_logit_processor (chống lặp n-gram) do SGLang sinh một lần; rỗng = không dùng.
+    ocr_sglang_logit_processor: str = ""
+    # Engine paddleocr_vl (PaddleOCR-VL-1.6, server ở ocr-engine/run-paddle.sh). URL rỗng = engine tắt.
+    ocr_paddlevl_url: str = ""  # ví dụ http://127.0.0.1:10001
+    ocr_paddlevl_timeout: float = 300.0  # mỗi vùng ảnh; lần gọi đầu còn phải nạp model (~10 giây)
+    ocr_paddlevl_split_tables: bool = True  # cắt trang ở khung bảng để mỗi dòng bảng nằm trên một dòng chữ
+    # Engine dự phòng khi engine MẶC ĐỊNH chưa sẵn sàng (vd server OCR tắt). Rỗng = không dự phòng, trả 503.
+    ocr_fallback_engine: str = ""
     # Đường dẫn tesseract.exe. Để rỗng = tự tìm trong PATH, rồi thư mục cài mặc định trên Windows.
     tesseract_cmd: str = ""
     # Khử nhiễu + nhị phân + xóa đường kẻ bảng trước khi đưa vào Tesseract (app/ocr/preprocess.py).
@@ -62,6 +76,22 @@ class Settings(BaseSettings):
     ocr_extract_max_tokens: int = 1500  # JSON một phiếu dài hơn câu trả lời RAG (700)
     ocr_extract_max_chars: int = 8000  # cắt văn bản OCR gửi cho LLM
 
+    # --- STT: ghi âm cuộc họp -> văn bản (ADR-006) ---
+    stt_engine: str = "whisper"  # tên engine mặc định (khóa trong app/stt/engines/__init__.py)
+    # Server faster-whisper (stt-engine/run.ps1). URL rỗng = engine tắt (503).
+    stt_whisper_url: str = ""  # ví dụ http://127.0.0.1:10002
+    stt_whisper_timeout: float = 600.0  # tối đa giữa hai đoạn; lần đầu còn phải nạp model
+    stt_language: str = "vi"
+    ffmpeg_cmd: str = ""  # rỗng = tìm trong PATH, rồi C:\ffmpeg\bin\ffmpeg.exe
+    stt_tmp_dir: str = ""  # rỗng = <thư mục tạm hệ điều hành>/svt-stt; file ghi âm chỉ nằm đây lúc xử lý
+    stt_max_mb: float = 300.0
+    stt_max_minutes: float = 180.0
+    stt_job_ttl_days: int = 7
+    stt_job_workers: int = 1  # một lượt giải mã tại một thời điểm (tranh GPU/CPU)
+    stt_max_concurrency: int = 1  # số lượt giải mã song song cho mỗi engine
+    stt_job_max_active_per_user: int = 2
+    stt_job_queue_max: int = 10  # tệp nằm trên đĩa khi chờ, nên giới hạn theo dung lượng đĩa
+
     # --- Knowledge base (knowledge-mcp) ---
     kb_dir: str = "../data/knowledge"
     # /api/kb: bản gốc tài liệu upload (<sha256>.<đuôi>), cần cho reindex. Tương đối theo thư mục chạy.
@@ -73,9 +103,19 @@ class Settings(BaseSettings):
     rag_judge_model: str = "claude-haiku-5-5"  # LLM-judge trong eval
     kb_mcp_host: str = "0.0.0.0"
     kb_mcp_port: int = 8100
-    # Bí mật dùng chung giữa LibreChat và knowledge-mcp. Header X-User-Email chỉ được tin
-    # khi request mang đúng token này (chứng minh request đến từ LibreChat, không phải ai đó tự gọi).
-    kb_mcp_token: str = ""
+
+    # --- Đăng nhập Zitadel (docs/06, ADR-004). Rỗng = chưa bật: mọi Bearer token bị từ chối (fail closed) ---
+    oidc_issuer: str = ""  # vd https://auth.tranduyai.id.vn: `iss` trong token phải khớp CHÍNH XÁC
+    oidc_project_id: str = ""  # id project `svt` (infra/zitadel/out/generated.json): `aud` phải chứa nó
+    # Địa chỉ gọi Zitadel từ backend (JWKS, userinfo). Rỗng = dùng oidc_issuer. Dev khi chưa có route tunnel:
+    # http://127.0.0.1:8180 kèm oidc_host_header=auth.tranduyai.id.vn (Zitadel chọn instance theo Host).
+    oidc_internal_url: str = ""
+    oidc_host_header: str = ""
+    # Trang /admin/users gọi User Service của Zitadel bằng PAT của machine user `portal-admin-api` (chỉ quyền
+    # ORG_USER_MANAGER; infra/zitadel/out/generated.json). Rỗng = trang báo 503. URL rỗng = dùng oidc_internal_url,
+    # rồi oidc_issuer; header Host dùng oidc_host_header.
+    zitadel_admin_pat: str = ""
+    zitadel_admin_url: str = ""
 
     # --- Agent ---
     agent_max_steps: int = 8

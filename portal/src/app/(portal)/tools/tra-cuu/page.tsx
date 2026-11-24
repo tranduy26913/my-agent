@@ -1,5 +1,7 @@
-import { ComingSoon } from "@/shell/ComingSoon";
+import { LookupNextHost } from "@/host/LookupNextHost";
 
-export default function Page() {
-  return <ComingSoon href="/tools/tra-cuu" />;
+export const metadata = { title: "Tra cứu" };
+
+export default function LookupRoute() {
+  return <LookupNextHost />;
 }

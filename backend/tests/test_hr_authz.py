@@ -44,7 +44,7 @@ def test_t1_employee_reads_own_leave():
     d = can(P("NV017"), LEAVE, T("NV017"))
     assert d and d.scope == "own"
     bal = {r["ma_nv"]: r for r in csv.DictReader(open(HR / "leave_balances.csv", encoding="utf-8"))}
-    assert float(bal["NV017"]["con_lai"]) == 7.5  # số liệu tiêu chí SVT-AI-011
+    assert float(bal["NV017"]["con_lai"]) == 7.5  # số liệu tiêu chí CTA-AI-011
 
 
 def test_t2_employee_cannot_read_colleague():
@@ -121,7 +121,7 @@ def test_inactive_principal_denied_everything():
 
 
 def test_unknown_role_and_resource_fail_closed():
-    p = Principal(email="x@saoviet.example", department="KD", roles=frozenset({"sieu-quyen"}), code="NV999")
+    p = Principal(email="x@cty-a.example", department="KD", roles=frozenset({"sieu-quyen"}), code="NV999")
     assert permissions(p) == frozenset()
     assert not can(P("NV010"), "salary:delete", T("NV017"))
 

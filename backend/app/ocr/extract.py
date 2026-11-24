@@ -8,7 +8,7 @@ Vai trò của từng bước và vì sao (ADR-005 mục 8):
   Việc duyệt chi vẫn do người: kết quả chỉ nói `needs_review`, không bao giờ nói "duyệt".
 
 Riêng tư: văn bản OCR đi tới LLM của LLM_PROVIDER. `local` (mặc định demo) thì dữ liệu không rời máy;
-`claude` thì rời máy -> chỉ dùng cho tài liệu không thuộc diện Mật (SVT-CS-007 Điều 5).
+`claude` thì rời máy -> chỉ dùng cho tài liệu không thuộc diện Mật (CTA-CS-007 Điều 5).
 """
 
 import logging

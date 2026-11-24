@@ -1,5 +1,7 @@
-import { ComingSoon } from "@/shell/ComingSoon";
+import { OcrNextHost } from "@/host/OcrNextHost";
 
-export default function Page() {
-  return <ComingSoon href="/tools/ocr" note="Chờ bên OCR chốt cách xử lý (đồng bộ hay theo job). Xem docs/07 mục 6." />;
+export const metadata = { title: "OCR" };
+
+export default function OcrRoute() {
+  return <OcrNextHost />;
 }

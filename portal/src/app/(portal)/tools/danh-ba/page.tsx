@@ -1,5 +1,7 @@
-import { ComingSoon } from "@/shell/ComingSoon";
+import { DirectoryNextHost } from "@/host/HrNextHost";
 
-export default function Page() {
-  return <ComingSoon href="/tools/danh-ba" />;
+export const metadata = { title: "Danh bạ" };
+
+export default function DirectoryRoute() {
+  return <DirectoryNextHost />;
 }

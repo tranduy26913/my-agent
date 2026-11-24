@@ -51,7 +51,7 @@ Lưu ý: tên và thứ tự các mục thay đổi theo phiên bản OWASP; đ�
 Mỗi lần `tools/call` ghi một dòng:
 
 ```json
-{"ts":"2026-11-20T09:15:02+07:00","trace_id":"...","user":"lan.nguyen@saoviet.example",
+{"ts":"2026-11-20T09:15:02+07:00","trace_id":"...","user":"lan.nguyen@cty-a.example",
  "channel":"web","server":"hr-mcp","tool":"get_leave_balance",
  "args":{"employee_id":"NV012"},"decision":"allow","reason":"self",
  "records_returned":1,"latency_ms":42}

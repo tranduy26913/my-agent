@@ -1,8 +1,8 @@
 # ADR-003: Phân quyền dữ liệu nhân sự (hr-mcp) theo RBAC có phạm vi
 
 - Trạng thái: **Đã chấp nhận** (2026-11-21)
-- Liên quan: ADR-001 (phân quyền tài liệu), ADR-002 (nội dung Mật), ticket SVT-AI-011, SVT-AI-012
-- Code: chưa cài. Test viết trước theo mục "Ca kiểm thử bắt buộc".
+- Liên quan: ADR-001 (phân quyền tài liệu), ADR-002 (nội dung Mật), ticket CTA-AI-011, CTA-AI-012
+- Code: `app/hr/authz.py` (hai bản cài), `app/hr/service.py` và `/api/hr/*` (2026-11-24, docs/07 mục 9.3). hr-mcp cho LibreChat vẫn chưa làm. Test: `tests/test_hr_authz.py` và `tests/test_hr_api.py` theo mục "Ca kiểm thử bắt buộc".
 
 ## Bối cảnh
 hr-mcp sẽ trả về dữ liệu theo **từng người**: số dư phép, đơn nghỉ, danh bạ, lương (Mật). Khác với tài liệu (ADR-001),
@@ -69,7 +69,7 @@ Mọi phạm vi đều kèm thêm `trang_thai = 'dang-lam'`, trừ khi có `dire
 ## Phương án đã cân nhắc
 | Phương án | Lý do không chọn |
 |---|---|
-| RBAC thuần (không phạm vi) | Không diễn đạt được "của mình" hay "cấp dưới", nên tiêu chí SVT-AI-011 không làm được |
+| RBAC thuần (không phạm vi) | Không diễn đạt được "của mình" hay "cấp dưới", nên tiêu chí CTA-AI-011 không làm được |
 | ABAC / ReBAC đầy đủ (policy engine, đồ thị quan hệ) | Linh hoạt hơn nhưng quá sức cho quy mô 24 người; khó giải thích và khó kiểm thử ở giai đoạn này |
 | `team` đệ quy theo chuỗi quản lý | Đức sẽ thấy cả nhóm của Sơn mà không có căn cứ trong quy chế; dùng `truong-phong` + `dept` thì khớp QC-003 hơn |
 | `executive` có `:all` | BGD chưa có nhu cầu; QC-003 chỉ giao TGĐ duyệt đơn của Trưởng phòng. Nếu cần thì cấp sau và ghi audit |

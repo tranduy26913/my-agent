@@ -1,21 +1,159 @@
 @import "tailwindcss";
-@import "../styles/theme.css";
-@import "../styles/tokens.css";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Lớp dark: bật khi <html> có class .dark (ThemeToggle + script trong layout.tsx quản lý). */
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Token màu theo quy ước của shadcn/ui (background, foreground, primary, muted...), giá trị là bộ mặt dashboard của
+ * portal: màu nhấn xanh dương nhạt, có hai bộ :root (sáng) và .dark (tối). Đổi giao diện = sửa hai khối cuối file.
+ */
 
 @theme inline {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-sans);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-ink: var(--primary-ink);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-button-hover: var(--button-hover);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Trạng thái ngoài bộ chuẩn của shadcn. Dùng kèm độ trong suốt cho nền: bg-success/10 text-success */
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
 }
 
-body {
-  background: var(--p-bg);
-  color: var(--p-fg);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
 /* Thanh cuộn mảnh, chỉ hiện khi rê chuột vào vùng cuộn */
 * { --scrollbar-thumb: transparent; }
-*:hover { --scrollbar-thumb: color-mix(in srgb, var(--p-fg) 16%, transparent); }
+*:hover { --scrollbar-thumb: color-mix(in srgb, var(--foreground) 16%, transparent); }
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 9999px; }
+
+:root {
+  --background: #f3f7fc;
+  --foreground: #1b2a3d;
+  --card: #ffffff;
+  --card-foreground: #1b2a3d;
+  --popover: #ffffff;
+  --popover-foreground: #1b2a3d;
+
+  /* Xanh dương nhạt; chữ trên nền primary dùng xanh navy để đủ tương phản. primary-ink = bản đậm hơn dùng làm màu chữ/icon. */
+  --primary: #3d9bf5;
+  --primary-foreground: #04203a;
+  --primary-hover: #2f8ae6;
+  --primary-ink: #0a58a6;
+  --secondary: #e4eefa;
+  --secondary-foreground: #1b2a3d;
+  --secondary-hover: #d5e4f6;
+  --button-hover: #eef4fc;
+  --muted: #eef3fa;
+  --muted-foreground: #5f7289;
+  --accent: #e8f1fd;
+  --accent-foreground: #1b2a3d;
+
+  --destructive: #c70036;
+  --success: #007a55;
+  --warning: #bb4d00;
+
+  --border: #e0e8f2;
+  --input: #d3dfee;
+  --ring: #3d9bf5;
+  --radius: 0.625rem;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #1b2a3d;
+  --sidebar-primary: #3d9bf5;
+  --sidebar-primary-foreground: #06243f;
+  --sidebar-accent: #e3f0fe;
+  --sidebar-accent-foreground: #0b63b8;
+  --sidebar-border: #e0e8f2;
+  --sidebar-ring: #3d9bf5;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: #0b121c;
+  --foreground: #e6eef8;
+  --card: #121b28;
+  --card-foreground: #e6eef8;
+  --popover: #161f2d;
+  --popover-foreground: #e6eef8;
+
+  --primary: #55aaf8;
+  --primary-foreground: #04203a;
+  --primary-hover: #6ab8ff;
+  --primary-ink: #8ccaff;
+  --secondary: #1d2a3b;
+  --secondary-foreground: #e6eef8;
+  --secondary-hover: #26364b;
+  --button-hover: #1a2638;
+  --muted: #172232;
+  --muted-foreground: #8ea3bb;
+  --accent: #1a2a40;
+  --accent-foreground: #e6eef8;
+
+  --destructive: #ff6b8b;
+  --success: #3ecf9b;
+  --warning: #ffa04d;
+
+  --border: #223046;
+  --input: #2b3b53;
+  --ring: #6bb8ff;
+
+  --sidebar: #0f1824;
+  --sidebar-foreground: #e6eef8;
+  --sidebar-primary: #6bb8ff;
+  --sidebar-primary-foreground: #04203a;
+  --sidebar-accent: #172a43;
+  --sidebar-accent-foreground: #8ccaff;
+  --sidebar-border: #223046;
+  --sidebar-ring: #6bb8ff;
+}

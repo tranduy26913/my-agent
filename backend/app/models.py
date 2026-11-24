@@ -1,10 +1,11 @@
 """ORM models. Mỗi bảng phục vụ một yêu cầu trong JD:
 
-- users / employees            -> dữ liệu nhân sự + phân quyền (RBAC)
+- employees                    -> dữ liệu nhân sự + phân quyền (RBAC); đăng nhập do Zitadel lo
+- leave_balances/_requests, employee_contacts -> phép năm, đơn nghỉ, số điện thoại (ADR-003, /api/hr)
 - documents / chunks           -> kho tri thức nội bộ (RAG, hybrid search, ACL theo tài liệu)
-- conversations / messages     -> bộ nhớ ngắn hạn (lịch sử hội thoại)
 - skills                       -> thư viện kỹ năng dùng chung (có duyệt)
 - experiences                  -> kho kinh nghiệm agent tự tích lũy (reflection)
+- conversations / messages     -> bộ nhớ ngắn hạn (lịch sử hội thoại)
 - audit_logs / usage_logs      -> lưu vết + kiểm soát chi phí
 - ocr_jobs                     -> job OCR bất đồng bộ (kết quả tạm, tự hết hạn)
 - feedback                     -> cải tiến liên tục dựa trên phản hồi người dùng
@@ -25,6 +26,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, TSVECTOR
@@ -34,19 +36,6 @@ from app.config import settings
 from app.db import Base
 
 DIM = settings.embedding_dim
-
-
-class User(Base):
-    __tablename__ = "users"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str] = mapped_column(String(64), unique=True, index=True)
-    full_name: Mapped[str] = mapped_column(String(128))
-    password_hash: Mapped[str] = mapped_column(String(128))
-    role: Mapped[str] = mapped_column(String(32), default="staff")  # admin | manager | staff
-    department: Mapped[str] = mapped_column(String(64), default="General")
-    # Liên kết danh tính kênh chat: {"teams": "<aadObjectId>", "whatsapp": "8490xxxxxxx"}
-    external_ids: Mapped[dict] = mapped_column(JSON, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class Employee(Base):
@@ -66,13 +55,53 @@ class Employee(Base):
     status: Mapped[str] = mapped_column(String(32), default="dang-lam")  # dang-lam | da-nghi-viec
 
 
+class LeaveBalance(Base):
+    """Số dư phép năm theo từng nhân viên (thực tế: đồng bộ từ HRM). ADR-003: `leave_balance:read:*`."""
+
+    __tablename__ = "leave_balances"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    employee_code: Mapped[str] = mapped_column(ForeignKey("employees.code"), index=True)
+    year: Mapped[int] = mapped_column(Integer)
+    entitled: Mapped[float] = mapped_column(Float, default=0)  # phép năm được hưởng
+    carried_over: Mapped[float] = mapped_column(Float, default=0)  # tồn chuyển sang
+    carried_expired: Mapped[float] = mapped_column(Float, default=0)  # tồn đã huỷ
+    used: Mapped[float] = mapped_column(Float, default=0)
+    remaining: Mapped[float] = mapped_column(Float, default=0)
+
+    __table_args__ = (UniqueConstraint("employee_code", "year", name="uq_leave_balance_employee_year"),)
+
+
+class LeaveRequest(Base):
+    """Đơn nghỉ. ADR-003: `leave_request:read:*`; chưa có quyền duyệt (chỉ đọc)."""
+
+    __tablename__ = "leave_requests"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    code: Mapped[str] = mapped_column(String(32), unique=True)  # DP-2026-0001
+    employee_code: Mapped[str] = mapped_column(ForeignKey("employees.code"), index=True)
+    kind: Mapped[str] = mapped_column(String(32))  # phep-nam | nghi-om-co-luong | ...
+    from_date: Mapped[date] = mapped_column(Date)
+    to_date: Mapped[date] = mapped_column(Date)
+    days: Mapped[float] = mapped_column(Float)
+    status: Mapped[str] = mapped_column(String(16))  # cho-duyet | da-duyet | tu-choi
+    approver_code: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    note: Mapped[str] = mapped_column(Text, default="")  # lý do do nhân viên tự viết: dữ liệu cá nhân
+
+
+class EmployeeContact(Base):
+    """Số điện thoại: tách khỏi `employees` vì bị che theo người xem (ADR-003, directory:read:phone_*)."""
+
+    __tablename__ = "employee_contacts"
+    employee_code: Mapped[str] = mapped_column(ForeignKey("employees.code"), primary_key=True)
+    phone: Mapped[str] = mapped_column(String(32))
+
+
 class Document(Base):
     """Một văn bản trong kho tri thức. Các cột ánh xạ 1-1 với frontmatter trong data/knowledge."""
 
     __tablename__ = "documents"
     id: Mapped[int] = mapped_column(primary_key=True)
-    doc_id: Mapped[str] = mapped_column(String(64), unique=True, index=True)  # SVT-QC-003
-    so_hieu: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)  # 01/2026/QĐ-SVT
+    doc_id: Mapped[str] = mapped_column(String(64), unique=True, index=True)  # CTA-QC-003
+    so_hieu: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)  # 01/2026/QĐ-CTA
     title: Mapped[str] = mapped_column(String(256))
     doc_type: Mapped[str | None] = mapped_column(String(32), nullable=True)  # quy-che | quy-trinh ...
     source: Mapped[str] = mapped_column(String(512))
@@ -90,7 +119,7 @@ class Document(Base):
     content_hash: Mapped[str] = mapped_column(String(64), default="")  # nạp lại idempotent
     # Tài liệu bị nghi chứa chỉ dẫn độc hại -> không bao giờ được truy xuất (P2 sẽ tự gắn cờ)
     quarantined: Mapped[bool] = mapped_column(Boolean, default=False)
-    uploaded_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    uploaded_by: Mapped[str | None] = mapped_column(String(255), nullable=True)  # email người nạp (Zitadel)
     ocr_pages: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     chunks: Mapped[list["Chunk"]] = relationship(back_populates="document", cascade="all, delete-orphan")
@@ -126,7 +155,7 @@ class Chunk(Base):
 class Conversation(Base):
     __tablename__ = "conversations"
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)  # employees.id (không khoá ngoại: users đã bỏ)
     channel: Mapped[str] = mapped_column(String(16), default="web")  # web | teams | whatsapp | mcp
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -222,6 +251,30 @@ class OcrJob(Base):
     pages_total: Mapped[int] = mapped_column(Integer, default=0)
     pages_done: Mapped[int] = mapped_column(Integer, default=0)
     result: Mapped[list | None] = mapped_column(JSON, nullable=True)  # [{page, text, source, ms}]
+    error: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class SttJob(Base):
+    """Job chép lời ghi âm (ADR-006). KHÔNG lưu file âm thanh và KHÔNG lưu tên file: chỉ metadata + kết quả.
+
+    Cột kiểu portable (JSON, không phải JSONB) để test được trên SQLite. `user_id` là employees.id
+    (như ocr_jobs).
+    """
+
+    __tablename__ = "stt_jobs"
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)  # uuid4 hex, không đoán được
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    status: Mapped[str] = mapped_column(String(16), default="queued")  # queued | running | done | failed
+    engine: Mapped[str] = mapped_column(String(32))
+    language: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    bytes_in: Mapped[int] = mapped_column(Integer, default=0)
+    duration_s: Mapped[float] = mapped_column(Float, default=0)  # tổng thời lượng, biết sau khi đổi định dạng
+    done_s: Mapped[float] = mapped_column(Float, default=0)  # đã chép tới giây thứ mấy
+    result: Mapped[list | None] = mapped_column(JSON, nullable=True)  # [{start, end, text}]
     error: Mapped[str | None] = mapped_column(String(300), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

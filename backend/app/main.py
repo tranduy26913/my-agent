@@ -15,8 +15,9 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api import health, kb, ocr
+from app.api import admin, admin_users, ask, health, hr, kb, library, me, ocr, stt
 from app.ocr import jobs
+from app.stt import jobs as stt_jobs
 
 log = logging.getLogger("api")
 
@@ -25,15 +26,24 @@ log = logging.getLogger("api")
 async def lifespan(app: FastAPI):
     # Chạy nền: DB tắt/chậm không được chặn API khởi động (/readyz sẽ báo 503 đúng tình trạng).
     threading.Thread(target=jobs.startup, name="ocr-startup", daemon=True).start()
+    threading.Thread(target=stt_jobs.startup, name="stt-startup", daemon=True).start()
     yield
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="SVT Agent Platform API", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(title="CTA Agent Platform API", version="0.1.0", lifespan=lifespan)
     app.include_router(health.router)
     app.include_router(ocr.router, prefix="/api/ocr")
+    app.include_router(stt.router, prefix="/api/stt")
     app.include_router(kb.router, prefix="/api/kb")
-    # Router nghiệp vụ khác (/api/me...) thêm ở đây, mỗi cái một dòng.
+    app.include_router(ask.router, prefix="/api/kb")
+    app.include_router(library.router, prefix="/api/kb")
+    # ^ /api/kb/ask và /api/kb/library dành cho mọi nhân viên, khác phần còn lại của /api/kb (chỉ admin)
+    app.include_router(me.router, prefix="/api/me")
+    app.include_router(hr.router, prefix="/api/hr")
+    app.include_router(admin.router, prefix="/api/admin")
+    app.include_router(admin_users.router, prefix="/api/admin")
+    # Router nghiệp vụ khác thêm ở đây, mỗi cái một dòng.
     return app
 
 

@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { ShieldX } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 
 export const metadata = { title: "Không có quyền" };
 
@@ -12,19 +15,22 @@ export default async function ForbiddenPage({ searchParams }: { searchParams: Pr
   const reason = (need && REASONS[need]) ?? "Tài khoản của bạn chưa được cấp quyền xem trang này.";
 
   return (
-    <div className="mx-auto mt-10 flex max-w-md flex-col items-center rounded-2xl bg-p-surface px-6 py-12 text-center">
-      <span className="flex size-12 items-center justify-center rounded-full bg-p-err-bg text-p-err">
-        <ShieldX className="size-6" />
-      </span>
-      <h2 className="mt-4 text-base font-semibold">Bạn không có quyền xem trang này</h2>
-      <p className="mt-1 text-sm text-p-muted">{reason}</p>
-      <p className="mt-1 text-sm text-p-muted">Nếu cần quyền, hãy liên hệ quản trị viên.</p>
-      <Link
-        href="/"
-        className="mt-6 inline-flex h-10 items-center rounded-xl bg-p-secondary px-4 text-sm font-medium transition-colors hover:bg-p-secondary-hover"
-      >
-        Về trang chủ
-      </Link>
-    </div>
+    <Card className="mx-auto mt-10 max-w-md py-6">
+      <Empty className="border-0">
+        <EmptyHeader>
+          <EmptyMedia variant="icon" className="size-12 rounded-full bg-destructive/10 text-destructive [&_svg:not([class*='size-'])]:size-6">
+            <ShieldX />
+          </EmptyMedia>
+          <EmptyTitle className="text-base font-semibold">Bạn không có quyền xem trang này</EmptyTitle>
+          <EmptyDescription>{reason}</EmptyDescription>
+          <EmptyDescription>Nếu cần quyền, hãy liên hệ quản trị viên.</EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <Button asChild variant="secondary">
+            <Link href="/">Về trang chủ</Link>
+          </Button>
+        </EmptyContent>
+      </Empty>
+    </Card>
   );
 }

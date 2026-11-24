@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.deps import UserInfo, get_current_user, get_db
+from app.api.deps import UserInfo, get_db, get_ocr_user
 from app.config import settings
 from app.llm.base import Usage
 from app.observability import DbAuditSink, record_usage
@@ -50,7 +50,7 @@ class RecognizeOut(BaseModel):
 
 
 @router.get("/engines", response_model=EnginesOut)
-def engines(user: UserInfo = Depends(get_current_user)):
+def engines(user: UserInfo = Depends(get_ocr_user)):
     return {"default": settings.ocr_engine, "engines": list_engines()}
 
 
@@ -59,7 +59,7 @@ def recognize(
     file: UploadFile = File(...),
     engine: str | None = Query(None, description="Tên engine; bỏ trống = engine mặc định"),
     pages: str | None = Query(None, description="Trang cần đọc, vd 1,3-5; bỏ trống = tất cả"),
-    user: UserInfo = Depends(get_current_user),
+    user: UserInfo = Depends(get_ocr_user),
     db: Session = Depends(get_db),
 ):
     limit = int(settings.ocr_max_mb * 1024 * 1024)
@@ -74,6 +74,7 @@ def recognize(
     DbAuditSink(db, user.id, None).log("ocr_run", {
         "engine": result.engine, "kind": result.kind, "bytes": len(data),
         "pages": len(result.pages), "ocr_pages": result.ocr_pages, "ms": result.ms,
+        "actor": user.username,
     })
     record_usage(db, user, f"local:{result.engine}", Usage(), purpose="ocr")  # engine cục bộ: chi phí 0
     return {
@@ -118,7 +119,7 @@ def create_job(
     file: UploadFile = File(...),
     engine: str | None = Query(None, description="Tên engine; bỏ trống = engine mặc định"),
     pages: str | None = Query(None, description="Trang cần đọc, vd 1,3-5; bỏ trống = tất cả"),
-    user: UserInfo = Depends(get_current_user),
+    user: UserInfo = Depends(get_ocr_user),
     db: Session = Depends(get_db),
 ):
     limit = int(settings.ocr_job_max_mb * 1024 * 1024)
@@ -134,12 +135,12 @@ def create_job(
 
 
 @router.get("/jobs", response_model=list[JobOut])
-def list_jobs(user: UserInfo = Depends(get_current_user), db: Session = Depends(get_db)):
+def list_jobs(user: UserInfo = Depends(get_ocr_user), db: Session = Depends(get_db)):
     return [_job_out(j) for j in jobs.list_for_user(db, user)]
 
 
 @router.get("/jobs/{job_id}", response_model=JobDetailOut)
-def get_job(job_id: str, user: UserInfo = Depends(get_current_user), db: Session = Depends(get_db)):
+def get_job(job_id: str, user: UserInfo = Depends(get_ocr_user), db: Session = Depends(get_db)):
     try:
         job = jobs.get_for_user(db, user, job_id)
     except OcrError as e:
@@ -152,7 +153,7 @@ def get_job(job_id: str, user: UserInfo = Depends(get_current_user), db: Session
 
 
 @router.delete("/jobs/{job_id}", status_code=204)
-def delete_job(job_id: str, user: UserInfo = Depends(get_current_user), db: Session = Depends(get_db)):
+def delete_job(job_id: str, user: UserInfo = Depends(get_ocr_user), db: Session = Depends(get_db)):
     try:
         jobs.delete_for_user(db, user, job_id)
     except OcrError as e:
@@ -190,7 +191,7 @@ class ExtractOut(BaseModel):
 
 
 @router.get("/schemas", response_model=list[SchemaOut])
-def list_schemas(user: UserInfo = Depends(get_current_user)):
+def list_schemas(user: UserInfo = Depends(get_ocr_user)):
     return [{"id": s.id, "title": s.title, "description": s.description} for s in SCHEMAS.values()]
 
 
@@ -217,7 +218,7 @@ def extract_document(
     schema_id: str = Query("cong-tac-phi", description="Loại tài liệu cần trích xuất (xem GET /schemas)"),
     engine: str | None = Query(None, description="Engine OCR; bỏ trống = mặc định"),
     pages: str | None = Query(None, description="Trang cần đọc, vd 1,3-5; bỏ trống = tất cả"),
-    user: UserInfo = Depends(get_current_user),
+    user: UserInfo = Depends(get_ocr_user),
     db: Session = Depends(get_db),
 ):
     """OCR -> LLM chép ra JSON -> đối chiếu OCR -> kiểm tra quy định.
@@ -240,7 +241,7 @@ def extract_document(
         "schema": res.schema_id, "engine": res.engine, "llm": res.llm_model, "kind": res.kind,
         "pages": res.pages, "ocr_pages": res.ocr_pages,
         "errors": counts["error"], "warnings": counts["warning"],
-        "needs_review": res.needs_review, "ms": res.ms,
+        "needs_review": res.needs_review, "ms": res.ms, "actor": user.username,
     })
     record_usage(db, user, res.llm_model, res.usage, purpose="ocr-extract")
     return {

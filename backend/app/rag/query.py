@@ -1,6 +1,6 @@
 """Phân tích câu hỏi trước khi truy xuất (không gọi LLM -> nhanh, rẻ, tất định, dễ test).
 
-1. Bắt số hiệu văn bản ("12/2023/QĐ-SVT") và mã tài liệu ("SVT-QC-003"): embedding xử lý chuỗi kiểu
+1. Bắt số hiệu văn bản ("12/2023/QĐ-CTA") và mã tài liệu ("CTA-QC-003"): embedding xử lý chuỗi kiểu
    này rất kém, nên khớp CHÍNH XÁC trong SQL rồi đưa thành một nhánh xếp hạng riêng.
 2. Mở rộng viết tắt / đồng nghĩa theo tu_dien.yaml cho nhánh full-text.
 3. Dựng tsquery: OR các âm tiết có nghĩa + các cặp âm tiết liền nhau (toán tử <->) để ưu tiên cụm từ.
@@ -16,7 +16,7 @@ from pathlib import Path
 import yaml
 
 SO_HIEU = re.compile(r"\b\d{1,3}/\d{4}/[A-Za-zĐđ]+(?:-[A-Za-z]+)?\b")
-DOC_ID = re.compile(r"\bSVT-[A-Z]{2,3}-\d{3}\b", re.IGNORECASE)
+DOC_ID = re.compile(r"\bCTA-[A-Z]{2,3}-\d{3}\b", re.IGNORECASE)
 
 # Âm tiết hư từ (đã bỏ dấu). Bỏ khỏi tsquery để không kéo về mọi chunk có chữ "được", "không"...
 STOPWORDS = set(

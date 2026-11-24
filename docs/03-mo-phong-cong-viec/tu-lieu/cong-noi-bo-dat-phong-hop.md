@@ -1,6 +1,6 @@
-# Đặc tả cổng nội bộ giả lập: "Đặt phòng họp SVT"
+# Đặc tả cổng nội bộ giả lập: "Đặt phòng họp CTA"
 
-> Dùng cho ticket SVT-AI-032 (ngày 14). Bạn **tự dựng** trang web nhỏ này (HTML tĩnh + một API giả, hoặc framework tùy chọn) để agent thao tác qua Playwright MCP. Đặc tả cố ý có vài chi tiết "khó chịu" giống phần mềm nội bộ thật.
+> Dùng cho ticket CTA-AI-032 (ngày 14). Bạn **tự dựng** trang web nhỏ này (HTML tĩnh + một API giả, hoặc framework tùy chọn) để agent thao tác qua Playwright MCP. Đặc tả cố ý có vài chi tiết "khó chịu" giống phần mềm nội bộ thật.
 
 ## 1. Màn hình
 

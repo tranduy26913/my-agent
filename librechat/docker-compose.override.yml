@@ -34,6 +34,64 @@ services:
     volumes:
       - agentdb:/var/lib/postgresql/data
 
+  # Đăng nhập một lần cho portal + chat (docs/06, ADR-004). Dùng chung container agent-db: lần đầu Zitadel
+  # tự tạo database `zitadel` và user `zitadel` bằng tài khoản admin của Postgres; lúc chạy chỉ dùng
+  # user `zitadel`, nên backend không đọc được dữ liệu của Zitadel (và ngược lại).
+  zitadel:
+    container_name: zitadel
+    image: ghcr.io/zitadel/zitadel:v4.20.5          # ghim phiên bản, không dùng latest
+    # start-from-init: lần đầu tự khởi tạo DB, các lần sau chỉ cập nhật schema rồi chạy.
+    # --tlsMode external: Cloudflare Tunnel lo HTTPS, container chỉ nói HTTP.
+    command: start-from-init --masterkeyFromEnv --tlsMode external
+    user: "0"                                       # ghi PAT ra thư mục bind-mount trên Windows
+    environment:
+      ZITADEL_MASTERKEY: ${ZITADEL_MASTERKEY:?đặt ZITADEL_MASTERKEY trong librechat/.env}
+      # `iss` trong token phải là URL công khai, nên khai đúng domain người dùng thấy (không phải localhost).
+      ZITADEL_EXTERNALDOMAIN: auth.tranduyai.id.vn
+      ZITADEL_EXTERNALPORT: "443"
+      ZITADEL_EXTERNALSECURE: "true"
+      # Cờ --tlsMode chỉ áp cho lệnh start; lệnh `ready` (healthcheck) đọc cấu hình này nên phải tắt TLS ở đây,
+      # nếu không nó gọi https://localhost:8080 và luôn báo "not ready".
+      ZITADEL_TLS_ENABLED: "false"
+      ZITADEL_DATABASE_POSTGRES_HOST: agent-db
+      ZITADEL_DATABASE_POSTGRES_PORT: "5432"
+      ZITADEL_DATABASE_POSTGRES_DATABASE: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_USERNAME: zitadel
+      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: ${ZITADEL_DB_PASSWORD:?đặt ZITADEL_DB_PASSWORD trong librechat/.env}
+      ZITADEL_DATABASE_POSTGRES_USER_SSL_MODE: disable
+      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: agent
+      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: ${AGENT_DB_PASSWORD:-agent}
+      ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
+      # Chỉ có tác dụng ở LẦN KHỞI TẠO ĐẦU (instance đã tạo thì đổi ở đây không còn hiệu lực).
+      ZITADEL_FIRSTINSTANCE_ORG_NAME: CTA
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: zitadel-admin
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_ADDRESS: admin@cty-a.example
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: ${ZITADEL_ADMIN_PASSWORD:?đặt ZITADEL_ADMIN_PASSWORD trong librechat/.env}
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: "true"
+      # Machine user `bootstrap` (IAM_OWNER) + PAT cho script infra/zitadel/bootstrap.py. Vô hiệu hoá khi xong việc.
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_USERNAME: bootstrap
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_NAME: bootstrap
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_PAT_EXPIRATIONDATE: "2027-12-31T00:00:00Z"
+      ZITADEL_FIRSTINSTANCE_PATPATH: /bootstrap/bootstrap.pat
+      # Dùng giao diện đăng nhập cũ (Login V1) nằm sẵn trong container chính, KHÔNG chạy thêm container
+      # zitadel-login (đỡ RAM). Docs Zitadel: ở lại Login V1 là cách được hỗ trợ ở v4.
+      ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED: "false"
+    volumes:
+      - ./zitadel-bootstrap:/bootstrap
+    ports:
+      - "127.0.0.1:8180:8080"                       # 8080 đã là LocalAI; chỉ mở cho localhost
+    depends_on:
+      agent-db:
+        condition: service_started  # agent-db chưa có healthcheck; thêm sẽ buộc tạo lại container DB
+    healthcheck:
+      test: ["CMD", "/app/zitadel", "ready"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 40s
+    mem_limit: 512m                                  # chặn trần RAM; đo bằng `docker stats` rồi chỉnh
+    restart: unless-stopped
+
   # Ngày 6+: thêm service Python của bạn ở đây, ví dụ:
   # hr-mcp:
   #   build: ../services/hr-mcp

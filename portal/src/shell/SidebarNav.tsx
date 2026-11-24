@@ -3,74 +3,85 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowUpRight, Library, MessageSquare } from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import { hasAnyRole } from "@/lib/me";
 import { useMe } from "./me-context";
-import { CHAT_URL, GROUP_LABEL, NAV, type NavGroup, type NavItem } from "./nav";
+import { CHAT_URL, GROUP_LABEL, NAV, findNavItem, type NavGroup } from "./nav";
 
 const GROUPS: NavGroup[] = ["main", "tools", "admin"];
 
-function isActive(item: NavItem, pathname: string) {
-  return item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`);
-}
+/** Mục menu: cao 40px, chữ mờ, rê chuột nền nhạt; mục đang mở nền xanh nhạt, chữ xanh đậm. */
+const NAV_BUTTON =
+  "h-10 text-sm text-foreground/70 hover:bg-accent hover:text-foreground data-active:bg-primary/15 data-active:font-medium data-active:text-primary-ink data-active:hover:bg-primary/20 data-active:hover:text-primary-ink";
 
-/** Nội dung sidebar, dùng chung cho cột cố định (máy tính) và drawer (điện thoại). */
-export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+/** Sidebar của portal. Trên điện thoại shadcn tự biến thành drawer (Sheet), có bẫy phím Tab và đóng bằng Esc. */
+export function AppSidebar() {
   const pathname = usePathname();
   const me = useMe();
+  const { setOpenMobile } = useSidebar();
+  const current = findNavItem(pathname);
 
   return (
-    <>
-      <div className="flex h-16 shrink-0 items-center gap-2.5 border-b border-p-line px-5">
-        <span className="flex size-7 items-center justify-center rounded-lg bg-p-primary text-p-on-primary">
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="h-14 flex-row items-center gap-2.5 border-b px-3.5">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
           <Library className="size-4" />
         </span>
-        <span className="text-sm font-semibold">Trợ lý số Sao Việt</span>
-      </div>
+        <span className="truncate text-sm font-semibold group-data-[collapsible=icon]:hidden">Trợ lý số Công ty A</span>
+      </SidebarHeader>
 
-      <nav aria-label="Điều hướng chính" className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-3">
+      <SidebarContent className="px-1 py-2">
         {GROUPS.map((group) => {
-          const items = NAV.filter((n) => n.group === group && hasAnyRole(me, n.roles));
+          const items = NAV.filter((n) => n.group === group && !n.hidden && hasAnyRole(me, n.roles));
           if (items.length === 0) return null;
           const label = GROUP_LABEL[group];
           return (
-            <div key={group} className={group === "main" ? "" : "mt-4"}>
-              {label && <p className="px-3 pb-1.5 text-xs font-medium uppercase tracking-wide text-p-muted">{label}</p>}
-              <ul className="flex flex-col gap-0.5">
-                {items.map((item) => {
-                  const active = isActive(item, pathname);
-                  return (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        onClick={onNavigate}
-                        aria-current={active ? "page" : undefined}
-                        className={
-                          "flex h-10 items-center gap-2.5 rounded-xl px-3 text-sm transition-colors " +
-                          (active
-                            ? "bg-p-primary-soft font-medium text-p-primary"
-                            : "text-p-fg/70 hover:bg-p-hover hover:text-p-fg")
-                        }
-                      >
-                        <item.icon className="size-4 shrink-0" />
-                        {item.label}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
+            <SidebarGroup key={group}>
+              {label && <SidebarGroupLabel className="px-3 uppercase tracking-wide text-muted-foreground">{label}</SidebarGroupLabel>}
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {items.map((item) => (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton asChild isActive={current?.href === item.href} tooltip={item.label} className={NAV_BUTTON}>
+                        <Link href={item.href} onClick={() => setOpenMobile(false)}>
+                          <item.icon />
+                          {item.label}
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
           );
         })}
+      </SidebarContent>
 
-        <a
-          href={CHAT_URL}
-          className="mt-auto flex h-10 items-center gap-2.5 rounded-xl px-3 text-sm text-p-fg/70 transition-colors hover:bg-p-hover hover:text-p-fg"
-        >
-          <MessageSquare className="size-4 shrink-0" />
-          Mở Trợ lý
-          <ArrowUpRight className="ml-auto size-4 shrink-0 text-p-muted" />
-        </a>
-      </nav>
-    </>
+      <SidebarFooter className="p-3">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Mở Trợ lý" className={NAV_BUTTON}>
+              <a href={CHAT_URL}>
+                <MessageSquare />
+                Mở Trợ lý
+                <ArrowUpRight className="ml-auto text-muted-foreground" />
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+    </Sidebar>
   );
 }

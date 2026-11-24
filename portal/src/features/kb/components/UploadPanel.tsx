@@ -1,4 +1,4 @@
-import { useRef, useState, type DragEvent } from "react";
+import { Fragment, useRef, useState, type DragEvent } from "react";
 import { CircleAlert, CircleCheck, File as FileIcon, FileImage, FileText, Upload, X } from "lucide-react";
 import { useKbHost } from "../host";
 import { useDocuments, useKbMutations } from "../hooks";
@@ -6,8 +6,23 @@ import { ACCEPT, MAX_FILE_BYTES, fileKindOf, inspectFile } from "../files";
 import { fmtSize } from "../format";
 import { DEPARTMENTS, DOC_TYPES, ROLES, VISIBILITY_META } from "../labels";
 import type { UploadMeta, Visibility } from "../types";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { FieldLegend, FieldSet } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Item, ItemActions, ItemContent, ItemGroup, ItemMedia, ItemSeparator } from "@/components/ui/item";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { cn } from "@/lib/utils";
 import { Drawer } from "./Drawer";
-import { Field, ToggleChip, btn, inputCls } from "./ui";
+import { Field } from "./ui";
+
+/** Radix Select không cho SelectItem có value rỗng, nên "không chọn" dùng giá trị này. */
+const NONE = "__none__";
 
 type ItemState = "ready" | "needs-info" | "uploading" | "done" | "failed" | "rejected";
 
@@ -46,7 +61,6 @@ const EMPTY_FORM: FormState = {
 
 let seq = 0;
 const nextId = () => `u${++seq}`;
-const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 
 /** Cắt giữa, giữ đuôi: "bien-ban-hop-giao-ban…kinh-doanh.pdf" */
 function MiddleTruncate({ name }: { name: string }) {
@@ -102,7 +116,7 @@ export function UploadPanel({ open, onClose }: Props) {
     setItems((cur) => [...cur, ...incoming]);
   }
 
-  function onDrop(e: DragEvent<HTMLLabelElement>) {
+  function onDrop(e: DragEvent<HTMLDivElement>) {
     e.preventDefault();
     setDragging(false);
     if (e.dataTransfer.files.length) void addFiles(e.dataTransfer.files);
@@ -161,27 +175,28 @@ export function UploadPanel({ open, onClose }: Props) {
       subtitle="Tệp Markdown có frontmatter đầy đủ thì không phải điền gì thêm"
       footer={
         allDone ? (
-          <button type="button" onClick={onClose} className={`${btn.base} ${btn.primary} min-h-10`}>Xong</button>
+          <Button type="button" size="lg" onClick={onClose} className="min-h-10 px-4">Xong</Button>
         ) : (
           <>
-            <button type="button" onClick={onClose} className={`${btn.base} ${btn.secondary} min-h-10`}>Huỷ</button>
-            <button type="button" disabled={running || pending.length === 0 || !formValid} onClick={submit} className={`${btn.base} ${btn.primary} min-h-10`}>
+            <Button type="button" size="lg" variant="secondary" onClick={onClose} className="min-h-10 px-4">Huỷ</Button>
+            <Button type="button" size="lg" disabled={running || pending.length === 0 || !formValid} onClick={submit} className="min-h-10 px-4">
               {footerLabel}
-            </button>
+            </Button>
           </>
         )
       }
     >
       <div className="flex-1 overflow-y-auto px-6 pb-6 pt-2">
-        <label
+        <div
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
           onDrop={onDrop}
-          className={`flex cursor-pointer flex-col items-center rounded-xl border border-dashed px-6 py-8 text-center transition-colors ${
-            dragging ? "border-p-fg/40 bg-p-bg" : "border-p-line-strong bg-p-bg/60 hover:bg-p-bg"
-          }`}
+          className={cn(
+            "flex flex-col items-center rounded-xl border border-dashed px-6 py-8 text-center transition-colors",
+            dragging ? "border-foreground/40 bg-background" : "border-input bg-background/60",
+          )}
         >
-          <input
+          <Input
             ref={inputRef}
             type="file"
             multiple
@@ -190,147 +205,168 @@ export function UploadPanel({ open, onClose }: Props) {
             onChange={(e) => { if (e.target.files) void addFiles(e.target.files); e.target.value = ""; }}
           />
           <p className="text-sm font-medium [@media(hover:none)]:hidden">{dragging ? "Thả tệp để tải lên" : "Kéo thả tài liệu vào đây"}</p>
-          <p className="mt-1 text-pretty text-sm text-p-muted">Markdown, PDF, Word, ảnh scan JPG hoặc PNG. Tối đa {MAX_FILE_BYTES / 1024 / 1024} MB mỗi tệp</p>
-          <span className={`${btn.base} ${btn.outline} mt-4 h-9 rounded-lg px-3`}><Upload className="size-4" />Chọn tệp</span>
-        </label>
+          <p className="mt-1 text-pretty text-sm text-muted-foreground">Markdown, PDF, Word, ảnh scan JPG hoặc PNG. Tối đa {MAX_FILE_BYTES / 1024 / 1024} MB mỗi tệp</p>
+          <Button type="button" variant="outline" size="sm" className="mt-4" onClick={() => inputRef.current?.click()}>
+            <Upload />Chọn tệp
+          </Button>
+        </div>
 
         {items.length > 0 ? (
-          <ul className="mt-4 divide-y divide-p-line">
-            {items.map((it) => {
+          <ItemGroup className="mt-4 gap-0">
+            {items.map((it, idx) => {
               const kind = fileKindOf(it.file.name);
               const Icon = kind === "image" ? FileImage : kind === "other" ? FileIcon : FileText;
               const canRemove = it.state !== "done" && it.state !== "uploading";
               return (
-                <li key={it.id} className="flex items-center gap-3 py-3">
-                  <Icon className="size-5 shrink-0 text-p-muted" />
-                  <div className="min-w-0 flex-1">
+                <Fragment key={it.id}>
+                  {idx > 0 ? <ItemSeparator className="my-0" /> : null}
+                  <Item className="flex-nowrap px-0 py-3">
+                  <ItemMedia variant="icon">
+                    <Icon className="size-5 text-muted-foreground" />
+                  </ItemMedia>
+                  <ItemContent className="min-w-0 flex-1 gap-0">
                     <div className="flex items-baseline gap-3">
                       <MiddleTruncate name={it.file.name} />
-                      {it.state === "uploading" ? <p className="shrink-0 text-sm tabular-nums text-p-muted">{it.progress}%</p> : null}
+                      {it.state === "uploading" ? <p className="shrink-0 text-sm tabular-nums text-muted-foreground">{it.progress}%</p> : null}
                     </div>
-                    <div className="mt-1 flex min-h-5 items-center gap-1.5 text-xs text-p-muted">
+                    <div className="mt-1 flex min-h-5 items-center gap-1.5 text-xs text-muted-foreground">
                       {it.state === "uploading" ? (
-                        <div role="progressbar" aria-valuenow={it.progress} aria-valuemin={0} aria-valuemax={100} aria-label={`Đang tải ${it.file.name}`} className="h-1 w-full rounded-full bg-p-fg/5">
-                          <div className="h-1 rounded-full bg-p-primary transition-[width]" style={{ width: `${it.progress}%` }} />
-                        </div>
+                        <Progress value={it.progress} aria-label={`Đang tải ${it.file.name}`} className="h-1 w-full" />
                       ) : it.state === "done" ? (
-                        <><CircleCheck className="size-3.5 text-p-ok" />Đã nạp, đang xử lý · {fmtSize(it.file.size)}</>
+                        <><CircleCheck className="size-3.5 text-success" />Đã nạp, đang xử lý · {fmtSize(it.file.size)}</>
                       ) : it.state === "ready" ? (
-                        <><CircleCheck className="size-3.5 text-p-ok" />Đủ thông tin từ frontmatter · {fmtSize(it.file.size)}</>
+                        <><CircleCheck className="size-3.5 text-success" />Đủ thông tin từ frontmatter · {fmtSize(it.file.size)}</>
                       ) : it.state === "needs-info" ? (
-                        <span className="inline-flex items-center gap-1.5 text-p-warn"><CircleAlert className="size-3.5" />Cần điền thông tin bên dưới · {fmtSize(it.file.size)}</span>
+                        <span className="inline-flex items-center gap-1.5 text-warning"><CircleAlert className="size-3.5" />Cần điền thông tin bên dưới · {fmtSize(it.file.size)}</span>
                       ) : (
                         <>
-                          <span className="text-p-err">{it.message}</span>
+                          <span className="text-destructive">{it.message}</span>
                           {it.state === "failed" ? (
                             <>
                               <span aria-hidden>·</span>
-                              <button type="button" onClick={submit} className="relative cursor-pointer whitespace-nowrap font-medium text-p-fg before:absolute before:-inset-x-1.5 before:-inset-y-2 hover:underline">Thử lại</button>
+                              <Button type="button" variant="link" onClick={submit} className="h-auto p-0 text-xs text-foreground">Thử lại</Button>
                             </>
                           ) : null}
                         </>
                       )}
                     </div>
-                  </div>
-                  <div className="flex w-8 shrink-0 justify-end">
+                  </ItemContent>
+                  <ItemActions className="w-8 justify-end">
                     {canRemove ? (
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="icon"
                         aria-label={`Bỏ tệp ${it.file.name}`}
                         onClick={() => setItems((cur) => cur.filter((x) => x.id !== it.id))}
-                        className="inline-flex size-8 cursor-pointer items-center justify-center rounded-lg text-p-muted hover:bg-p-fg/5 hover:text-p-fg"
+                        className="text-muted-foreground"
                       >
-                        <X className="size-4" />
-                      </button>
+                        <X />
+                      </Button>
                     ) : null}
-                  </div>
-                </li>
+                  </ItemActions>
+                  </Item>
+                </Fragment>
               );
             })}
-          </ul>
+          </ItemGroup>
         ) : null}
 
         {showForm ? (
-          <div className="mt-6 border-t border-p-line pt-6">
+          <div className="mt-6">
+            <Separator className="mb-6" />
             <h3 className="text-sm font-semibold">
               Thông tin cho {needInfo.length === 1 ? needInfo[0].file.name : `${needInfo.length} tệp chưa có thông tin`}
             </h3>
-            <p className="mt-1 text-sm text-p-muted">Trợ lý dùng các trường này để lọc quyền và trích dẫn nguồn</p>
+            <p className="mt-1 text-sm text-muted-foreground">Trợ lý dùng các trường này để lọc quyền và trích dẫn nguồn</p>
 
             <div className="mt-5 grid gap-4">
               <Field label="Tiêu đề" htmlFor="kb-title" hint={needInfo.length > 1 ? "Để trống thì lấy theo tên từng tệp" : undefined}>
-                <input id="kb-title" value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="Để trống thì lấy theo tên tệp" className={inputCls} />
+                <Input id="kb-title" value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="Để trống thì lấy theo tên tệp" className="h-10" />
               </Field>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Loại văn bản" required htmlFor="kb-type">
-                  <select id="kb-type" value={form.docType} onChange={(e) => set("docType", e.target.value)} className={`${inputCls} ${form.docType ? "" : "text-p-muted"}`}>
-                    <option value="">Chọn loại</option>
-                    {DOC_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                  </select>
+                  <Select value={form.docType} onValueChange={(v) => set("docType", v)}>
+                    <SelectTrigger id="kb-type" className="h-10 w-full"><SelectValue placeholder="Chọn loại" /></SelectTrigger>
+                    <SelectContent>
+                      {DOC_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </Field>
                 <Field label="Phòng sở hữu" required htmlFor="kb-dept">
-                  <select id="kb-dept" value={form.department} onChange={(e) => set("department", e.target.value)} className={`${inputCls} ${form.department ? "" : "text-p-muted"}`}>
-                    <option value="">Chọn phòng</option>
-                    {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
-                  </select>
+                  <Select value={form.department} onValueChange={(v) => set("department", v)}>
+                    <SelectTrigger id="kb-dept" className="h-10 w-full"><SelectValue placeholder="Chọn phòng" /></SelectTrigger>
+                    <SelectContent>
+                      {DEPARTMENTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </Field>
               </div>
 
-              <fieldset className="grid gap-2">
-                <legend className="mb-1.5 text-sm font-medium">Ai được xem <span className="text-p-err">*</span></legend>
-                {(Object.keys(VISIBILITY_META) as Visibility[]).map((v) => {
-                  const meta = VISIBILITY_META[v];
-                  const on = form.visibility === v;
-                  return (
-                    <label key={v} className={`flex cursor-pointer gap-3 rounded-xl border p-3 ${on ? "border-p-primary ring-2 ring-p-primary/15" : "border-p-line-strong hover:bg-p-row-hover"}`}>
-                      <input type="radio" name="kb-visibility" checked={on} onChange={() => set("visibility", v)} className="mt-0.5 size-4 accent-p-primary" />
-                      <span>
-                        <span className="block text-sm font-medium">{meta.label}</span>
-                        <span className="block text-xs text-p-muted">{meta.hint}</span>
-                      </span>
-                    </label>
-                  );
-                })}
-              </fieldset>
+              <FieldSet className="gap-2">
+                <FieldLegend variant="label">Ai được xem <span className="text-destructive">*</span></FieldLegend>
+                <RadioGroup value={form.visibility} onValueChange={(v) => set("visibility", v as Visibility)} className="gap-2">
+                  {(Object.keys(VISIBILITY_META) as Visibility[]).map((v) => {
+                    const meta = VISIBILITY_META[v];
+                    const on = form.visibility === v;
+                    return (
+                      <Label
+                        key={v}
+                        htmlFor={`kb-vis-${v}`}
+                        className={cn("flex cursor-pointer items-start gap-3 rounded-xl border p-3 font-normal", on ? "border-primary ring-2 ring-primary/15" : "hover:bg-muted/50")}
+                      >
+                        <RadioGroupItem id={`kb-vis-${v}`} value={v} className="mt-0.5" />
+                        <span>
+                          <span className="block text-sm font-medium">{meta.label}</span>
+                          <span className="block text-xs text-muted-foreground">{meta.hint}</span>
+                        </span>
+                      </Label>
+                    );
+                  })}
+                </RadioGroup>
+              </FieldSet>
 
               {scopeNeedsList ? (
                 <>
                   <Field label="Phòng được xem">
-                    <div className="flex flex-wrap gap-1.5">
-                      {DEPARTMENTS.map((d) => <ToggleChip key={d} on={form.depts.includes(d)} onToggle={() => set("depts", toggle(form.depts, d))}>{d}</ToggleChip>)}
-                    </div>
+                    <ToggleGroup type="multiple" variant="outline" spacing={1.5} value={form.depts} onValueChange={(v) => set("depts", v)} className="flex-wrap justify-start">
+                      {DEPARTMENTS.map((d) => <ToggleGroupItem key={d} value={d}>{d}</ToggleGroupItem>)}
+                    </ToggleGroup>
                   </Field>
                   <Field
                     label="Vai trò được xem"
                     hint={form.depts.length + form.roles.length === 0 ? "Chọn ít nhất một phòng hoặc một vai trò, nếu không sẽ không ai xem được" : undefined}
                   >
-                    <div className="flex flex-wrap gap-1.5">
-                      {ROLES.map((r) => <ToggleChip key={r.value} on={form.roles.includes(r.value)} onToggle={() => set("roles", toggle(form.roles, r.value))}>{r.label}</ToggleChip>)}
-                    </div>
+                    <ToggleGroup type="multiple" variant="outline" spacing={1.5} value={form.roles} onValueChange={(v) => set("roles", v)} className="flex-wrap justify-start">
+                      {ROLES.map((r) => <ToggleGroupItem key={r.value} value={r.value}>{r.label}</ToggleGroupItem>)}
+                    </ToggleGroup>
                   </Field>
                 </>
               ) : null}
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Hiệu lực từ" htmlFor="kb-from">
-                  <input id="kb-from" type="date" value={form.effectiveFrom} onChange={(e) => set("effectiveFrom", e.target.value)} className={inputCls} />
+                  <Input id="kb-from" type="date" value={form.effectiveFrom} onChange={(e) => set("effectiveFrom", e.target.value)} className="h-10" />
                 </Field>
                 <Field label="Thay thế văn bản" htmlFor="kb-sup">
-                  <select id="kb-sup" value={form.supersedes} onChange={(e) => set("supersedes", e.target.value)} className={inputCls}>
-                    <option value="">Không thay thế</option>
-                    {(existing ?? []).filter((d) => !d.supersededBy).map((d) => <option key={d.docId} value={d.docId}>{d.docId} · {d.title}</option>)}
-                  </select>
+                  <Select value={form.supersedes || NONE} onValueChange={(v) => set("supersedes", v === NONE ? "" : v)}>
+                    <SelectTrigger id="kb-sup" className="h-10 w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NONE}>Không thay thế</SelectItem>
+                      {(existing ?? []).filter((d) => !d.supersededBy).map((d) => <SelectItem key={d.docId} value={d.docId}>{d.docId} · {d.title}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </Field>
               </div>
 
-              <label className="flex cursor-pointer items-start gap-3">
-                <input type="checkbox" checked={form.classified} onChange={(e) => set("classified", e.target.checked)} className="mt-0.5 size-4 accent-p-primary" />
+              <Label htmlFor="kb-classified" className="cursor-pointer items-start gap-3 font-normal">
+                <Checkbox id="kb-classified" checked={form.classified} onCheckedChange={(v) => set("classified", v === true)} className="mt-0.5" />
                 <span>
                   <span className="block text-sm font-medium">Văn bản Mật</span>
-                  <span className="block text-xs text-p-muted">Chỉ xử lý trên máy chủ nội bộ, không gửi ra dịch vụ OCR bên ngoài</span>
+                  <span className="block text-xs text-muted-foreground">Chỉ xử lý trên máy chủ nội bộ, không gửi ra dịch vụ OCR bên ngoài</span>
                 </span>
-              </label>
+              </Label>
             </div>
           </div>
         ) : null}

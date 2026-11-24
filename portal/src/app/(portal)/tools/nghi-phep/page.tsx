@@ -1,5 +1,7 @@
-import { ComingSoon } from "@/shell/ComingSoon";
+import { LeaveNextHost } from "@/host/HrNextHost";
 
-export default function Page() {
-  return <ComingSoon href="/tools/nghi-phep" />;
+export const metadata = { title: "Nghỉ phép" };
+
+export default function LeaveRoute() {
+  return <LeaveNextHost />;
 }

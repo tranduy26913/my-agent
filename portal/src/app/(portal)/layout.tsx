@@ -3,7 +3,7 @@ import { getMe } from "@/lib/me.server";
 import { AppShell } from "@/shell/AppShell";
 import { MeProvider } from "@/shell/me-context";
 
-/** Khung chung của mọi trang cần đăng nhập. Chưa có đăng nhập thật nên `getMe()` đang là bản giả. */
+/** Khung chung của mọi trang cần đăng nhập. `getMe()` chuyển về /login (hoặc /no-access) nếu không đủ điều kiện. */
 export default async function PortalLayout({ children }: { children: ReactNode }) {
   const me = await getMe();
   return (

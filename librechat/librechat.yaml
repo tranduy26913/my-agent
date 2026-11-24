@@ -1,4 +1,4 @@
-# librechat.yaml – cấu hình "Trợ lý số SVT" (GĐ0)
+# librechat.yaml – cấu hình "Trợ lý số CTA" (GĐ0)
 # Đối chiếu: librechat-src/librechat.example.yaml (LibreChat v0.8.9)
 # Nguyên tắc: file này commit được -> KHÔNG ghi bí mật ở đây, bí mật để trong .env và tham chiếu bằng ${TEN_BIEN}.
 
@@ -8,13 +8,13 @@ version: 1.3.19
 cache: true
 
 interface:
-  customWelcome: 'Trợ lý số SVT – môi trường học tập (GĐ0)'
+  customWelcome: 'Trợ lý số CTA – môi trường học tập (GĐ0)'
   # GĐ0 Ngày 2 sẽ thử bật/tắt các quyền này theo role.
 
 registration:
-  # GĐ0 chỉ dùng đăng nhập email/mật khẩu (ALLOW_EMAIL_LOGIN trong .env).
-  # Ngày 2 thử thêm 'openid' (Keycloak hoặc Entra ID).
-  socialLogins: []
+  # Đăng nhập một lần qua Zitadel (OIDC; biến OPENID_* trong .env, docs/06 giai đoạn 3). Đăng nhập email/mật
+  # khẩu (ALLOW_EMAIL_LOGIN) còn bật cho đến khi OIDC chạy ổn, rồi mới tắt cùng OPENID_AUTO_REDIRECT=true.
+  socialLogins: ['openid']
 
 # Ngân sách token theo user (M1). Bật thì giao dịch token luôn được ghi.
 balance:
@@ -28,16 +28,17 @@ mcpSettings:
     - 'host.docker.internal:8100'
 
 mcpServers:
-  # Kho tri thức SVT (backend/app/knowledge_mcp.py) chạy trên máy host: python -m app.knowledge_mcp
+  # Kho tri thức CTA (backend/app/knowledge_mcp.py) chạy trên máy host: python -m app.knowledge_mcp
   knowledge-mcp:
     type: streamable-http
     url: http://host.docker.internal:8100/mcp
     timeout: 120000 # embed + truy xuất + sinh câu trả lời có thể mất vài chục giây
     headers:
-      # Email người đang chat -> knowledge-mcp tra phòng ban/vai trò trong DB để lọc quyền tài liệu
-      X-User-Email: "{{LIBRECHAT_USER_EMAIL}}"
-      # Bí mật dùng chung (librechat/.env) -> chứng minh request đến từ LibreChat
-      X-KB-Token: "${KB_MCP_TOKEN}"
+      # ĐÍCH: access token Zitadel của người đang chat (cần OPENID_REUSE_TOKENS=true). knowledge-mcp tự kiểm chữ
+      # ký và lấy email đã xác minh trong token, nên không còn tin email do client khai. Người dùng đăng nhập bằng
+      # email/mật khẩu thì LibreChat không có token để thay: biến giữ nguyên, knowledge-mcp bỏ qua dòng này.
+      Authorization: "Bearer {{LIBRECHAT_OPENID_ACCESS_TOKEN}}"
+      # Giai đoạn 6 đã gỡ X-User-Email và X-KB-Token: không có token Zitadel thì knowledge-mcp từ chối.
 
 # Ngày 6 sẽ thêm hr-mcp vào mcpServers ở trên:
 #   hr-mcp:

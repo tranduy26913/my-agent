@@ -1,6 +1,6 @@
-# Mô phỏng công việc AI Agent Engineer tại SVT
+# Mô phỏng công việc AI Agent Engineer tại CTA
 
-Bối cảnh chung: bạn là AI Agent Engineer của Công ty Cổ phần Công nghệ Sao Việt (hư cấu, xem `data/README.md`), thuộc dự án nội bộ **NB-2026-01 – Trợ lý số SVT**.
+Bối cảnh chung: bạn là AI Agent Engineer của Công ty A (hư cấu, xem `data/README.md`), thuộc dự án nội bộ **NB-2026-01 – Trợ lý số CTA**.
 
 | File | Dùng để |
 |---|---|
@@ -13,16 +13,16 @@ Bối cảnh chung: bạn là AI Agent Engineer của Công ty Cổ phần Công
 
 | Ngày | Ticket | Email | Kịch bản |
 |---|---|---|---|
-| 1–2 | SVT-AI-001…004 | E02 | – |
-| 3–5 | SVT-AI-010 | E01 | K01 |
-| 6–7 | SVT-AI-011…014 | E03 | K02 |
-| 8–9 | SVT-AI-020, 021 | – | – |
-| 10 | SVT-AI-022, 023 | E04 | K04 |
-| 11 | SVT-AI-024, SEC-025 | E07 | K03, K05 |
-| 12–13 | SVT-AI-030, 031 | – | K06 |
-| 14 | SVT-AI-032…034 | E05, E08 | K11, K12 |
-| 15 | SVT-AI-035 | E09 | – |
-| 16–17 | SVT-AI-040…045 | E06 | K07, K08, K09 |
-| 18–19 | SVT-AI-050, 051 | B9 | K10 |
+| 1–2 | CTA-AI-001…004 | E02 | – |
+| 3–5 | CTA-AI-010 | E01 | K01 |
+| 6–7 | CTA-AI-011…014 | E03 | K02 |
+| 8–9 | CTA-AI-020, 021 | – | – |
+| 10 | CTA-AI-022, 023 | E04 | K04 |
+| 11 | CTA-AI-024, SEC-025 | E07 | K03, K05 |
+| 12–13 | CTA-AI-030, 031 | – | K06 |
+| 14 | CTA-AI-032…034 | E05, E08 | K11, K12 |
+| 15 | CTA-AI-035 | E09 | – |
+| 16–17 | CTA-AI-040…045 | E06 | K07, K08, K09 |
+| 18–19 | CTA-AI-050, 051 | B9 | K10 |
 
 Mẹo: viết phần "Kết quả" của mỗi ticket như báo cáo thật. Đó chính là nguyên liệu cho câu chuyện STAR khi phỏng vấn.

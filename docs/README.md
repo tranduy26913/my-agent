@@ -18,13 +18,13 @@ Tài liệu định hướng: bản chất, hiểu lầm hay gặp, câu hỏi t
 | [08-system-design-phong-van.md](01-chuyen-nganh/08-system-design-phong-van.md) | GĐ5 |
 
 ## 2. Dữ liệu cho RAG và MCP – `../data/`
-Công ty giả lập **Sao Việt (SVT)**: 14 văn bản có metadata phân quyền/hiệu lực/phiên bản, bản scan cho OCR, dữ liệu nhân sự CSV, golden set 35 câu. Đọc [../data/README.md](../data/README.md) trước khi nạp.
+Công ty giả lập **Công ty A (CTA)**: 14 văn bản có metadata phân quyền/hiệu lực/phiên bản, bản scan cho OCR, dữ liệu nhân sự CSV, golden set 35 câu. Đọc [../data/README.md](../data/README.md) trước khi nạp.
 
 ## 3. Mô phỏng công việc – `03-mo-phong-cong-viec/`
 Ticket, email, kịch bản đóng vai, tư liệu mini-app. Đọc [03-mo-phong-cong-viec/README.md](03-mo-phong-cong-viec/README.md) để có lịch dùng theo ngày.
 
 ## 4. Quy trình chuẩn hóa tự động hóa với Agent
-[04-quy-trinh-chuan-hoa-tu-dong-hoa-agent.md](04-quy-trinh-chuan-hoa-tu-dong-hoa-agent.md) – 9 giai đoạn (G0–G8), cổng kiểm soát, thang tự động hóa L0–L5, RACI, 15 biểu mẫu, ví dụ xuyên suốt tại SVT. Dùng cho câu hỏi phỏng vấn "làm việc với phòng ban để chọn bài toán" và cho buổi demo trước Ban Giám đốc.
+[04-quy-trinh-chuan-hoa-tu-dong-hoa-agent.md](04-quy-trinh-chuan-hoa-tu-dong-hoa-agent.md) – 9 giai đoạn (G0–G8), cổng kiểm soát, thang tự động hóa L0–L5, RACI, 15 biểu mẫu, ví dụ xuyên suốt tại CTA. Dùng cho câu hỏi phỏng vấn "làm việc với phòng ban để chọn bài toán" và cho buổi demo trước Ban Giám đốc.
 
 ## 5. Nhật ký triển khai demo
 [05-nhat-ky-trien-khai-demo.md](05-nhat-ky-trien-khai-demo.md) – tiến độ đưa demo lên domain qua Cloudflare Tunnel, chạy model local (Qwen3-4B) cho chat và RAG, vấn đề còn tồn tại, cách chạy lại.
@@ -33,7 +33,7 @@ Ticket, email, kịch bản đóng vai, tư liệu mini-app. Đọc [03-mo-phong
 
 | Ngày | Đọc | Dữ liệu | Mô phỏng |
 |---|---|---|---|
-| 1–2 | 01-librechat | tạo user theo persona trong data/README | SVT-AI-001…004 |
+| 1–2 | 01-librechat | tạo user theo persona trong data/README | CTA-AI-001…004 |
 | 3–5 | 02-agent | hr/employees.csv | K01 + quy trình G1–G3 |
 | 6–7 | 03-mcp | hr/*.csv | K02 |
 | 8–11 | 04-rag | knowledge/, scan/, eval/ | K03, K04, K05 |

@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.api import ocr as ocr_api
-from app.api.deps import UserInfo, get_current_user, get_db
+from app.api.deps import UserInfo, get_db, get_ocr_user
 from app.config import settings
 from app.main import create_app
 from app.ocr import extract
@@ -37,7 +37,7 @@ def env(monkeypatch):
     app = create_app()
     db = StubDb()
     app.dependency_overrides[get_db] = lambda: db
-    app.dependency_overrides[get_current_user] = lambda: USER
+    app.dependency_overrides[get_ocr_user] = lambda: USER
     return TestClient(app), db, eng
 
 
@@ -48,7 +48,7 @@ def post(client, name="phieu-mat.png", **params):
 def test_schemas(env):
     client, _, _ = env
     body = client.get("/api/ocr/schemas").json()
-    assert [s["id"] for s in body] == ["cong-tac-phi"] and "08/2025/QĐ-SVT" in body[0]["description"]
+    assert [s["id"] for s in body] == ["cong-tac-phi"] and "08/2025/QĐ-CTA" in body[0]["description"]
 
 
 def test_extract_nv018_end_to_end(env):

@@ -122,7 +122,8 @@ def get_for_user(db: Session, user: UserInfo, job_id: str):
         return job
     if user.role == "admin":
         # Ghi vết xong mới trả nội dung: ghi lỗi -> ngoại lệ -> không lộ gì (fail closed).
-        _audit(db, user.id, "ocr_job_view", {"job_id": job.id, "owner_id": job.user_id})
+        detail = {"job_id": job.id, "owner_id": job.user_id, "actor": user.username}
+        _audit(db, user.id, "ocr_job_view", detail)
         return job
     raise JobNotFound("Không tìm thấy job")
 
@@ -226,6 +227,7 @@ def _run(job_id: str, user: UserInfo, data: bytes, engine: str, pages: str | Non
             _safe(_audit, db, user.id, "ocr_run", {
                 "engine": result.engine, "kind": result.kind, "bytes": len(data), "pages": len(result.pages),
                 "ocr_pages": result.ocr_pages, "ms": result.ms, "job_id": job_id, "async": True,
+                "actor": user.username,
             })
             _safe(_usage, db, user, result.engine)
     finally:
@@ -234,7 +236,8 @@ def _run(job_id: str, user: UserInfo, data: bytes, engine: str, pages: str | Non
 
 def _fail(db: Session, job_id: str, user: UserInfo, engine: str, message: str) -> None:
     if _finish(db, job_id, status="failed", error=message[:300]):
-        _safe(_audit, db, user.id, "ocr_job_failed", {"engine": engine, "job_id": job_id})
+        detail = {"engine": engine, "job_id": job_id, "actor": user.username}
+        _safe(_audit, db, user.id, "ocr_job_failed", detail)
 
 
 def _safe(fn: Callable, *args) -> None:

@@ -2,10 +2,10 @@ import { Globe, Lock, Users, type LucideIcon } from "lucide-react";
 import type { DocStatus, Visibility } from "./types";
 
 export const STATUS_META: Record<DocStatus, { label: string; cls: string }> = {
-  ready: { label: "Sẵn sàng", cls: "bg-p-ok-bg text-p-ok" },
-  processing: { label: "Đang xử lý", cls: "bg-p-neutral-bg text-p-neutral" },
-  error: { label: "Lỗi", cls: "bg-p-err-bg text-p-err" },
-  quarantined: { label: "Cách ly", cls: "bg-p-warn-bg text-p-warn" },
+  ready: { label: "Sẵn sàng", cls: "bg-success/10 text-success" },
+  processing: { label: "Đang xử lý", cls: "bg-muted text-muted-foreground" },
+  error: { label: "Lỗi", cls: "bg-destructive/10 text-destructive" },
+  quarantined: { label: "Cách ly", cls: "bg-warning/10 text-warning" },
 };
 
 export const STATUS_ORDER: DocStatus[] = ["ready", "processing", "error", "quarantined"];
