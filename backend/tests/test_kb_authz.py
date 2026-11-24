@@ -113,9 +113,9 @@ def test_403_khong_lo_chi_tiet_noi_bo(real_auth):
 HTTP_METHODS = {"get", "post", "put", "patch", "delete"}
 
 
-# Route dưới /api/kb dành cho MỌI nhân viên (đăng nhập là đủ, kiểm ở test_kb_ask.py).
+# Route dưới /api/kb dành cho MỌI nhân viên (đăng nhập là đủ; kiểm ở test_kb_ask.py và test_library_api.py).
 # Danh sách miễn phải tường minh: route mới ở /api/kb mà không có tên ở đây vẫn bị bắt buộc có cổng admin.
-NOT_ADMIN_ROUTES = {("POST", "/api/kb/ask")}
+NOT_ADMIN_ROUTES = {("POST", "/api/kb/ask"), ("GET", "/api/kb/library")}
 
 
 def kb_operations(app) -> list[tuple[str, str]]:

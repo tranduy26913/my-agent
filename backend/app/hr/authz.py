@@ -79,6 +79,11 @@ def _scopes(perms: frozenset[str], resource: str) -> list[str]:
     return [s for s in SCOPES if f"{resource}:{s}" in perms]
 
 
+def scopes_of(p: Principal, resource: str) -> list[str]:
+    """Các phạm vi (own/team/dept/all) người hỏi có với `resource`; rỗng nếu đã nghỉ việc hoặc vai trò lạ."""
+    return _scopes(permissions(p), resource) if resource in SCOPED_RESOURCES else []
+
+
 # ------------------------------------------------------------------ bản 1: Python thuần
 
 def can(p: Principal, resource: str, target: Target) -> Decision:
@@ -127,6 +132,16 @@ def can_view_phone(p: Principal, target: Target) -> Decision:
 
 
 # ------------------------------------------------------------------ bản 2: SQL (viết độc lập với can())
+
+def directory_sql(p: Principal):
+    """WHERE trên bảng employees cho danh bạ: bản SQL của `can_view_employee` (viết độc lập với bản Python)."""
+    from app.models import Employee
+
+    perms = permissions(p)
+    if "directory:read:basic" not in perms:
+        return false()
+    return true() if INACTIVE in perms else Employee.status == "dang-lam"
+
 
 def scope_sql(p: Principal, resource: str):
     """WHERE trên bảng employees: các nhân viên mà người hỏi được đọc `resource`."""

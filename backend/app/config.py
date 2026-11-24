@@ -108,6 +108,11 @@ class Settings(BaseSettings):
     # http://127.0.0.1:8180 kèm oidc_host_header=auth.tranduyai.id.vn (Zitadel chọn instance theo Host).
     oidc_internal_url: str = ""
     oidc_host_header: str = ""
+    # Trang /admin/users gọi User Service của Zitadel bằng PAT của machine user `portal-admin-api` (chỉ quyền
+    # ORG_USER_MANAGER; infra/zitadel/out/generated.json). Rỗng = trang báo 503. URL rỗng = dùng oidc_internal_url,
+    # rồi oidc_issuer; header Host dùng oidc_host_header.
+    zitadel_admin_pat: str = ""
+    zitadel_admin_url: str = ""
 
     # --- Agent ---
     agent_max_steps: int = 8

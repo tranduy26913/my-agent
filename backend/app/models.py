@@ -1,6 +1,7 @@
 """ORM models. Mỗi bảng phục vụ một yêu cầu trong JD:
 
 - employees                    -> dữ liệu nhân sự + phân quyền (RBAC); đăng nhập do Zitadel lo
+- leave_balances/_requests, employee_contacts -> phép năm, đơn nghỉ, số điện thoại (ADR-003, /api/hr)
 - documents / chunks           -> kho tri thức nội bộ (RAG, hybrid search, ACL theo tài liệu)
 - skills                       -> thư viện kỹ năng dùng chung (có duyệt)
 - experiences                  -> kho kinh nghiệm agent tự tích lũy (reflection)
@@ -25,6 +26,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, TSVECTOR
@@ -51,6 +53,46 @@ class Employee(Base):
     # Một người có thể giữ nhiều vai trò (CSV: "hr|manager") -> mảng, không phải 1 chuỗi
     roles: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
     status: Mapped[str] = mapped_column(String(32), default="dang-lam")  # dang-lam | da-nghi-viec
+
+
+class LeaveBalance(Base):
+    """Số dư phép năm theo từng nhân viên (thực tế: đồng bộ từ HRM). ADR-003: `leave_balance:read:*`."""
+
+    __tablename__ = "leave_balances"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    employee_code: Mapped[str] = mapped_column(ForeignKey("employees.code"), index=True)
+    year: Mapped[int] = mapped_column(Integer)
+    entitled: Mapped[float] = mapped_column(Float, default=0)  # phép năm được hưởng
+    carried_over: Mapped[float] = mapped_column(Float, default=0)  # tồn chuyển sang
+    carried_expired: Mapped[float] = mapped_column(Float, default=0)  # tồn đã huỷ
+    used: Mapped[float] = mapped_column(Float, default=0)
+    remaining: Mapped[float] = mapped_column(Float, default=0)
+
+    __table_args__ = (UniqueConstraint("employee_code", "year", name="uq_leave_balance_employee_year"),)
+
+
+class LeaveRequest(Base):
+    """Đơn nghỉ. ADR-003: `leave_request:read:*`; chưa có quyền duyệt (chỉ đọc)."""
+
+    __tablename__ = "leave_requests"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    code: Mapped[str] = mapped_column(String(32), unique=True)  # DP-2026-0001
+    employee_code: Mapped[str] = mapped_column(ForeignKey("employees.code"), index=True)
+    kind: Mapped[str] = mapped_column(String(32))  # phep-nam | nghi-om-co-luong | ...
+    from_date: Mapped[date] = mapped_column(Date)
+    to_date: Mapped[date] = mapped_column(Date)
+    days: Mapped[float] = mapped_column(Float)
+    status: Mapped[str] = mapped_column(String(16))  # cho-duyet | da-duyet | tu-choi
+    approver_code: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    note: Mapped[str] = mapped_column(Text, default="")  # lý do do nhân viên tự viết: dữ liệu cá nhân
+
+
+class EmployeeContact(Base):
+    """Số điện thoại: tách khỏi `employees` vì bị che theo người xem (ADR-003, directory:read:phone_*)."""
+
+    __tablename__ = "employee_contacts"
+    employee_code: Mapped[str] = mapped_column(ForeignKey("employees.code"), primary_key=True)
+    phone: Mapped[str] = mapped_column(String(32))
 
 
 class Document(Base):
@@ -238,4 +280,3 @@ class SttJob(Base):
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
-

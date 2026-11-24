@@ -179,7 +179,7 @@ Cần kiểm chứng thêm:
 - `knowledge_mcp.authenticate_headers`: nhận `Authorization: Bearer`; không có Bearer thì dùng `X-KB-Token` + `X-User-Email` khi cờ `KB_MCP_ALLOW_SHARED_TOKEN=true` (mặc định). Header chứa ký tự ngoài ASCII giờ bị từ chối thay vì lỗi 500.
 - Cấu hình: `OIDC_ISSUER`, `OIDC_PROJECT_ID`, `OIDC_INTERNAL_URL`, `OIDC_HOST_HEADER` (đã đặt trong `backend/.env` cho dev; phải restart FastAPI và knowledge-mcp mới nhận).
 - Test (tests/test_oidc.py, tests/oidc_testkit.py, token tự ký bằng khoá RSA sinh trong test): sai chữ ký/iss/aud, hết hạn, thiếu exp, `nbf`, alg none, HS256, kid lạ; xoay khoá; vai trò trong token bị bỏ qua; email không có trong danh bạ (403, không 500); nhân viên nghỉ việc bị chặn dù token còn hạn; admin xem tài liệu Mật vẫn ghi `kb_view_classified` kèm email. Backend 368 test đạt.
-- Chưa làm: ghi `audit_logs` cho client `zitadel_admin` (4.4), vì chưa có endpoint `/api/admin/users` để gọi nó; làm cùng trang `/admin/users`.
+- Ghi `audit_logs` cho client `zitadel_admin` (4.4): **đã làm 2026-11-24** cùng trang `/admin/users` ([docs/07 mục 9.1](07-khung-giao-dien-portal.md)); client mở rộng thêm `list_humans`, `get_user`, `set_temp_password`; cần `ZITADEL_ADMIN_PAT` trong `backend/.env`.
 - **Kiểm với Zitadel thật:** đã xác nhận verifier tải được JWKS thật qua `OIDC_INTERNAL_URL`. Chưa có access token của người dùng thật (cần luồng đăng nhập qua trình duyệt, chờ route tunnel), nên chưa kiểm `aud` có chứa project id và claim `email` trong token thật.
 
 **Xong khi:**

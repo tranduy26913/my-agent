@@ -58,6 +58,9 @@ EVENTS: dict[str, tuple[str, str | None, tuple[str, ...]]] = {
     "user_deactivate": ("Khoá tài khoản", HIGHLIGHT_WARN, ("target",)),
     "user_reactivate": ("Mở khoá tài khoản", None, ("target",)),
     "user_password_reset": ("Đặt lại mật khẩu", HIGHLIGHT_WARN, ("target",)),
+    # ADR-003 mục 8: xem dữ liệu nhân sự của NGƯỜI KHÁC, và các lần bị từ chối. Chỉ ghi phạm vi/số dòng, không nội dung.
+    "hr_view": ("Xem dữ liệu nhân sự của người khác", None, ("resource", "scopes", "rows")),
+    "hr_denied": ("Bị từ chối xem dữ liệu nhân sự", HIGHLIGHT_WARN, ("resource", "reason")),
 }
 MAX_TEXT = 200  # chuỗi dài (vd lỗi) bị cắt: có thể chứa nội dung
 
@@ -112,6 +115,10 @@ def summarize(event: str, detail: dict) -> str:
             return str(detail.get("error") or "")
         case "llm_call":
             return str(detail.get("model") or "")
+        case "hr_view":
+            return f"Phạm vi {', '.join(detail.get('scopes') or [])}: {detail.get('rows', 0)} dòng"
+        case "hr_denied":
+            return str(detail.get("reason") or "")
         case _:
             return str(detail.get("target") or "")
 

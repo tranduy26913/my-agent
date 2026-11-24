@@ -2,7 +2,7 @@
 
 - Trạng thái: **Đã chấp nhận** (2026-11-21)
 - Liên quan: ADR-001 (phân quyền tài liệu), ADR-002 (nội dung Mật), ticket SVT-AI-011, SVT-AI-012
-- Code: chưa cài. Test viết trước theo mục "Ca kiểm thử bắt buộc".
+- Code: `app/hr/authz.py` (hai bản cài), `app/hr/service.py` và `/api/hr/*` (2026-11-24, docs/07 mục 9.3). hr-mcp cho LibreChat vẫn chưa làm. Test: `tests/test_hr_authz.py` và `tests/test_hr_api.py` theo mục "Ca kiểm thử bắt buộc".
 
 ## Bối cảnh
 hr-mcp sẽ trả về dữ liệu theo **từng người**: số dư phép, đơn nghỉ, danh bạ, lương (Mật). Khác với tài liệu (ADR-001),
