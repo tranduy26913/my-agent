@@ -12,6 +12,9 @@ FILES=(
   model-00002-of-00002.safetensors model-00001-of-00002.safetensors
   "wheel/sglang-0.5.20.dev13+g75b9b06b02-py3-none-any.whl"
 )
+# WHEEL_ONLY=1: chỉ tải wheel SGLang (15 MB) mà Dockerfile cần để build image; bỏ trọng số Unlimited-OCR (6,7 GB, không chạy được
+# trên card 8 GB, xem README.md).
+if [ "${WHEEL_ONLY:-0}" = 1 ]; then FILES=("wheel/sglang-0.5.20.dev13+g75b9b06b02-py3-none-any.whl"); fi
 for f in "${FILES[@]}"; do
   echo ">> $f"
   curl -fL -C - --retry 5 --retry-delay 3 -o "$f" "$BASE/${f//+/%2B}"

@@ -58,3 +58,9 @@ docker run --rm --gpus all -v <repo>/ocr-engine/models:/models:ro -v <repo>/data
 `OCR_FALLBACK_ENGINE=tesseract`. Backend cắt trang ở khung bảng (`app/ocr/layout.py`) và gọi `POST /ocr` cho từng vùng.
 Server tắt thì API tự rơi về Tesseract. `PADDLE_VL_IDLE_SECONDS` (mặc định 30) là thời gian rảnh trước khi nhả VRAM; gọi
 chat ngay sau OCR trong vài giây có thể thiếu VRAM (qwen3-4b cần 7,4 GB), đặt giá trị nhỏ hơn nếu gặp.
+
+## Dọn dẹp (2026-11-24)
+
+Trọng số Unlimited-OCR-2 (6,7 GB) đã xoá khỏi `model/` vì không chạy được trên card 8 GB. Giữ lại `model/wheel/` (15 MB) vì
+`Dockerfile` cần wheel SGLang để build image `svt-ocr-engine:dev` (image này cũng là nền cho server PaddleOCR-VL). Cần tải lại
+wheel: `WHEEL_ONLY=1 ./download-model.sh`.
