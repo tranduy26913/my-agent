@@ -35,21 +35,30 @@ Thêm một trang công cụ: thêm một dòng vào `src/shell/nav.ts` + một 
 - `src/hooks/use-mobile.ts` đã sửa sang `useSyncExternalStore` vì bản gốc của shadcn vi phạm luật `set-state-in-effect` của lint.
 - Thêm component mới: `npx shadcn@latest add <ten>` trong thư mục `portal/`. Kiểm tra lại file sinh ra bằng `npm run lint`.
 
-## Vai trò (tạm, chưa có đăng nhập)
+## Đăng nhập (Auth.js + Zitadel, docs/06 giai đoạn 5)
 
-`getMe()` (`src/lib/me.server.ts`) trả người dùng giả. Ở chế độ dev, menu người dùng có công tắc **Admin / Nhân viên** (cookie `portal-dev-role`) để thử menu theo vai trò. Build production luôn là nhân viên. Có Zitadel thì chỉ thay thân hàm `getMe()`.
+- Cấu hình ở `.env.local` (mẫu: `.env.example`): `AUTH_SECRET`, `AUTH_URL`, `AUTH_ZITADEL_ISSUER/ID/SECRET/PROJECT_ID`. Giá trị ID/secret/project lấy từ `infra/zitadel/out/generated.json`.
+- `src/auth.ts`: phiên là JWT mã hoá trong cookie httpOnly; access/refresh/id token nằm TRONG cookie nên trình duyệt không đọc được. Tự làm mới access token trước khi hết hạn (kết quả làm mới được nhớ vài phút, vì Zitadel xoay refresh token và một lần tải trang gọi callback nhiều lần). Không làm mới được thì phiên bị coi là hết hạn và chuyển về `/login`.
+- `src/app/api/auth/[...nextauth]/route.ts` chỉ mở bước callback OIDC; `/api/auth/session`, `/csrf`, `/signin`... trả 404 vì `/session` sẽ đưa token ra trình duyệt. Đăng nhập, đăng xuất đi bằng server action (`src/lib/auth-actions.ts`); đăng xuất gọi cả `end_session` của Zitadel.
+- `src/proxy.ts` (Next 16 đổi tên middleware thành proxy): chưa có phiên thì chuyển về `/login` (riêng `/api/*` trả 401). Chỉ kiểm "có phiên không"; vai trò admin kiểm ở `app/(portal)/admin/layout.tsx` và ở FastAPI.
+- `src/lib/me.server.ts`: `getMe()` gọi `GET /api/me` của backend bằng token của người dùng. Họ tên, vai trò (admin...), phòng ban lấy từ bảng `employees`, KHÔNG từ token. Đã đăng nhập Zitadel mà không có trong danh bạ, đã nghỉ việc, hoặc backend từ chối token thì sang `/no-access?reason=...` (không tự về `/login` để khỏi lặp vô hạn).
+- BFF (`src/app/api/[...path]/route.ts`) gắn `Authorization: Bearer <access token của chính người đăng nhập>`; backend tự kiểm chữ ký và tra quyền theo email, nên portal không thể nói hộ quyền người khác.
+- Dev khi chưa đăng nhập được: `AUTH_ZITADEL_INTERNAL_URL=http://127.0.0.1:8180` cho phép server portal gọi Zitadel qua localhost (dùng `X-Forwarded-Host`, vì `fetch` của Node bỏ header `Host`). Trình duyệt vẫn phải tới được `https://auth.tranduyai.id.vn` để nhập mật khẩu, nên vẫn cần route tunnel.
+
+### Người dùng giả (TẠM, xoá ở giai đoạn 6)
+
+Đặt `PORTAL_DEV_AUTH=1` và `NEXT_PUBLIC_PORTAL_DEV_AUTH=1` (chỉ có tác dụng ở dev) để làm giao diện mà không cần đăng nhập: portal dùng `huy.do@saoviet.example` (admin) hoặc `binh.le@saoviet.example`, đổi ở menu người dùng. Khi đó BFF xưng danh bằng hai cầu nối cũ `API_DEV_TOKEN` (cho `/admin/kb`) và `PORTAL_BFF_TOKEN` (cho Tra cứu), xem `.env.example`.
+
+## Trang Nhật ký và Chi phí (`/admin/audit`, `/admin/usage`)
+
+Mô-đun `features/audit` và `features/usage` đọc `GET /api/admin/audit` và `GET /api/admin/usage` (chỉ admin). Cùng công tắc với Kho tri thức: có `NEXT_PUBLIC_KB_API_URL` thì gọi backend thật qua BFF, bỏ trống thì dùng dữ liệu giả. Backend không trả nội dung câu hỏi của nhân viên hay dữ liệu công cụ (`backend/app/admin_service.py`). Có thể chạy thêm một instance dev ở cổng khác bằng `NEXT_DIST_DIR=.next-xxx npx next dev -p 3101` để khỏi tranh khoá thư mục `.next`.
 
 ## Dữ liệu Kho tri thức
 
-Mặc định dùng **dữ liệu giả** (`features/kb/api/mock.ts`). Muốn gọi FastAPI thật, tạo `.env.local`:
+Mặc định dùng **dữ liệu giả** (`features/kb/api/mock.ts`). Muốn gọi FastAPI thật, đặt trong `.env.local`:
 
 ```
 NEXT_PUBLIC_KB_API_URL=/api/kb
-API_DEV_TOKEN=<Bearer JWT của một tài khoản admin trong bảng users của backend>
 ```
 
-rồi khởi động lại `npm run dev` (biến `NEXT_PUBLIC_*` được nhúng lúc khởi động). Trình duyệt chỉ gọi `/api/kb/*` cùng origin; BFF gắn token và chuyển tới `BACKEND_URL` (mặc định `http://localhost:8000`). Không đặt token thì backend trả 401.
-
-### Trang Tra cứu (`/tools/tra-cuu`)
-
-Dành cho mọi nhân viên, và backend lọc tài liệu theo **người đang hỏi**. BFF xưng danh bằng `PORTAL_BFF_TOKEN` (cùng giá trị trong `backend/.env` và `portal/.env.local`) kèm email người đăng nhập; backend chỉ tin email khi token đúng, rồi tra phòng ban và vai trò trong bảng `employees` (cùng cách tin cậy như knowledge-mcp). Người dùng giả ở chế độ dev là hai nhân viên có thật trong seed: `huy.do@saoviet.example` (admin) và `binh.le@saoviet.example`. Đây là cầu nối tạm đến khi có Zitadel (`get_asker_email` trong `backend/app/api/deps.py`). Cần backend, LocalAI (`LLM_PROVIDER=local`) và model embedding đang chạy; lần hỏi đầu sau khi khởi động có thể mất tới vài phút.
+rồi khởi động lại `npm run dev` (biến `NEXT_PUBLIC_*` được nhúng lúc khởi động). Trình duyệt chỉ gọi `/api/kb/*` cùng origin; BFF gắn token của người đăng nhập và chuyển tới `BACKEND_URL` (mặc định `http://localhost:8000`). `/api/kb/*` chỉ cho nhân viên có vai trò `admin` trong bảng `employees`; `/api/kb/ask` (trang Tra cứu) cho mọi nhân viên, và backend lọc tài liệu theo phòng ban, vai trò của chính người hỏi. Cần backend, LocalAI (`LLM_PROVIDER=local`) và model embedding đang chạy; lần hỏi đầu sau khi khởi động có thể mất tới vài phút.

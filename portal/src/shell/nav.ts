@@ -38,12 +38,12 @@ export const NAV: NavItem[] = [
   { href: "/tools/van-ban", label: "Văn bản", icon: FileText, group: "tools", description: "Duyệt các văn bản bạn được xem.", ready: false },
   { href: "/tools/nghi-phep", label: "Nghỉ phép", icon: CalendarDays, group: "tools", description: "Số ngày phép còn lại và đơn nghỉ.", ready: false },
   { href: "/tools/danh-ba", label: "Danh bạ", icon: BookUser, group: "tools", description: "Tìm đồng nghiệp theo tên, phòng ban.", ready: false },
-  { href: "/tools/ocr", label: "OCR", icon: ScanText, group: "tools", description: "Lấy văn bản từ ảnh hoặc PDF.", ready: false },
+  { href: "/tools/ocr", label: "OCR", icon: ScanText, group: "tools", description: "Lấy văn bản từ ảnh hoặc PDF.", ready: true },
 
   { href: "/admin/kb", label: "Kho tri thức", icon: Library, group: "admin", roles: ["admin"], description: "Nạp, kiểm tra và phân quyền tài liệu.", ready: true },
   { href: "/admin/users", label: "Tài khoản", icon: Users, group: "admin", roles: ["admin"], description: "Tạo, khoá, đặt lại mật khẩu.", ready: false },
-  { href: "/admin/audit", label: "Nhật ký", icon: ScrollText, group: "admin", roles: ["admin"], description: "Ai đã làm gì, lúc nào.", ready: false },
-  { href: "/admin/usage", label: "Chi phí", icon: BarChart3, group: "admin", roles: ["admin"], description: "Lượt gọi và chi phí theo người, theo model.", ready: false },
+  { href: "/admin/audit", label: "Nhật ký", icon: ScrollText, group: "admin", roles: ["admin"], description: "Ai đã làm gì, lúc nào.", ready: true },
+  { href: "/admin/usage", label: "Chi phí", icon: BarChart3, group: "admin", roles: ["admin"], description: "Lượt gọi và chi phí theo người, theo model.", ready: true },
 ];
 
 export const GROUP_LABEL: Record<NavGroup, string | null> = {

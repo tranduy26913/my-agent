@@ -1,5 +1,7 @@
-import { ComingSoon } from "@/shell/ComingSoon";
+import { UsageNextHost } from "@/host/AdminNextHost";
 
-export default function Page() {
-  return <ComingSoon href="/admin/usage" />;
+export const metadata = { title: "Chi phí" };
+
+export default function UsageRoute() {
+  return <UsageNextHost />;
 }

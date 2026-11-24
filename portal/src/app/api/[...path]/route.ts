@@ -1,15 +1,18 @@
 import type { NextRequest } from "next/server";
-import { getAskerHeaders, getBackendToken } from "@/lib/backend-token.server";
+import { getDevAskerHeaders, getDevBackendToken } from "@/lib/backend-token.server";
 import { ROLE_ADMIN, hasAnyRole } from "@/lib/me";
-import { getMe } from "@/lib/me.server";
+import { resolveSession } from "@/lib/me.server";
 
 /**
  * BFF (ADR-004): trình duyệt gọi `/api/...` cùng origin, file này gắn danh tính rồi chuyển tiếp tới FastAPI.
  * Nhờ vậy backend không cần CORS và token không nằm trong trình duyệt.
  *
- * Chỉ chuyển tiếp những đường dẫn khai ở ROUTES. Mỗi dòng nói rõ ai được gọi và xưng danh kiểu nào. Dòng đứng
- * trước thắng, nên mục cụ thể (kb/ask) phải đặt trước mục chung (kb). Đây là lớp chặn sớm; FastAPI vẫn tự kiểm
- * quyền, không dựa vào lớp này.
+ * Chỉ chuyển tiếp những đường dẫn khai ở ROUTES. Mỗi dòng nói rõ ai được gọi. Dòng đứng trước thắng, nên mục cụ
+ * thể (kb/ask) phải đặt trước mục chung (kb). Đây là lớp chặn sớm; FastAPI vẫn tự kiểm quyền, không dựa vào lớp này.
+ *
+ * Xưng danh với FastAPI: gắn access token Zitadel của CHÍNH người đang đăng nhập (Authorization: Bearer). Backend tự
+ * kiểm chữ ký và tra quyền theo email trong token, nên portal không thể "nói hộ" quyền của người khác. `auth` ở
+ * ROUTES chỉ còn phân biệt đường cầu nối dev (PORTAL_DEV_AUTH=1, xoá ở giai đoạn 6).
  */
 const BACKEND_URL = (process.env.BACKEND_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
@@ -26,6 +29,10 @@ interface Rule {
 const ROUTES: Rule[] = [
   { path: "kb/ask", methods: ["POST"], auth: "asker" },
   { path: "kb", roles: [ROLE_ADMIN], auth: "bearer" },
+  // OCR: mọi người đã đăng nhập; backend kiểm tra nhân viên và chỉ cho xem job của chính mình.
+  { path: "ocr", auth: "bearer" },
+  { path: "admin/audit", methods: ["GET"], roles: [ROLE_ADMIN], auth: "bearer" },
+  { path: "admin/usage", methods: ["GET"], roles: [ROLE_ADMIN], auth: "bearer" },
 ];
 
 type Ctx = { params: Promise<{ path: string[] }> };
@@ -41,7 +48,10 @@ async function proxy(req: NextRequest, ctx: Ctx): Promise<Response> {
   if (!rule) return problem(404, "Không có đường dẫn này");
   if (rule.methods && !rule.methods.includes(req.method)) return problem(405, "Method không được hỗ trợ");
 
-  const me = await getMe();
+  const r = await resolveSession();
+  if (r.status === "login") return problem(401, "Chưa đăng nhập hoặc phiên đã hết hạn");
+  if (r.status === "denied") return problem(403, "Tài khoản chưa được cấp quyền dùng portal");
+  const { me, accessToken } = r.session;
   if (!hasAnyRole(me, rule.roles)) return problem(403, "Cần vai trò admin");
 
   // Giữ nguyên dấu ":" trong "documents:reindex" / "documents:delete".
@@ -50,11 +60,13 @@ async function proxy(req: NextRequest, ctx: Ctx): Promise<Response> {
   const headers = new Headers();
   const contentType = req.headers.get("content-type");
   if (contentType) headers.set("content-type", contentType);
-  if (rule.auth === "bearer") {
-    const token = await getBackendToken();
+  if (accessToken) {
+    headers.set("authorization", `Bearer ${accessToken}`);
+  } else if (rule.auth === "bearer") {
+    const token = getDevBackendToken(); // chỉ khi PORTAL_DEV_AUTH=1
     if (token) headers.set("authorization", `Bearer ${token}`);
   } else {
-    for (const [k, v] of Object.entries(getAskerHeaders(me))) headers.set(k, v);
+    for (const [k, v] of Object.entries(getDevAskerHeaders(me))) headers.set(k, v);
   }
 
   const hasBody = req.method !== "GET" && req.method !== "HEAD";

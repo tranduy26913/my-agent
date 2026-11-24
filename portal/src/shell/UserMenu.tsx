@@ -15,11 +15,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { logoutAction } from "@/lib/auth-actions";
 import { setDevRole } from "@/lib/dev-role";
 import { ROLE_ADMIN } from "@/lib/me";
 import { useMe } from "./me-context";
 
-const IS_DEV = process.env.NODE_ENV !== "production";
+// Công tắc vai trò giả chỉ hiện khi chạy với người dùng giả (PORTAL_DEV_AUTH=1, xem lib/me.server.ts).
+const IS_DEV = process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_PORTAL_DEV_AUTH === "1";
 
 export function UserMenu() {
   const me = useMe();
@@ -66,7 +68,7 @@ export function UserMenu() {
         )}
 
         <DropdownMenuSeparator />
-        <DropdownMenuItem disabled title="Chưa có đăng nhập thật. Sẽ nối với Zitadel (docs/06, giai đoạn 5).">
+        <DropdownMenuItem onSelect={() => startTransition(() => logoutAction())}>
           <LogOut />
           Đăng xuất
         </DropdownMenuItem>

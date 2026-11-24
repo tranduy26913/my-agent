@@ -5,7 +5,7 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
+  globalIgnores([".next/**", ".next-*/**", "out/**", "build/**", "next-env.d.ts"]),
 
   // HÀNG RÀO GIỮ LOGIC GIAO DIỆN TÁCH KHỎI ROUTER: src/features/* không import next/*, để dễ test và không dính vào router.
   // Phần dính tới Next (router, provider, font) chỉ nằm ở src/host và src/app.

@@ -1,11 +1,11 @@
 /**
  * Người dùng đang đăng nhập, như portal nhìn thấy. Dùng được ở cả server lẫn client.
- * Hiện là dữ liệu giả (xem me.server.ts). Khi có Zitadel, `getMe()` đọc từ phiên thật, kiểu này giữ nguyên.
+ * Dựng từ phiên Zitadel và GET /api/me của backend (xem me.server.ts).
  */
 export interface Me {
   name: string;
   email: string;
-  /** Project role của Zitadel, ví dụ "admin", "nhan-vien". */
+  /** Vai trò trong bảng employees của backend (ADR-004), ví dụ "admin", "manager", "employee". */
   roles: string[];
 }
 

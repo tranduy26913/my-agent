@@ -1,5 +1,7 @@
-import { ComingSoon } from "@/shell/ComingSoon";
+import { AuditNextHost } from "@/host/AdminNextHost";
 
-export default function Page() {
-  return <ComingSoon href="/admin/audit" />;
+export const metadata = { title: "Nhật ký" };
+
+export default function AuditRoute() {
+  return <AuditNextHost />;
 }
