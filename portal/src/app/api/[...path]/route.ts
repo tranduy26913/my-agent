@@ -32,6 +32,8 @@ const ROUTES: Rule[] = [
   { path: "hr", methods: ["GET"] },
   // OCR: mọi người đã đăng nhập; backend kiểm tra nhân viên và chỉ cho xem job của chính mình.
   { path: "ocr" },
+  // Ghi âm cuộc họp (STT, ADR-006): cùng quy tắc với OCR. Job chỉ chủ xem được.
+  { path: "stt" },
   // Tài khoản: tạo, khoá, mở khoá, đặt lại mật khẩu (mọi thao tác ghi vào Nhật ký ở backend).
   { path: "admin/users", methods: ["GET", "POST"], roles: [ROLE_ADMIN] },
   { path: "admin/audit", methods: ["GET"], roles: [ROLE_ADMIN] },

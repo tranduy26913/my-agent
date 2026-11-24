@@ -88,6 +88,7 @@ def env(tmp_path, monkeypatch):
 
     monkeypatch.setattr(settings, "stt_tmp_dir", str(tmp))
     monkeypatch.setattr(settings, "stt_engine", "fake")
+    monkeypatch.delitem(ENGINES, "whisper", raising=False)  # engine thật không được lẫn vào test dùng engine giả
     monkeypatch.setattr(jobs, "session_factory", factory)
     monkeypatch.setattr(jobs, "PROGRESS_EVERY_S", 0)
     monkeypatch.setattr(jobs, "_audit", lambda db, uid, event, detail: audit.append((uid, event, detail)))
@@ -145,7 +146,7 @@ def test_tao_job_tra_202_va_chay_xong(env):
     assert [s["text"] for s in got["segments"]] == [
         "Xin chào mọi người.", "Hôm nay ta bàn về tiến độ dự án.", "Cảm ơn.",
     ]
-    assert got["segments"][1] == {"start": 4.0, "end": 9.5, "text": "Hôm nay ta bàn về tiến độ dự án."}
+    assert got["segments"][1] == {"start": 4.0, "end": 9.5, "text": "Hôm nay ta bàn về tiến độ dự án.", "speaker": None}
     assert leftovers(env) == []  # đã xóa cả file gốc lẫn WAV
 
 

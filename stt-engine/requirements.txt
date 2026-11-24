@@ -1,0 +1,7 @@
+faster-whisper>=1.0
+av>=14,<17  # av 19 bỏ tham số metadata_errors mà faster-whisper 1.2.1 còn truyền: giải mã lỗi TypeError
+fastapi>=0.110
+uvicorn>=0.29
+python-multipart>=0.0.9
+sherpa-onnx>=1.10  # phân tách người nói (tùy chọn: thiếu model thì tắt)
+numpy

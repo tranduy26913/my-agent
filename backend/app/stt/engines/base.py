@@ -13,6 +13,7 @@ class Segment:
     start: float  # giây tính từ đầu file
     end: float
     text: str
+    speaker: str | None = None  # "A", "B", ... theo thứ tự xuất hiện; None = engine không phân biệt người nói
 
 
 class SttEngine(Protocol):

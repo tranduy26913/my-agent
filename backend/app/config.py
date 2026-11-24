@@ -77,7 +77,10 @@ class Settings(BaseSettings):
     ocr_extract_max_chars: int = 8000  # cắt văn bản OCR gửi cho LLM
 
     # --- STT: ghi âm cuộc họp -> văn bản (ADR-006) ---
-    stt_engine: str = ""  # tên engine mặc định; giai đoạn 1 chưa có engine thật nào
+    stt_engine: str = "whisper"  # tên engine mặc định (khóa trong app/stt/engines/__init__.py)
+    # Server faster-whisper (stt-engine/run.ps1). URL rỗng = engine tắt (503).
+    stt_whisper_url: str = ""  # ví dụ http://127.0.0.1:10002
+    stt_whisper_timeout: float = 600.0  # tối đa giữa hai đoạn; lần đầu còn phải nạp model
     stt_language: str = "vi"
     ffmpeg_cmd: str = ""  # rỗng = tìm trong PATH, rồi C:\ffmpeg\bin\ffmpeg.exe
     stt_tmp_dir: str = ""  # rỗng = <thư mục tạm hệ điều hành>/svt-stt; file ghi âm chỉ nằm đây lúc xử lý

@@ -2,11 +2,12 @@ from collections.abc import Callable
 
 from app.config import settings
 from app.stt.engines.base import SttEngine
+from app.stt.engines.whisper import WhisperEngine
 from app.stt.errors import EngineUnavailable, UnknownEngine
 
 # Tên engine -> hàm tạo. Thêm engine mới = thêm một dòng ở đây (test đăng ký engine giả vào đúng dict này).
-# Giai đoạn 1 (ADR-006): chưa có engine thật nào; server và client engine làm ở giai đoạn 2.
-ENGINES: dict[str, Callable[[], SttEngine]] = {}
+# `whisper` = faster-whisper qua stt-engine/ (giai đoạn 2); available() là False khi STT_WHISPER_URL rỗng hoặc server tắt.
+ENGINES: dict[str, Callable[[], SttEngine]] = {"whisper": WhisperEngine}
 
 
 def resolve_name(name: str | None) -> str:

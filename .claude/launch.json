@@ -63,6 +63,15 @@
         "cd backend && .venv\\Scripts\\python.exe -m app.knowledge_mcp"
       ],
       "port": 8100
+    },
+    {
+      "name": "stt-engine",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "cd stt-engine && .venv\\Scripts\\python.exe -m uvicorn whisper_server:app --app-dir server --host 127.0.0.1 --port 10002"
+      ],
+      "port": 10002
     }
   ]
 }

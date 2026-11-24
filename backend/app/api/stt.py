@@ -33,6 +33,7 @@ class SegmentOut(BaseModel):
     start: float
     end: float
     text: str
+    speaker: str | None = None  # "A", "B", ...; không có = chưa phân biệt được người nói
 
 
 class JobOut(BaseModel):

@@ -37,6 +37,7 @@ class SegmentResult:
     start: float
     end: float
     text: str
+    speaker: str | None = None
 
 
 @dataclass
@@ -93,7 +94,7 @@ def transcribe(
                     start = min(max(seg.start, 0.0), total)
                     end = min(max(seg.end, start), total)
                     if text:
-                        result.segments.append(SegmentResult(round(start, 2), round(end, 2), text))
+                        result.segments.append(SegmentResult(round(start, 2), round(end, 2), text, seg.speaker))
                     if progress:  # ngoài try ở trên: ngoại lệ hủy job đi thẳng ra, không bị coi là lỗi engine
                         progress(end, total)
         finally:

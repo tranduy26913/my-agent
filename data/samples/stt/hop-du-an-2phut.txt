@@ -1,0 +1,16 @@
+Chào mọi người, chúng ta bắt đầu cuộc họp tiến độ dự án cổng thông tin nội bộ của Công ty A.
+Hôm nay có ba nội dung chính: kết quả tuần trước, các việc còn tồn đọng, và kế hoạch cho tuần tới.
+Vâng. Tuần trước bên backend đã hoàn thành giao diện lập trình ứng dụng cho nghỉ phép và danh bạ nhân viên.
+Toàn bộ năm trăm bài kiểm thử đều đã chạy qua, không còn lỗi nào.
+Tốt lắm. Còn phần giao diện portal thì sao anh Vĩnh?
+Trang chuyển ghi âm cuộc họp thành văn bản đã xong, em đang chờ chọn mô hình nhận dạng giọng nói.
+Hiện tại em dùng PhoWhisper bản small, nặng khoảng hai trăm bốn mươi megabyte, chạy được trên CPU.
+Vậy tốc độ xử lý khoảng bao nhiêu? Một cuộc họp dài một tiếng thì mất bao lâu?
+Em ước lượng chưa tới nửa thời gian thực, tức là khoảng hai mươi lăm phút. Nhưng em chưa đo trên ghi âm họp thật.
+Được, vậy chị đề nghị như sau. Thứ nhất, anh Vĩnh gom ba đoạn ghi âm họp thật để đo tỷ lệ lỗi từ.
+Thứ hai, chị Hà bên nhân sự kiểm tra lại quyền xem biên bản, vì cuộc họp có thể nhắc đến lương và đánh giá nhân viên.
+Em xin bổ sung một điểm. Tệp ghi âm chỉ lưu tạm trên đĩa và xóa ngay sau khi chép xong, kết quả giữ bảy ngày.
+Đúng rồi, nhớ ghi rõ điều đó trên trang để mọi người yên tâm. Còn việc gì nữa không?
+Dạ còn một việc. Hạn mức tải lên hiện là ba trăm megabyte, em muốn thử với tệp một tiếng rưỡi xem proxy có cắt không.
+Ok. Hạn chót cho cả ba việc là thứ Sáu ngày hai mươi tám tháng mười một.
+Cảm ơn mọi người, cuộc họp kết thúc. Chúc mọi người một tuần làm việc hiệu quả.

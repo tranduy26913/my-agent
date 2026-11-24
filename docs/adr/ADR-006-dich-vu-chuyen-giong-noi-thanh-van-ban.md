@@ -1,6 +1,6 @@
 # ADR-006: Dịch vụ chuyển ghi âm cuộc họp thành văn bản (STT), engine thay được
 
-- Trạng thái: **Đang triển khai, giai đoạn 1 (backend) xong** (2026-11-24): API, job, chuyển đổi ffmpeg và test đã có, dùng engine giả. Chưa có engine thật, chưa đo chất lượng tiếng Việt, chưa có giao diện portal.
+- Trạng thái: **Đang triển khai; giai đoạn 1 (backend), 2 (engine) và 3 (portal `/tools/ghi-am`) đã có mã** (2026-11-24). Engine `whisper` (faster-whisper, server `stt-engine/`) chạy thông trên máy này với ghi âm thử tiếng Anh. Model mặc định tạm thời: **PhoWhisper-small** (chọn vì nhẹ, ~240 MB, và tinh chỉnh cho tiếng Việt; chưa so với `large-v3-turbo`). **Chưa đo chất lượng tiếng Việt** (chưa có ghi âm họp thật) nên chưa chốt model mặc định; chưa thử GPU.
 - Liên quan: ADR-005 (dịch vụ OCR: mẫu được bám theo), ADR-004 (Portal + Chat, một nghiệp vụ hai cách gọi), ADR-001 (phân quyền tài liệu), `docs/07-khung-giao-dien-portal.md`
 - Phạm vi: **chỉ chuyển giọng nói thành văn bản có mốc thời gian.** Tóm tắt thành biên bản, nhận diện người nói và nạp vào kho tri thức nằm ngoài ADR này (xem "Việc còn lại").
 
@@ -147,14 +147,15 @@ Ký hiệu: **✅** đã có test tự động; **⏳** chưa làm.
 | 9 | Job quá hạn bị coi như không tồn tại và bị dọn | ✅ |
 | 10 | Khởi động: job dở bị đánh dấu `failed`; thư mục tạm được dọn | ✅ |
 | 11 | Chuyển đổi và kiểm tra bằng ffmpeg thật (WAV sinh trong test; rác, file rỗng, quá dài; bỏ qua nếu máy không có ffmpeg) | ✅ (chạy thật trên máy này, ffmpeg có sẵn) |
-| 12 | Đo WER và hệ số thời gian thực của engine thật trên ghi âm họp thật | ⏳ Giai đoạn 2, cần có ghi âm |
+| 12 | Đo WER và hệ số thời gian thực của engine thật trên ghi âm họp thật | ⏳ Script `python -m app.stt.eval` đã có; cần ghi âm họp thật kèm gỡ băng |
+| 13 | Client whisper: đọc NDJSON, thiếu dòng kết thúc là lỗi, 503/ngắt kết nối là lỗi, tắt khi không có URL | ✅ (`tests/test_stt_whisper.py`) |
 
 ## Việc còn lại
 
-1. Giai đoạn 2: `stt-engine/` (container, server, hợp đồng HTTP), engine client, đo WER và tốc độ, chọn mặc định.
-2. Giai đoạn 3: trang `/tools/ghi-am` ở portal, dòng BFF, xử lý giới hạn 10 MB của proxy.
+1. Đo WER và tốc độ trên ghi âm họp thật (CPU và GPU), chọn model mặc định (`stt-engine/README.md`). Server hiện chạy trên host, chưa đóng container.
+2. Kiểm upload file lớn qua proxy Next (`proxyClientMaxBodySize` đã đặt 300 MB, chưa thử thật) và kiểm trang portal trên trình duyệt.
 3. Tóm tắt thành biên bản bằng LLM cục bộ (chia nhỏ rồi gộp vì ngữ cảnh ngắn).
 4. Nạp biên bản vào kho tri thức, qua bước làm sạch và phân quyền (ADR-001).
-5. Nhận diện người nói.
+5. ~~Nhận diện người nói~~ Đã làm bản đầu (2026-11-24): nhãn Người A/B/C, không có tên, bằng sherpa-onnx trong `stt-engine/`; trường `speaker` ở `segments`. Chưa thử giọng thật; chưa có cách đặt tên người nói.
 6. Tách phần dùng chung của `jobs.py` OCR và STT.
 7. Kiểm hạn mức trước khi upload (hiện kiểm sau).
