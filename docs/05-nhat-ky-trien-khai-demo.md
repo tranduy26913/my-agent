@@ -1,4 +1,4 @@
-# Nhật ký triển khai demo (cập nhật 2026-11-22)
+# Nhật ký triển khai demo (cập nhật 2026-11-24)
 
 Mục tiêu: chạy demo nhỏ, không vận hành lâu dài. Chat dùng model local qua LibreChat, RAG dùng chung model đó, đưa ra internet bằng Cloudflare Tunnel.
 
@@ -12,6 +12,13 @@ LibreChat ──(endpoint LocalAI, tắt streaming)──► local-ai:8080 ─�
     │
     └─ Agent + tool MCP ──► knowledge-mcp (host :8100) ──► agent-db (Postgres :5433, 110 chunk)
                                   └─ sinh câu trả lời RAG ──► local-ai (cùng qwen3-4b)
+
+Đăng nhập (từ 2026-11-24, docs/06 giai đoạn 6): MỘT đường duy nhất là Zitadel (auth.tranduyai.id.vn → zitadel:8180,
+DB `zitadel` nằm trong agent-db).
+  LibreChat  ──OIDC──► Zitadel;  MCP gửi  Authorization: Bearer <access token của người đang chat>
+  Portal     ──OIDC──► Zitadel;  BFF gửi  Authorization: Bearer <access token của người đang đăng nhập>
+  FastAPI và knowledge-mcp: kiểm chữ ký RS256 + iss + aud (project id) rồi tra email trong bảng `employees`
+  để lấy phòng ban và vai trò. Không còn bảng `users`, JWT HS256 tự phát, X-KB-Token, X-Portal-Token.
 ```
 
 Chỉ một model chat nằm trong VRAM; model embedding `multilingual-e5-large` chạy CPU trong tiến trình backend.
@@ -101,18 +108,19 @@ Sau đó đo lại bằng đúng quy trình này.
 1. **Chậm cho demo**: nghi chế độ suy nghĩ của Qwen3 tốn nhiều token (chưa đo tách từng bước).
 2. **Streaming đang tắt**, câu trả lời hiện một lần sau vài chục giây.
 3. **`local-ai` đang ở chế độ debug** (`LOCALAI_LOG_LEVEL=debug`). Tạo lại container sẽ chạy lại tác vụ "gallery warm-up" khoảng 4 phút, ngốn CPU và khoảng 3.7 GB mạng; trong lúc đó request đầu bị chậm hoặc lỗi 500.
-4. **`knowledge-mcp` đang chạy nền theo phiên làm việc**, không tự chạy lại khi khởi động máy.
+4. **`knowledge-mcp` và FastAPI đang chạy nền theo phiên làm việc**, không tự chạy lại khi khởi động máy.
 5. **Qwen3-4B gọi tool chưa ổn định**: có lượt trả lời bằng kiến thức riêng, lẫn chữ Hán; chưa nhắc rõ trong mô tả Agent.
 6. ~~`kb-admin` chưa dùng được~~ — đã xong: portal gọi `/api/kb` thật qua BFF (docs/07, docs/08).
 7. Container `local-ai` được tạo bằng `docker run`, không nằm trong `docker-compose.yml`. Container cũ `local-ai-cpu-old` (bản CPU) còn ở trạng thái dừng.
 
 ## 6. Cách chạy lại sau khi khởi động máy
 
-1. Bật Docker Desktop, rồi trong `librechat`: `docker compose up -d`.
+1. Bật Docker Desktop, rồi trong `librechat`: `docker compose up -d`. **Zitadel phải lên (healthy) trước LibreChat**; LibreChat tự thử lại nền nếu lên sớm hơn, nhưng nút "Đăng nhập SVT" chưa dùng được trong lúc đó.
 2. Bật `local-ai` nếu chưa chạy (cần `--gpus all`, mạng `librechat_default`, bốn volume `/configuration`, `/data`, `/models`, `/backends`, cổng 8080).
-3. Trong `backend`: `.\.venv\Scripts\python -m app.knowledge_mcp` (cổng 8100, `LLM_PROVIDER=local` trong `backend/.env`).
+3. Trong `backend`: `.\.venv\Scripts\python -m app.knowledge_mcp` (cổng 8100, `LLM_PROVIDER=local` trong `backend/.env`) và `.\.venv\Scripts\python -m uvicorn app.main:app --port 8000` (FastAPI cho portal). Hai tiến trình này cần `OIDC_ISSUER` và `OIDC_PROJECT_ID` trong `backend/.env`, thiếu thì mọi request bị từ chối. Portal: `npm run dev` trong `portal/` (cổng 3100).
 4. Đảm bảo service `cloudflared` của tunnel `demo-ai` đang chạy.
-5. Sửa `librechat/.env` thì phải `docker compose up -d --force-recreate --no-deps api`; lệnh `up -d` thường không nạp lại biến môi trường.
+5. **Sao lưu**: dump cả hai DB `agent` và `zitadel` của agent-db (`docker exec agent-db pg_dump ...`) **cùng với** `ZITADEL_MASTERKEY` (trong `librechat/.env`, cất ngoài repo). Có DB mà mất MASTERKEY thì không giải mã được dữ liệu Zitadel; có MASTERKEY mà mất DB thì mất hết tài khoản. Bản dump trước giai đoạn 6: `librechat/backups/agent-2026-11-24-before-stage6.sql` (đã `.gitignore`).
+6. Sửa `librechat/.env` thì phải `docker compose up -d --force-recreate --no-deps api`; lệnh `up -d` thường không nạp lại biến môi trường.
 
 ## 7. Việc có thể làm tiếp
 

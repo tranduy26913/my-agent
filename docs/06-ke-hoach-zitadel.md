@@ -211,13 +211,32 @@ Chi tiết giao diện nằm ở [`07-khung-giao-dien-portal.md`](07-khung-giao-
 - Route: `https://auth.tranduyai.id.vn/.well-known/openid-configuration` trả 200, issuer đúng. Router nhà giữ cache DNS "không tồn tại" nên đã đổi DNS máy sang 1.1.1.1/8.8.8.8 (cả IPv6).
 - Portal: admin đăng nhập qua `/login` → Zitadel → callback; `GET /api/me` trả 200. Nghĩa là `aud` = project id, email đã xác minh, và chữ ký RS256 đều khớp giả định (backend chấp nhận cả khi claim `email` thiếu, nhờ userinfo).
 - LibreChat: container gọi được `auth.tranduyai.id.vn` (không cần `extra_hosts`); đăng nhập OIDC tạo user mới và gán ADMIN theo role `librechat-admin`.
-- **Chưa kiểm:** `binh.le` → `/no-access` và `/api/kb/documents` trả 403/200 theo vai trò; `ask_knowledge` qua Bearer của LibreChat; đăng xuất `end_session`; làm mới token.
+- **Đăng xuất `end_session` (kiểm 2026-11-24, sửa 1 lỗi):** lần đầu Zitadel trả `post_logout_redirect_uri invalid`, vì portal gửi `.../login` trong khi danh sách khai ở Zitadel chỉ có gốc URL; Zitadel so khớp **chính xác**. Đã đổi sang gốc URL (`auth-actions.ts`), gốc URL tự chuyển về `/login` vì phiên đã xoá. Sau khi sửa đăng xuất chạy đúng.
+- **binh.le (nhân viên thường):** vào được portal, đúng thiết kế: `/no-access` chỉ dành cho người đăng nhập Zitadel nhưng không có trong `employees` hoặc đã nghỉ việc. `/admin/kb` bị chuyển sang `/403?need=admin`.
+- **`ask_knowledge` qua Bearer:** đặt `KB_MCP_ALLOW_SHARED_TOKEN=false` rồi hỏi lại bằng binh.le, vẫn trả lời có trích dẫn (audit `rag_ask`, user_id = employees.id 15). Log knowledge-mcp có `GET /oauth/v2/keys` và `GET /oidc/v1/userinfo`: Bearer thật đã được kiểm chữ ký, và **access token không có sẵn claim `email`** nên backend hỏi `userinfo` (đúng phương án dự phòng ở 4.1).
+- **Lỗi chất lượng thấy khi kiểm:** qwen3-4b từng tự điền `as_of=2023-10-05` khi gọi `ask_knowledge` dù docstring bảo bỏ trống, nên lọc hết tài liệu và trả "không tìm thấy" (audit 2063). Lần sau nó không điền. Cần chặn ở phía server (mục 5 danh sách việc).
+- **Chưa kiểm:** `/api/kb/documents` trả 403 trực tiếp với binh.le; làm mới token (access token 15 phút).
 - Lỗi thấy khi dùng LibreChat: `ResumableAgentController ... no_user_key` (endpoint đang đòi khoá do người dùng tự nhập; không liên quan OIDC).
 
 ## Giai đoạn 6: Dọn dẹp
 
 - **OCR đã xong phần này (2026-11-24):** `/api/ocr/*` dùng token Zitadel (`get_ocr_user`), ghi `employees.id`; `ocr_jobs.user_id` không có khoá ngoại nên không cần migration. Còn lại là phần `/api/kb` (`uploaded_by`).
-- Xoá route `/auth/login`, bảng `users` và `create_access_token` khỏi backend. Chú ý `uploaded_by` đang là khoá ngoại tới `users.id`, cần đổi sang lưu `employee_id` hoặc email (phải có migration).
+**Kế hoạch làm (2026-11-24).** Hiện trạng DB thật: `users` chỉ có dòng `portal-dev`, `conversations` rỗng, cả 14 tài liệu có `uploaded_by` NULL, nên migration rất nhẹ. Route `/auth/login` đã không còn trong code. Thứ tự:
+1. Backend: bỏ `get_legacy_user`, JWT HS256, `require_roles`, bcrypt (`security.py` chỉ còn `UserInfo`); bỏ model `User`, `Conversation`, `Message` (chưa dùng ở đâu); `Actor` chỉ còn email; `uploaded_by` đổi sang **email** (varchar), người nạp hiện thẳng trên trang tài liệu; `get_asker_email` chỉ nhận Bearer; knowledge-mcp chỉ nhận Bearer; xoá `jwt_secret`, `kb_mcp_token`, `kb_mcp_allow_shared_token`, `portal_bff_token`.
+2. Test: đổi `get_legacy_user` thành `get_kb_admin`, bỏ `add_user`, xoá ca "đường cũ".
+3. Portal và LibreChat: bỏ `X-Portal-Token`, `PORTAL_BFF_TOKEN`, `API_DEV_TOKEN`, `PORTAL_DEV_AUTH`; bỏ `X-KB-Token` và `X-User-Email` ở `librechat.yaml`.
+4. DB thật: `backend/app/migrate_stage6.py` (mặc định chỉ in việc sẽ làm, `--apply` mới chạy): đổi kiểu cột `uploaded_by`, rồi xoá `messages`, `conversations`, `users`. **Chỉ chạy sau khi có bản dump và được cho phép rõ ràng.**
+5. Sau cùng: vô hiệu hoá machine user `bootstrap`, cân nhắc `ALLOW_EMAIL_LOGIN=false` và `OPENID_AUTO_REDIRECT=true`, cập nhật docs/05.
+
+**Đã làm (2026-11-24):**
+- Backend: `security.py` chỉ còn `UserInfo`; `deps.py` chỉ nhận Bearer Zitadel (`get_kb_admin`, `get_asker_email`, `get_ocr_user`); xoá `get_legacy_user`, `get_current_user`, `create_access_token`, `require_roles`, bcrypt, model `User`. `Actor` chỉ còn `email`; `documents.uploaded_by` là email (varchar 255), audit của thao tác quản trị ghi `user_id = NULL` và email vào `detail.actor`. `conversations.user_id` không còn khoá ngoại (nay là employees.id). Xoá `jwt_secret`, `jwt_expire_minutes`, `kb_mcp_token`, `kb_mcp_allow_shared_token`, `portal_bff_token` khỏi `config.py` và `.env.example`.
+- knowledge-mcp chỉ nhận Bearer (cả header `{{...}}` chưa thay biến hay thiếu token đều bị từ chối). Thêm `usable_as_of`: bỏ `as_of` do mô hình tự điền khi câu hỏi không nhắc năm/ngày/tháng tương ứng.
+- Portal: xoá `PORTAL_DEV_AUTH`, `NEXT_PUBLIC_PORTAL_DEV_AUTH`, `API_DEV_TOKEN`, `PORTAL_BFF_TOKEN`, `lib/backend-token.server.ts`, `lib/dev-role.ts`, công tắc vai trò ở menu người dùng. LibreChat: `librechat.yaml` bỏ `X-User-Email` và `X-KB-Token`; `KB_MCP_TOKEN` bỏ khỏi `librechat/.env` và `backend/.env`; đã `up -d --force-recreate --no-deps api`.
+- DB thật: `python -m app.migrate_stage6 --apply` (bước A, sau bản dump `librechat/backups/agent-2026-11-24-before-stage6.sql`) gỡ khoá ngoại `documents_uploaded_by_fkey`, `conversations_user_id_fkey` và đổi `uploaded_by` sang varchar (cả 14 tài liệu đều NULL nên không mất dữ liệu). **Bảng `users` còn nguyên** (bước B `--drop-users` chờ bạn cho phép: nó chỉ chứa dòng `portal-dev`).
+- Backend 419 test đạt, portal typecheck/lint sạch. Các dòng audit cũ của kb_*/llm_call mang id bảng `users` nên trang Nhật ký hiện "hệ thống" và trang Chi phí hiện "Người dùng #id".
+- **Còn lại của giai đoạn 6:** bước B `--drop-users`; vô hiệu hoá machine user `bootstrap`; cân nhắc `ALLOW_EMAIL_LOGIN=false` và `OPENID_AUTO_REDIRECT=true` (tài khoản gmail ADMIN local sẽ bị khoá); `KB_MCP_ALLOW_SHARED_TOKEN` không còn tồn tại nên bỏ khỏi checklist.
+
+- (Bản gốc) Xoá route `/auth/login`, bảng `users` và `create_access_token` khỏi backend. Chú ý `uploaded_by` đang là khoá ngoại tới `users.id`, cần đổi sang lưu `employee_id` hoặc email (phải có migration).
 - Xoá `X-KB-Token` và `KB_MCP_TOKEN`. Vô hiệu hoá machine user `bootstrap`.
 - Cập nhật `05-nhat-ky-trien-khai-demo.md`:
   - kiến trúc mới;

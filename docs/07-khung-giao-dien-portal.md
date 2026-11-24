@@ -129,4 +129,4 @@ Ghi chú khi làm: không đổi tên thẳng được `kb-admin` vì một ti�
 4. Tạm dùng `getMe()` dạng mock, có công tắc đổi vai trò admin/nhân viên ở chế độ dev, để thử menu theo vai trò khi chưa có Zitadel.
 5. Chạy `npm run typecheck`, `npm run lint`, rồi mở portal ở cỡ điện thoại và cỡ máy tính, với cả hai vai trò, để kiểm.
 
-Đã làm ở giai đoạn 5 của 06 (2026-11-23): `getMe()` đọc phiên Auth.js rồi gọi `GET /api/me`, `src/proxy.ts` (tên mới của middleware ở Next 16) chặn route; xem [portal/README.md](../portal/README.md). Người dùng giả chỉ còn khi `PORTAL_DEV_AUTH=1`.
+Đã làm ở giai đoạn 5 của 06 (2026-11-23): `getMe()` đọc phiên Auth.js rồi gọi `GET /api/me`, `src/proxy.ts` (tên mới của middleware ở Next 16) chặn route; xem [portal/README.md](../portal/README.md). Người dùng giả đã gỡ ở giai đoạn 6.
