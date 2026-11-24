@@ -1,6 +1,6 @@
 ---
-doc_id: SVT-QT-010
-so_hieu: 02/2026/QT-SVT
+doc_id: CTA-QT-010
+so_hieu: 02/2026/QT-CTA
 tieu_de: Quy trình tuyển dụng
 loai: quy-trinh
 phong_ban_so_huu: HCNS

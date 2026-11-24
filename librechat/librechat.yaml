@@ -1,4 +1,4 @@
-# librechat.yaml – cấu hình "Trợ lý số SVT" (GĐ0)
+# librechat.yaml – cấu hình "Trợ lý số CTA" (GĐ0)
 # Đối chiếu: librechat-src/librechat.example.yaml (LibreChat v0.8.9)
 # Nguyên tắc: file này commit được -> KHÔNG ghi bí mật ở đây, bí mật để trong .env và tham chiếu bằng ${TEN_BIEN}.
 
@@ -8,7 +8,7 @@ version: 1.3.19
 cache: true
 
 interface:
-  customWelcome: 'Trợ lý số SVT – môi trường học tập (GĐ0)'
+  customWelcome: 'Trợ lý số CTA – môi trường học tập (GĐ0)'
   # GĐ0 Ngày 2 sẽ thử bật/tắt các quyền này theo role.
 
 registration:
@@ -28,7 +28,7 @@ mcpSettings:
     - 'host.docker.internal:8100'
 
 mcpServers:
-  # Kho tri thức SVT (backend/app/knowledge_mcp.py) chạy trên máy host: python -m app.knowledge_mcp
+  # Kho tri thức CTA (backend/app/knowledge_mcp.py) chạy trên máy host: python -m app.knowledge_mcp
   knowledge-mcp:
     type: streamable-http
     url: http://host.docker.internal:8100/mcp

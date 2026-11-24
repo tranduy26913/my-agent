@@ -3,7 +3,7 @@
 Ba nhánh xếp hạng, gộp bằng Reciprocal Rank Fusion (RRF):
   1. vector   : ngữ nghĩa ("lấy vợ" ≈ "kết hôn")
   2. keyword  : full-text không dấu + từ điển viết tắt (số liệu, tên riêng, "CTP")
-  3. explicit : tài liệu được nêu ĐÍCH DANH bằng số hiệu/mã ("12/2023/QĐ-SVT")
+  3. explicit : tài liệu được nêu ĐÍCH DANH bằng số hiệu/mã ("12/2023/QĐ-CTA")
 
 Bộ lọc nằm TRONG SQL của từng nhánh (lọc trước, không lọc sau):
   - ACL (app/rag/acl.py)          -> tài liệu không được phép không bao giờ rời DB

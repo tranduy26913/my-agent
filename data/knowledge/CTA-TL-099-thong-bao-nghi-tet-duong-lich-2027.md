@@ -1,6 +1,6 @@
 ---
-doc_id: SVT-TL-099
-so_hieu: 21/2026/TB-SVT
+doc_id: CTA-TL-099
+so_hieu: 21/2026/TB-CTA
 tieu_de: Thông báo lịch nghỉ Tết Dương lịch 2027
 loai: thong-bao
 phong_ban_so_huu: HCNS

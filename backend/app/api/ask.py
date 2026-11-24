@@ -28,7 +28,7 @@ class AskIn(CamelModel):
 
 class CitationOut(CamelModel):
     n: int  # số [n] trong câu trả lời
-    label: str  # "SVT-QC-003 – Điều 3: Số ngày phép"
+    label: str  # "CTA-QC-003 – Điều 3: Số ngày phép"
     doc_id: str | None  # để portal mở đúng tài liệu; None nếu không tra được
 
 
@@ -36,7 +36,7 @@ class AskOut(CamelModel):
     answer: str
     found: bool
     citations: list[CitationOut]
-    withheld: list[str]  # vị trí tài liệu Mật bạn được xem nhưng trợ lý không đọc (SVT-CS-007 Điều 5)
+    withheld: list[str]  # vị trí tài liệu Mật bạn được xem nhưng trợ lý không đọc (CTA-CS-007 Điều 5)
     as_of: date
     model: str
     latency_ms: int

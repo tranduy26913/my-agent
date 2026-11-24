@@ -1,6 +1,6 @@
 ---
-doc_id: SVT-QD-005
-so_hieu: 08/2025/QĐ-SVT
+doc_id: CTA-QD-005
+so_hieu: 08/2025/QĐ-CTA
 tieu_de: Quy định về chế độ công tác phí
 loai: quy-dinh
 phong_ban_so_huu: TCKT
@@ -16,7 +16,7 @@ nguoi_ky: Vũ Thị Hạnh – Giám đốc Tài chính
 ---
 
 # QUY ĐỊNH VỀ CHẾ ĐỘ CÔNG TÁC PHÍ
-*(Ban hành kèm theo Quyết định số 08/2025/QĐ-SVT ngày 20/8/2025)*
+*(Ban hành kèm theo Quyết định số 08/2025/QĐ-CTA ngày 20/8/2025)*
 
 ### Điều 1. Phạm vi và đối tượng
 1. Quy định này áp dụng khi người lao động được cử đi công tác trong nước và nước ngoài.
@@ -52,7 +52,7 @@ nguoi_ky: Vũ Thị Hạnh – Giám đốc Tài chính
 ### Điều 7. Quyết toán
 1. Người lao động lập hồ sơ quyết toán trong vòng **07 ngày làm việc** kể từ ngày kết thúc công tác.
 2. Hồ sơ gồm: Giấy đề nghị công tác đã duyệt, bảng kê chi phí, hóa đơn, chứng từ gốc.
-3. Hóa đơn phải là hóa đơn điện tử ghi đúng tên Công ty, mã số thuế 0109999999, địa chỉ: Tầng 8, Tòa nhà Sao Việt, Cầu Giấy, Hà Nội.
+3. Hóa đơn phải là hóa đơn điện tử ghi đúng tên Công ty, mã số thuế 0109999999, địa chỉ: Tầng 8, Tòa nhà A, Cầu Giấy, Hà Nội.
 4. Khoản thanh toán từ **5.000.000 đồng trở lên** cho một hóa đơn phải thanh toán bằng hình thức không dùng tiền mặt.
 5. Quá thời hạn quyết toán mà không có lý do chính đáng, khoản tạm ứng sẽ bị khấu trừ vào lương kỳ gần nhất.
 

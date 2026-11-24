@@ -7,7 +7,7 @@ from app.rag.retriever import rrf_fuse
 
 
 def P(dept, *roles, active=True):
-    return Principal(email="x@saoviet.example", department=dept, roles=frozenset(roles), active=active)
+    return Principal(email="x@cty-a.example", department=dept, roles=frozenset(roles), active=active)
 
 
 # ---------------------------------------------------------------- ACL (ADR-001)
@@ -45,9 +45,9 @@ def test_unaccent_vietnamese():
 
 
 def test_detects_document_number_and_id():
-    plan = analyze("Quyết định 12/2023/QĐ-SVT và SVT-QC-003 còn hiệu lực không?")
-    assert "12/2023/QĐ-SVT" in plan.doc_refs
-    assert "SVT-QC-003" in plan.doc_refs
+    plan = analyze("Quyết định 12/2023/QĐ-CTA và CTA-QC-003 còn hiệu lực không?")
+    assert "12/2023/QĐ-CTA" in plan.doc_refs
+    assert "CTA-QC-003" in plan.doc_refs
 
 
 def test_abbreviation_expansion():

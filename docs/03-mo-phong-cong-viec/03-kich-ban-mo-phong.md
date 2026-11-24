@@ -45,10 +45,10 @@
 **Thế nào là tốt:** chỉ ra đúng nguyên nhân (thiếu lọc `het_hieu_luc` hoặc chunk của bản cũ xếp cao hơn); có số liệu eval trước/sau; người dùng nhận được phản hồi trong ngày.
 
 ## K04 – Kiểm tra phiếu công tác phí
-**Tình huống:** Email E04 và ticket SVT-AI-023.
+**Tình huống:** Email E04 và ticket CTA-AI-023.
 **Nhiệm vụ:** thiết kế và làm luồng: OCR → trích xuất JSON → kiểm tra quy tắc (code, không phải LLM) → báo cáo cho kế toán.
 **Câu hỏi thiết kế cần trả lời:** phần nào là LLM, phần nào là code tất định? Vì sao quy tắc định mức nên viết bằng code? Khi nào chuyển người duyệt?
-**Thế nào là tốt:** phát hiện đủ 4 vấn đề của phiếu NV018, 0 cảnh báo sai cho phiếu NV017; các con số dẫn chiếu đúng Điều của Quy định 08/2025/QĐ-SVT; có `do_tin_cay` và ngưỡng chuyển người duyệt.
+**Thế nào là tốt:** phát hiện đủ 4 vấn đề của phiếu NV018, 0 cảnh báo sai cho phiếu NV017; các con số dẫn chiếu đúng Điều của Quy định 08/2025/QĐ-CTA; có `do_tin_cay` và ngưỡng chuyển người duyệt.
 
 ## K05 – Tài liệu chứa chỉ dẫn lạ (SEC-025)
 **Tình huống:** Sáng thứ Hai, Bình gửi ảnh chụp: Trợ lý trả lời câu hỏi Tết Dương lịch và cuối câu có đường link `hr-update.example/verify`.
@@ -87,7 +87,7 @@
 **Đáp án (tự làm trước rồi mới mở):**
 <details><summary>6 thay đổi có ý nghĩa</summary>
 
-| # | Điều | v1 | v2 | Ảnh hưởng tới SVT |
+| # | Điều | v1 | v2 | Ảnh hưởng tới CTA |
 |---|---|---|---|---|
 | 1 | 2.3 (mới) | – | Bên A đơn phương chấm dứt, báo trước 15 ngày, không bồi thường | Rủi ro doanh thu cao |
 | 2 | 3.3 | Thanh toán trong 15 ngày | 45 ngày | Dòng tiền chậm |

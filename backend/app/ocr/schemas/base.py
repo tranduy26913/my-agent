@@ -23,7 +23,7 @@ class Finding:
     severity: str  # error | warning | info
     message: str
     field: str | None = None
-    rule: str | None = None  # điều khoản áp dụng, vd "08/2025/QĐ-SVT Điều 5"
+    rule: str | None = None  # điều khoản áp dụng, vd "08/2025/QĐ-CTA Điều 5"
     over_amount: int | None = None  # số tiền vượt định mức (đồng), nếu có
 
 

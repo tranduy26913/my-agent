@@ -114,7 +114,7 @@ function ResultCard({ turn }: { turn: Turn }) {
             <AlertTitle>Có thể còn thông tin trong tài liệu Mật</AlertTitle>
             <AlertDescription>
               <p>
-                Bạn được xem các văn bản này, nhưng theo SVT-CS-007 Điều 5 nội dung Mật không được gửi tới mô hình AI nên trợ lý
+                Bạn được xem các văn bản này, nhưng theo CTA-CS-007 Điều 5 nội dung Mật không được gửi tới mô hình AI nên trợ lý
                 không đọc phần đó. Hãy mở bản gốc:
               </p>
               <ul className="mt-1 list-disc pl-5">

@@ -1,4 +1,4 @@
-"""Khởi tạo cấu hình Zitadel cho SVT (docs/06 giai đoạn 2.1-2.5). CHẠY LẠI ĐƯỢC NHIỀU LẦN.
+"""Khởi tạo cấu hình Zitadel cho CTA (docs/06 giai đoạn 2.1-2.5). CHẠY LẠI ĐƯỢC NHIỀU LẦN.
 
 Zitadel không export cấu hình ra file như realm của Keycloak, nên script này là "nguồn sự thật":
 đọc trạng thái hiện có, chỉ sửa chỗ khác với mong muốn, không tạo trùng.

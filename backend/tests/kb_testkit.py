@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.models import DIM, AuditLog, Chunk, Document, Employee
 
-ADMIN_EMAIL = "test.admin@saoviet.example"
+ADMIN_EMAIL = "test.admin@cty-a.example"
 
 
 @pytest.fixture(name="kb_db")

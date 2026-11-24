@@ -26,7 +26,7 @@ Nên làm theo thứ tự: khung + `/` → `/admin/kb` (gắn API thật) → `/
 
 ```
 ┌────────────┬──────────────────────────────────────────────┐
-│ [logo] SVT │  Tiêu đề trang                 [tên ▾]       │  ← header: tên người dùng, đăng xuất
+│ [logo] CTA │  Tiêu đề trang                 [tên ▾]       │  ← header: tên người dùng, đăng xuất
 │            ├──────────────────────────────────────────────┤
 │ Trang chủ  │                                              │
 │ CÔNG CỤ    │                                              │
@@ -225,4 +225,6 @@ Sau mỗi thay đổi giao diện: `npm run typecheck`, `npm run lint`, mở b�
 - `POST /v2/users/{id}/password` của Zitadel thật: list và get đã đối chiếu với phản hồi thật (chỉ đọc); đặt mật khẩu chưa gọi thử vì sẽ đổi mật khẩu tài khoản thật.
 - Đăng nhập Zitadel thật với bản mới (bản kiểm dùng cookie phiên giả).
 
-**Việc còn lại cần bạn cho phép:** chạy `python -m app.seed_hr` trên agent-db thật (tạo ba bảng mới và nạp phép, đơn nghỉ, số điện thoại); đặt `ZITADEL_ADMIN_PAT` trong `backend/.env`; khởi động lại FastAPI cổng 8000 (bản đang chạy là bản cũ, chưa có các route mới).
+**Đã làm sau đó (2026-11-24, buổi chiều, được người dùng cho phép):** `python -m app.seed_hr` trên agent-db thật (24 nhân viên, 24 số dư phép, 143 đơn nghỉ, 24 số điện thoại; chạy lại lần hai không nhân đôi; sao lưu `librechat/backups/agent-2026-11-24-before-seed-hr.sql` trước đó); `ZITADEL_ADMIN_PAT` đã đặt trong `backend/.env` (lấy từ `infra/zitadel/out/generated.json`, `portalAdminApiPat`); FastAPI (8000) và knowledge-mcp (8100) đã khởi động lại, `/openapi.json` có `/api/hr/*`, `/api/admin/users`, `/api/kb/library`, `/api/stt/*`; route cần token trả 401 khi không có token. Backend 494 test đạt.
+
+**Chưa kiểm sau khi khởi động lại:** gọi `/api/admin/users` và `/api/hr/*` bằng token Zitadel thật (cần đăng nhập portal bằng trình duyệt).

@@ -39,7 +39,7 @@ export function AppSidebar() {
         <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
           <Library className="size-4" />
         </span>
-        <span className="text-sm font-semibold">Trợ lý số Sao Việt</span>
+        <span className="text-sm font-semibold">Trợ lý số Công ty A</span>
       </SidebarHeader>
 
       <SidebarContent className="px-1 py-2">

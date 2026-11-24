@@ -118,10 +118,10 @@ def test_reindex_giu_trang_thai_cach_ly(kb_env):
 
 def test_reindex_pdf_cap_nhat_trang(kb_env):
     c, db, _, _ = kb_env
-    assert post(c, "SVT-TB-050-x.pdf", make_pdf(2), PDF, META).status_code == 201
-    before = chunks_of(db, "SVT-TB-050")
-    assert reindex(c, "SVT-TB-050").status_code == 204
-    after = chunks_of(db, "SVT-TB-050")
+    assert post(c, "CTA-TB-050-x.pdf", make_pdf(2), PDF, META).status_code == 201
+    before = chunks_of(db, "CTA-TB-050")
+    assert reindex(c, "CTA-TB-050").status_code == 204
+    after = chunks_of(db, "CTA-TB-050")
     assert [t for _, t in after] == [t for _, t in before]  # cùng nội dung
     assert {i for i, _ in after}.isdisjoint(i for i, _ in before)  # nhưng là các dòng chunk mới
 
@@ -216,37 +216,37 @@ def test_tai_lieu_cach_ly_bi_retriever_loai(kb_env):
 
 def test_delete_xoa_tai_lieu_chunk_tep_va_ghi_audit(kb_env):
     c, db, admin, folder = kb_env
-    assert post(c, "SVT-TB-060-x.pdf", make_pdf(2), PDF, {**META, "classified": True}).status_code == 201
-    pid = doc_of(db, "SVT-TB-060").id
+    assert post(c, "CTA-TB-060-x.pdf", make_pdf(2), PDF, {**META, "classified": True}).status_code == 201
+    pid = doc_of(db, "CTA-TB-060").id
     assert len(saved_files(folder)) == 1
 
-    r = delete(c, "SVT-TB-060")
+    r = delete(c, "CTA-TB-060")
     assert r.status_code == 204
-    assert doc_of(db, "SVT-TB-060") is None
+    assert doc_of(db, "CTA-TB-060") is None
     left = select(func.count()).select_from(Chunk).where(Chunk.document_id == pid)
     assert db.execute(left).scalar_one() == 0
     assert saved_files(folder) == []
-    logs = [x for x in audit(db, "kb_delete") if x.detail["doc_id"] == "SVT-TB-060"]
+    logs = [x for x in audit(db, "kb_delete") if x.detail["doc_id"] == "CTA-TB-060"]
     assert len(logs) == 1 and logs[0].detail["actor"] == admin.email
     assert logs[0].detail["classified"] is True and logs[0].detail["chunks"] >= 2
-    assert c.get(f"{URL}/SVT-TB-060").status_code == 404
+    assert c.get(f"{URL}/CTA-TB-060").status_code == 404
 
 
 def test_delete_tep_dung_chung_chi_xoa_khi_het_nguoi_dung(kb_env):
     c, db, _, folder = kb_env
     pdf = make_pdf(1)  # cùng nội dung -> cùng <sha>.pdf
-    assert post(c, "SVT-TB-061-a.pdf", pdf, PDF, META).status_code == 201
-    assert post(c, "SVT-TB-062-b.pdf", pdf, PDF, META).status_code == 201
+    assert post(c, "CTA-TB-061-a.pdf", pdf, PDF, META).status_code == 201
+    assert post(c, "CTA-TB-062-b.pdf", pdf, PDF, META).status_code == 201
     assert len(saved_files(folder)) == 1
-    assert delete(c, "SVT-TB-061").status_code == 204
+    assert delete(c, "CTA-TB-061").status_code == 204
     assert len(saved_files(folder)) == 1  # tài liệu kia vẫn cần bản gốc
-    assert delete(c, "SVT-TB-062").status_code == 204
+    assert delete(c, "CTA-TB-062").status_code == 204
     assert saved_files(folder) == []
 
 
 def test_delete_khong_dung_toi_tep_ngoai_upload_dir(kb_env, tmp_path):
     c, db, _, _ = kb_env
-    kb_file = tmp_path / "knowledge" / "SVT-QC-999.md"
+    kb_file = tmp_path / "knowledge" / "CTA-QC-999.md"
     kb_file.parent.mkdir()
     kb_file.write_text("# nguồn gốc của kho tri thức", encoding="utf-8")
     add_doc(db, "TEST-DEL-KB", source=kb_file.as_posix())
@@ -285,15 +285,15 @@ def test_delete_lo_co_tai_lieu_khong_ton_tai(kb_env):
 
 def test_delete_loi_giua_chung_rollback_tai_lieu_do(kb_env, monkeypatch):
     c, db, _, folder = kb_env
-    assert post(c, "SVT-TB-063-x.pdf", make_pdf(1), PDF, META).status_code == 201
+    assert post(c, "CTA-TB-063-x.pdf", make_pdf(1), PDF, META).status_code == 201
 
     def boom(*_a, **_k):
         raise RuntimeError("commit hỏng")
 
     monkeypatch.setattr(db, "commit", boom)  # DELETE đã chạy trong transaction nhưng commit thất bại
-    r = delete(c, "SVT-TB-063")
+    r = delete(c, "CTA-TB-063")
     assert r.status_code == 207
-    assert doc_of(db, "SVT-TB-063") is not None and len(chunks_of(db, "SVT-TB-063")) >= 1  # chunk không mất
+    assert doc_of(db, "CTA-TB-063") is not None and len(chunks_of(db, "CTA-TB-063")) >= 1  # chunk không mất
     assert len(saved_files(folder)) == 1 and audit(db, "kb_delete") == []
 
 

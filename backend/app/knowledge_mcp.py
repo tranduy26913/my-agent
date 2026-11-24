@@ -1,4 +1,4 @@
-"""knowledge-mcp: MCP server (streamable HTTP) cho LibreChat tra cứu kho tri thức SVT.
+"""knowledge-mcp: MCP server (streamable HTTP) cho LibreChat tra cứu kho tri thức CTA.
 
     python -m app.knowledge_mcp          # nghe ở 0.0.0.0:8100/mcp
 
@@ -27,7 +27,7 @@ log = logging.getLogger("knowledge-mcp")
 mcp = MCPServer(
     name="knowledge-mcp",
     instructions=(
-        "Tra cứu quy chế, quy trình, chính sách, hướng dẫn nội bộ của Công ty Sao Việt (SVT). "
+        "Tra cứu quy chế, quy trình, chính sách, hướng dẫn nội bộ của Công ty A (CTA). "
         "Kết quả đã được lọc theo quyền của người đang chat và kèm trích dẫn nguồn."
     ),
 )
@@ -71,7 +71,7 @@ def _ask_sync(email: str, question: str, as_of: date | None) -> str:
     with SessionLocal() as db:
         p = load_principal(db, email)
         if p is None:
-            return "Tài khoản của bạn chưa có trong danh bạ nhân sự SVT nên không tra cứu được tài liệu."
+            return "Tài khoản của bạn chưa có trong danh bạ nhân sự CTA nên không tra cứu được tài liệu."
         if not p.active:
             return "Tài khoản nhân sự của bạn không còn hoạt động nên không tra cứu được tài liệu nội bộ."
         return ask(db, question, p, as_of=as_of).render()
@@ -79,7 +79,7 @@ def _ask_sync(email: str, question: str, as_of: date | None) -> str:
 
 @mcp.tool()
 async def ask_knowledge(question: str, ctx: Context, as_of: str | None = None) -> str:
-    """Trả lời câu hỏi về quy định nội bộ SVT: nghỉ phép, nội quy, giờ làm việc, lương thưởng, công tác phí,
+    """Trả lời câu hỏi về quy định nội bộ CTA: nghỉ phép, nội quy, giờ làm việc, lương thưởng, công tác phí,
     mua sắm – thanh toán, tuyển dụng, CNTT, an toàn thông tin, dự án... Câu trả lời đã có trích dẫn [n] và
     danh sách nguồn: hãy giữ nguyên trích dẫn và nguồn khi trình bày lại cho người dùng, không thêm thông tin
     ngoài kết quả này. Nếu kết quả nói không tìm thấy, hãy nói đúng như vậy, không trả lời từ kiến thức chung.

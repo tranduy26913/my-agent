@@ -1,5 +1,5 @@
 ---
-doc_id: SVT-HD-008
+doc_id: CTA-HD-008
 so_hieu: HD-CNTT-2026-01
 tieu_de: Hướng dẫn sử dụng dịch vụ CNTT
 loai: huong-dan
@@ -18,9 +18,9 @@ nguoi_ky: Đỗ Quang Huy – Trưởng phòng CNTT
 # HƯỚNG DẪN SỬ DỤNG DỊCH VỤ CNTT
 
 ## 1. Kênh hỗ trợ
-- Cổng yêu cầu hỗ trợ (helpdesk): **it.saoviet.example** – kênh chính thức cho mọi yêu cầu.
+- Cổng yêu cầu hỗ trợ (helpdesk): **it.cty-a.example** – kênh chính thức cho mọi yêu cầu.
 - Điện thoại khẩn cấp: máy lẻ **1900** (giờ hành chính), hotline trực ngoài giờ 0901 000 199 (chỉ cho sự cố mức P1).
-- Báo cáo sự cố an toàn thông tin: security@saoviet.example hoặc máy lẻ 1999.
+- Báo cáo sự cố an toàn thông tin: security@cty-a.example hoặc máy lẻ 1999.
 
 ## 2. Mức ưu tiên và thời gian phản hồi (SLA)
 | Mức | Định nghĩa | Phản hồi | Mục tiêu khắc phục |
@@ -31,18 +31,18 @@ nguoi_ky: Đỗ Quang Huy – Trưởng phòng CNTT
 | P4 | Yêu cầu dịch vụ (cấp quyền, cài phần mềm, thiết bị) | 1 ngày làm việc | Theo mục 5, 6 |
 
 ## 3. Đặt lại mật khẩu
-1. Truy cập **id.saoviet.example**, chọn "Quên mật khẩu".
+1. Truy cập **id.cty-a.example**, chọn "Quên mật khẩu".
 2. Xác thực bằng ứng dụng MFA đã đăng ký.
 3. Đặt mật khẩu mới theo Chính sách an toàn thông tin (tối thiểu 12 ký tự).
 4. Mất thiết bị MFA: tạo yêu cầu helpdesk mức P3 và đến trực tiếp Phòng CNTT (tầng 8) mang theo thẻ nhân viên.
 
 ## 4. Kết nối VPN
-1. Cài ứng dụng **SVT Connect** từ Cổng phần mềm công ty (Software Center).
+1. Cài ứng dụng **CTA Connect** từ Cổng phần mềm công ty (Software Center).
 2. Đăng nhập bằng tài khoản công ty và xác thực MFA.
 3. VPN bắt buộc khi truy cập HRM, hệ thống kế toán và kho mã nguồn từ ngoài văn phòng.
 4. Lỗi thường gặp:
    - "Authentication failed": kiểm tra mật khẩu hết hạn hoặc tài khoản bị khóa sau 5 lần sai; tài khoản tự mở khóa sau 30 phút.
-   - Kết nối được nhưng không vào được HRM: kiểm tra đã chọn cổng "SVT-HN" chưa; xóa bộ nhớ DNS (`ipconfig /flushdns` trên Windows).
+   - Kết nối được nhưng không vào được HRM: kiểm tra đã chọn cổng "CTA-HN" chưa; xóa bộ nhớ DNS (`ipconfig /flushdns` trên Windows).
 
 ## 5. Cấp quyền truy cập hệ thống
 1. Tạo yêu cầu trên helpdesk, chọn loại "Cấp quyền", ghi rõ hệ thống, mức quyền và lý do.

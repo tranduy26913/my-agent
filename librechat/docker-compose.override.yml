@@ -63,9 +63,9 @@ services:
       ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: ${AGENT_DB_PASSWORD:-agent}
       ZITADEL_DATABASE_POSTGRES_ADMIN_SSL_MODE: disable
       # Chỉ có tác dụng ở LẦN KHỞI TẠO ĐẦU (instance đã tạo thì đổi ở đây không còn hiệu lực).
-      ZITADEL_FIRSTINSTANCE_ORG_NAME: SVT
+      ZITADEL_FIRSTINSTANCE_ORG_NAME: CTA
       ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: zitadel-admin
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_ADDRESS: admin@saoviet.example
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_ADDRESS: admin@cty-a.example
       ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: ${ZITADEL_ADMIN_PASSWORD:?đặt ZITADEL_ADMIN_PASSWORD trong librechat/.env}
       ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED: "true"
       # Machine user `bootstrap` (IAM_OWNER) + PAT cho script infra/zitadel/bootstrap.py. Vô hiệu hoá khi xong việc.

@@ -71,7 +71,7 @@ def test_khong_lo_cau_hinh_phan_quyen_nguon_va_noi_dung(env):
     get, db = env
     add_doc(
         db, "TEST-SECRET", visibility="phong-ban", allowed_departments=["KD"], allowed_roles=["hr"],
-        source="data/uploads/abc123.pdf", uploaded_by="admin.that@saoviet.example",
+        source="data/uploads/abc123.pdf", uploaded_by="admin.that@cty-a.example",
     )
     r = get(q="TEST-SECRET")
     assert ids(r) == ["TEST-SECRET"]

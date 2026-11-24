@@ -14,7 +14,7 @@
 
 ### E01 – Yêu cầu từ Trưởng phòng HCNS
 ```
-Từ: Nguyễn Thị Lan <lan.nguyen@saoviet.example>
+Từ: Nguyễn Thị Lan <lan.nguyen@cty-a.example>
 Đến: Bạn; Cc: Đỗ Quang Huy
 Tiêu đề: Nhờ hỗ trợ giảm câu hỏi lặp lại về nghỉ phép
 
@@ -184,7 +184,7 @@ Tiêu đề: [Postmortem] INC-043 – Ngắt câu trả lời dài (20/11)
 
 ### B6 – Báo cáo tiến độ tuần (gửi PM và người yêu cầu)
 ```
-Tiêu đề: [Tuần 47] Trợ lý số SVT – Tiến độ, số liệu, cần hỗ trợ
+Tiêu đề: [Tuần 47] Trợ lý số CTA – Tiến độ, số liệu, cần hỗ trợ
 
 Tóm tắt: <xanh/vàng/đỏ> – <1 câu>
 Đã xong: <ticket – kết quả đo được>
@@ -206,9 +206,9 @@ Khung: kết luận 1 câu → bảng chi phí theo phòng/agent/model → 3 ngu
 
 ### B9 – Thông báo ra mắt cho người dùng
 ```
-Tiêu đề: [Thông báo] Ra mắt Trợ lý số SVT cho Phòng HCNS và Kinh doanh (thí điểm)
+Tiêu đề: [Thông báo] Ra mắt Trợ lý số CTA cho Phòng HCNS và Kinh doanh (thí điểm)
 
-Từ <ngày>, anh chị có thể hỏi Trợ lý số tại chat.saoviet.example (đăng nhập bằng tài khoản công ty):
+Từ <ngày>, anh chị có thể hỏi Trợ lý số tại chat.cty-a.example (đăng nhập bằng tài khoản công ty):
 - Trợ lý làm được: <3 ví dụ câu hỏi>
 - Trợ lý chưa làm được: <2 giới hạn>
 - Lưu ý: kiểm tra lại thông tin quan trọng; không nhập dữ liệu Mật khi chọn model cloud; bấm 👎 khi trả lời sai.

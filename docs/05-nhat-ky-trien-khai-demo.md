@@ -31,7 +31,7 @@ Chỉ một model chat nằm trong VRAM; model embedding `multilingual-e5-large`
 | Named tunnel `demo-ai`, route `chat.` → `localhost:3080` | Healthy, trả HTTP 200 |
 | LibreChat đổi `DOMAIN_CLIENT`/`DOMAIN_SERVER` thành `https://chat.tranduyai.id.vn` | Xong |
 | Tắt đăng ký tự do (`ALLOW_REGISTRATION=false`) | Xong, kiểm tra qua `/api/config` |
-| 5 tài khoản persona SVT (binh.le, ha.pham, mai.ngo, duc.hoang, huy.do) | Xong, mật khẩu ở `librechat/persona-accounts.txt` (đã vào `.gitignore`) |
+| 5 tài khoản persona CTA (binh.le, ha.pham, mai.ngo, duc.hoang, huy.do) | Xong, mật khẩu ở `librechat/persona-accounts.txt` (đã vào `.gitignore`) |
 | LocalAI chạy GPU (ảnh `latest-gpu-nvidia-cuda-12`), model `qwen3-4b` Q4_K_M 2.9 GiB | Chạy, ~30–60 token/giây |
 | Endpoint custom "LocalAI" trong `librechat/librechat.yaml` | Chat thường chạy ổn |
 | Adapter model local cho RAG: `backend/app/llm/local.py`, `LLM_PROVIDER=local` | Xong, 33 test đạt |
@@ -115,7 +115,7 @@ Sau đó đo lại bằng đúng quy trình này.
 
 ## 6. Cách chạy lại sau khi khởi động máy
 
-1. Bật Docker Desktop, rồi trong `librechat`: `docker compose up -d`. **Zitadel phải lên (healthy) trước LibreChat**; LibreChat tự thử lại nền nếu lên sớm hơn, nhưng nút "Đăng nhập SVT" chưa dùng được trong lúc đó.
+1. Bật Docker Desktop, rồi trong `librechat`: `docker compose up -d`. **Zitadel phải lên (healthy) trước LibreChat**; LibreChat tự thử lại nền nếu lên sớm hơn, nhưng nút "Đăng nhập CTA" chưa dùng được trong lúc đó.
 2. Bật `local-ai` nếu chưa chạy (cần `--gpus all`, mạng `librechat_default`, bốn volume `/configuration`, `/data`, `/models`, `/backends`, cổng 8080).
 3. Trong `backend`: `.\.venv\Scripts\python -m app.knowledge_mcp` (cổng 8100, `LLM_PROVIDER=local` trong `backend/.env`) và `.\.venv\Scripts\python -m uvicorn app.main:app --port 8000` (FastAPI cho portal). Hai tiến trình này cần `OIDC_ISSUER` và `OIDC_PROJECT_ID` trong `backend/.env`, thiếu thì mọi request bị từ chối. Portal: `npm run dev` trong `portal/` (cổng 3100).
 4. Đảm bảo service `cloudflared` của tunnel `demo-ai` đang chạy.

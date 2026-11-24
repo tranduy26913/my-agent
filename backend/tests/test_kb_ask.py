@@ -27,8 +27,8 @@ IDP = Idp()
 def make_hit() -> Hit:
     return Hit(
         chunk_id=1,
-        doc_id="SVT-QC-003",
-        so_hieu="01/2026/QĐ-SVT",
+        doc_id="CTA-QC-003",
+        so_hieu="01/2026/QĐ-CTA",
         title="Quy chế nghỉ phép",
         section="Điều 3",
         content="Mỗi năm 12 ngày phép",
@@ -57,7 +57,7 @@ def _db_client(kb_db):
     return TestClient(app)
 
 
-def headers(email="test.binh@saoviet.example", **claims):
+def headers(email="test.binh@cty-a.example", **claims):
     return {"Authorization": f"Bearer {IDP.token(email=email, **claims)}"}
 
 
@@ -104,16 +104,16 @@ def test_du_lieu_sai_422(client, body):
 
 def test_khong_co_trong_danh_ba_403(db_client):
     r = db_client.post(
-        "/api/kb/ask", json={"question": "nghỉ phép"}, headers=headers("khong.co@saoviet.example")
+        "/api/kb/ask", json={"question": "nghỉ phép"}, headers=headers("khong.co@cty-a.example")
     )
     assert r.status_code == 403
     assert "danh bạ" in r.json()["detail"]
 
 
 def test_nhan_vien_nghi_viec_403(db_client, kb_db):
-    add_employee(kb_db, "TEST901", "test.nghi@saoviet.example", status="nghi-viec")
+    add_employee(kb_db, "TEST901", "test.nghi@cty-a.example", status="nghi-viec")
     r = db_client.post(
-        "/api/kb/ask", json={"question": "nghỉ phép"}, headers=headers("test.nghi@saoviet.example")
+        "/api/kb/ask", json={"question": "nghỉ phép"}, headers=headers("test.nghi@cty-a.example")
     )
     assert r.status_code == 403
     assert "không còn hoạt động" in r.json()["detail"]
@@ -123,7 +123,7 @@ def test_nhan_vien_nghi_viec_403(db_client, kb_db):
 
 
 def test_tra_loi_co_trich_dan_camel_case(db_client, kb_db, monkeypatch):
-    add_employee(kb_db, "TEST902", "test.binh@saoviet.example", department="HCNS", roles=["hr"])
+    add_employee(kb_db, "TEST902", "test.binh@cty-a.example", department="HCNS", roles=["hr"])
     seen = {}
 
     def fake_ask(db, question, principal, as_of=None, audit=True):
@@ -131,8 +131,8 @@ def test_tra_loi_co_trich_dan_camel_case(db_client, kb_db, monkeypatch):
         return AskResult(
             "Được 12 ngày phép [1].",
             True,
-            ["SVT-QC-003 – Điều 3"],
-            ["SVT-CS-001 – Điều 2"],
+            ["CTA-QC-003 – Điều 3"],
+            ["CTA-CS-001 – Điều 2"],
             [make_hit()],
             "qwen3-4b",
             latency_ms=1234,
@@ -146,8 +146,8 @@ def test_tra_loi_co_trich_dan_camel_case(db_client, kb_db, monkeypatch):
     assert r.json() == {
         "answer": "Được 12 ngày phép [1].",
         "found": True,
-        "citations": [{"n": 1, "label": "SVT-QC-003 – Điều 3", "docId": "SVT-QC-003"}],
-        "withheld": ["SVT-CS-001 – Điều 2"],
+        "citations": [{"n": 1, "label": "CTA-QC-003 – Điều 3", "docId": "CTA-QC-003"}],
+        "withheld": ["CTA-CS-001 – Điều 2"],
         "asOf": "2024-06-30",
         "model": "qwen3-4b",
         "latencyMs": 1234,
@@ -162,7 +162,7 @@ def test_tra_loi_co_trich_dan_camel_case(db_client, kb_db, monkeypatch):
 
 
 def test_khong_co_as_of_thi_dung_hom_nay(db_client, kb_db, monkeypatch):
-    add_employee(kb_db, "TEST903", "test.binh@saoviet.example")
+    add_employee(kb_db, "TEST903", "test.binh@cty-a.example")
     monkeypatch.setattr(
         ask_module, "ask", lambda db, q, p, as_of=None, audit=True: AskResult("Không rõ.", False)
     )

@@ -116,7 +116,7 @@ Tất cả cấu hình được trong `app/config.py`:
 - Chỉ kết luận `needs_review` (true khi có `error` hoặc `warning`); **không bao giờ "duyệt chi"**. Việc duyệt vẫn do người.
 - Đối chiếu danh bạ: tra `employees` theo mã NV để kiểm tra họ tên và cấp bậc. Họ tên đầu phiếu bị OCR sai nhưng tên đúng xuất hiện ở phần chữ ký thì chỉ ghi chú (`info`), không cảnh báo.
 
-**Quy tắc đã cài (theo `SVT-QD-005`, 08/2025/QĐ-SVT):** định mức khách sạn theo thành phố và cấp bậc (Điều 5, +30% cho `truong-phong` hoặc `executive`), taxi 500.000 đ/ngày (Điều 4.4), phụ cấp lưu trú 300.000 đ/ngày và không áp dụng nội thành Hà Nội (Điều 1.2, 3), hóa đơn/vé bắt buộc với đi lại, khách sạn, taxi (Điều 4.3, 4.4), khoản ngoài danh mục như tiếp khách, hạn quyết toán 7 ngày làm việc (Điều 7.1), người phê duyệt theo tổng tiền (Điều 8.2, chỉ ghi chú). Khi không tra được cấp bậc thì áp định mức chuẩn và ghi chú.
+**Quy tắc đã cài (theo `CTA-QD-005`, 08/2025/QĐ-CTA):** định mức khách sạn theo thành phố và cấp bậc (Điều 5, +30% cho `truong-phong` hoặc `executive`), taxi 500.000 đ/ngày (Điều 4.4), phụ cấp lưu trú 300.000 đ/ngày và không áp dụng nội thành Hà Nội (Điều 1.2, 3), hóa đơn/vé bắt buộc với đi lại, khách sạn, taxi (Điều 4.3, 4.4), khoản ngoài danh mục như tiếp khách, hạn quyết toán 7 ngày làm việc (Điều 7.1), người phê duyệt theo tổng tiền (Điều 8.2, chỉ ghi chú). Khi không tra được cấp bậc thì áp định mức chuẩn và ghi chú.
 
 **Chưa kiểm được (thiếu dữ liệu đầu vào):** tạm ứng tối đa 80% dự toán (Điều 6), hóa đơn điện tử đúng tên và mã số thuế công ty (Điều 7.3), thanh toán không tiền mặt cho hóa đơn từ 5 triệu (Điều 7.4), ngày nghỉ lễ khi đếm ngày làm việc.
 
@@ -177,7 +177,7 @@ Ba điều đã học được (chi tiết ở `ocr-engine/README.md`):
 - **Phải trả:**
   - Thêm một package, một bảng `ocr_jobs`, phụ thuộc `numpy` (khai báo trong `pyproject.toml`). Thư mục `ocr-engine/` chỉ cần khi làm engine `unlimited`.
   - Có thêm một bản logic phát hiện lớp text trong `app/ocr/pdf.py` cho đến khi `ingest.py` chuyển sang dùng nó (trùng lặp tạm thời).
-  - Quy định công tác phí được mã hóa trong `app/ocr/schemas/cong_tac_phi.py` (định mức, điều khoản). **Khi `SVT-QD-005` đổi thì phải sửa tay** hằng số ở đó; chưa đọc từ kho tri thức.
+  - Quy định công tác phí được mã hóa trong `app/ocr/schemas/cong_tac_phi.py` (định mức, điều khoản). **Khi `CTA-QD-005` đổi thì phải sửa tay** hằng số ở đó; chưa đọc từ kho tri thức.
   - Đồng bộ `/extract` giữ một luồng 7 đến 13 giây; nhiều người gọi cùng lúc sẽ xếp hàng sau LLM cục bộ.
 - **Thay đổi kéo theo ở phần dùng chung:**
   - `app/db.py`: thêm `connect_timeout=5`. Trước đó khi Postgres chưa sẵn sàng mọi kết nối treo vô hạn nên `/readyz` không trả được 503. Ảnh hưởng cả `knowledge-mcp`.
@@ -187,7 +187,7 @@ Ba điều đã học được (chi tiết ở `ocr-engine/README.md`):
   - Tiền xử lý và quy tắc chưa thử trên ảnh chụp thật; với ảnh thật, OCR sẽ làm mất nhiều ô hơn, dự kiến sinh nhiều cảnh báo hơn chứ không phải nhiều lỗi giả hơn, nhưng chưa đo.
   - **Starlette giữ file upload lớn (trên 1 MB) trong một tệp tạm trên đĩa** cho đến hết request, và đọc cả file trước khi kiểm tra đăng nhập. Điều này lệch với câu "không ghi file gốc xuống đĩa" ở mức hạ tầng; nên đặt giới hạn dung lượng ở BFF/proxy. Dữ liệu ứng dụng (DB, log, `ocr_jobs`) thì không chứa file gốc.
   - Dịch vụ GPU ngoài (nếu dùng) có trả lời đủ nhanh và ổn định không.
-  - Nếu `LLM_PROVIDER=claude` thì văn bản phiếu rời khỏi máy; chỉ dùng cho tài liệu không thuộc diện Mật (SVT-CS-007 Điều 5).
+  - Nếu `LLM_PROVIDER=claude` thì văn bản phiếu rời khỏi máy; chỉ dùng cho tài liệu không thuộc diện Mật (CTA-CS-007 Điều 5).
 
 ## Ca kiểm thử bắt buộc và trạng thái
 

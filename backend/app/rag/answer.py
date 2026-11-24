@@ -1,7 +1,7 @@
 """ask_knowledge: truy xuất -> định tuyến theo độ mật -> sinh câu trả lời có trích dẫn -> kiểm tra -> audit.
 
 Vì sao backend tự sinh câu trả lời (ADR-002) thay vì trả chunk cho agent của LibreChat:
-- Chunk Mật không được đi tới model cloud (SVT-CS-007 Điều 5). Chỉ backend biết chunk nào Mật.
+- Chunk Mật không được đi tới model cloud (CTA-CS-007 Điều 5). Chỉ backend biết chunk nào Mật.
 - Kiểm tra trích dẫn, audit, eval đều đi qua MỘT đường code -> eval đo đúng cái chạy production.
 
 P1: chunk Mật bị GIỮ LẠI (không gửi LLM). Người dùng có quyền chỉ nhận vị trí trích dẫn để mở bản gốc.
@@ -22,7 +22,7 @@ from app.rag.retriever import Hit, retrieve
 
 NOT_FOUND = "Không tìm thấy thông tin này trong các tài liệu nội bộ mà bạn được phép xem."
 
-SYSTEM = """Bạn là Trợ lý số SVT, trả lời câu hỏi của nhân viên Công ty Sao Việt DỰA TRÊN tài liệu nội bộ.
+SYSTEM = """Bạn là Trợ lý số CTA, trả lời câu hỏi của nhân viên Công ty A DỰA TRÊN tài liệu nội bộ.
 
 Quy tắc bắt buộc:
 1. Chỉ dùng thông tin trong các thẻ <document>. Không dùng kiến thức chung, không suy đoán con số.
@@ -54,7 +54,7 @@ SCHEMA = {
 class AskResult:
     answer: str
     found: bool
-    citations: list[str] = field(default_factory=list)  # "SVT-QC-003 – Chương II > Điều 3..."
+    citations: list[str] = field(default_factory=list)  # "CTA-QC-003 – Chương II > Điều 3..."
     withheld: list[str] = field(default_factory=list)  # vị trí chunk Mật không gửi LLM
     hits: list[Hit] = field(default_factory=list)
     model: str = ""
@@ -69,7 +69,7 @@ class AskResult:
             out.append("\nNguồn:\n" + "\n".join(f"[{i}] {c}" for i, c in enumerate(self.citations, 1)))
         if self.withheld:
             out.append(
-                "\nCó thể có thêm thông tin trong tài liệu MẬT bạn được quyền xem. Theo SVT-CS-007 Điều 5, "
+                "\nCó thể có thêm thông tin trong tài liệu MẬT bạn được quyền xem. Theo CTA-CS-007 Điều 5, "
                 "nội dung Mật không được gửi tới mô hình AI cloud nên trợ lý không đọc phần này; "
                 "vui lòng mở bản gốc:\n" + "\n".join(f"- {w}" for w in self.withheld)
             )

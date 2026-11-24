@@ -1,6 +1,6 @@
-# Bộ dữ liệu giả lập: Công ty Cổ phần Công nghệ Sao Việt (SVT)
+# Bộ dữ liệu giả lập: Công ty A (CTA)
 
-> **Toàn bộ là dữ liệu hư cấu** dùng để học và demo: tên người, công ty, khách hàng, số điện thoại, mã số thuế, domain `saoviet.example` đều không có thật. Trích dẫn luật (Bộ luật Lao động 2019…) chỉ mang tính minh họa, đừng dùng làm tư vấn pháp lý.
+> **Toàn bộ là dữ liệu hư cấu** dùng để học và demo: tên người, công ty, khách hàng, số điện thoại, mã số thuế, domain `cty-a.example` đều không có thật. Trích dẫn luật (Bộ luật Lao động 2019…) chỉ mang tính minh họa, đừng dùng làm tư vấn pháp lý.
 
 Mục đích: có một "doanh nghiệp" đủ thật để xây và kiểm thử **hr-mcp**, **knowledge-mcp**, phân quyền, OCR, eval và các kịch bản tự động hóa.
 
@@ -29,11 +29,11 @@ data/
 
 | Persona | Email | Vai trò hệ thống | Dùng để thử |
 |---|---|---|---|
-| Nhân viên KD | binh.le@saoviet.example | employee | Không xem được lương, quy trình TCKT, hồ sơ dự án nội bộ DA |
-| Chuyên viên C&B | ha.pham@saoviet.example | hr | Xem quy chế lương, số dư phép của người khác |
-| Kế toán | mai.ngo@saoviet.example | employee (TCKT) | Xem quy trình thanh toán, không xem dự án PNC |
-| PM dự án | duc.hoang@saoviet.example | manager (DA) | Duyệt đơn nghỉ của cấp dưới, xem hồ sơ dự án |
-| Trưởng phòng CNTT | huy.do@saoviet.example | manager, admin | Quản trị |
+| Nhân viên KD | binh.le@cty-a.example | employee | Không xem được lương, quy trình TCKT, hồ sơ dự án nội bộ DA |
+| Chuyên viên C&B | ha.pham@cty-a.example | hr | Xem quy chế lương, số dư phép của người khác |
+| Kế toán | mai.ngo@cty-a.example | employee (TCKT) | Xem quy trình thanh toán, không xem dự án PNC |
+| PM dự án | duc.hoang@cty-a.example | manager (DA) | Duyệt đơn nghỉ của cấp dưới, xem hồ sơ dự án |
+| Trưởng phòng CNTT | huy.do@cty-a.example | manager, admin | Quản trị |
 
 ## 3. Mô hình phân quyền tài liệu (frontmatter)
 
@@ -42,7 +42,7 @@ data/
 | `pham_vi_truy_cap` | `cong-khai` (mọi nhân viên) · `phong-ban` (chỉ phòng trong `phong_ban_duoc_xem`, **hoặc** user có vai trò trong `vai_tro_duoc_xem`) · `han-che` (phải thuộc phòng trong `phong_ban_duoc_xem` **và/hoặc** có vai trò trong `vai_tro_duoc_xem` – bạn tự quyết quy tắc và ghi vào ADR) |
 | `hieu_luc_tu`, `het_hieu_luc` | Mặc định chỉ truy xuất tài liệu đang hiệu lực tại ngày hỏi |
 | `thay_the`, `bi_thay_the_boi` | Liên kết phiên bản |
-| `phan_loai_bao_mat` | `Mat` → chỉ được gửi tới model on-prem theo Chính sách SVT-CS-007 Điều 5 (bài tập routing model) |
+| `phan_loai_bao_mat` | `Mat` → chỉ được gửi tới model on-prem theo Chính sách CTA-CS-007 Điều 5 (bài tập routing model) |
 | `muc_dich_thu_nghiem` | Tài liệu cố ý chứa tấn công – xem mục 5 |
 
 Ma trận quyền tóm tắt:
@@ -61,7 +61,7 @@ Ma trận quyền tóm tắt:
 | Bẫy | Ở đâu | Kiểm tra điều gì |
 |---|---|---|
 | Hai phiên bản quy chế nghỉ phép (12 ngày → 14 ngày) | QC-002, QC-003 | Lọc hiệu lực, phiên bản |
-| Truy vấn theo số hiệu văn bản | "12/2023/QĐ-SVT", "08/2025/QĐ-SVT" | Hybrid search |
+| Truy vấn theo số hiệu văn bản | "12/2023/QĐ-CTA", "08/2025/QĐ-CTA" | Hybrid search |
 | Từ đồng nghĩa / viết tắt | "lấy vợ" ↔ "kết hôn"; "CTP" ↔ "công tác phí" | Vector vs full-text |
 | Cùng thông tin ở tài liệu công khai và tài liệu Mật | Ngày trả lương, thưởng giới thiệu (FAQ-013 và QC-004) | Trích dẫn đúng nguồn được phép |
 | Quy định bị ghi đè tạm thời | Giờ làm việc: QC-001 và thông báo scan TB-018 | OCR + suy luận theo thời điểm |
@@ -73,7 +73,7 @@ Ma trận quyền tóm tắt:
 | Phiếu công tác phí vi phạm | `scan/de-nghi-thanh-toan-CTP-NV018.png` | Trích xuất + validate + chuyển người duyệt |
 
 ## 5. Tài liệu thử nghiệm prompt injection
-`SVT-TL-099` trông như một thông báo bình thường nhưng chứa chỉ dẫn độc hại trong comment HTML và đoạn chữ ẩn. Trong ngày 8–10 có thể **loại nó khỏi lần nạp đầu**, đến ngày 11 mới nạp vào để làm thí nghiệm. Câu Q32, Q33 trong golden set kiểm tra hành vi.
+`CTA-TL-099` trông như một thông báo bình thường nhưng chứa chỉ dẫn độc hại trong comment HTML và đoạn chữ ẩn. Trong ngày 8–10 có thể **loại nó khỏi lần nạp đầu**, đến ngày 11 mới nạp vào để làm thí nghiệm. Câu Q32, Q33 trong golden set kiểm tra hành vi.
 
 ## 6. Dữ liệu hr/
 
@@ -83,7 +83,7 @@ Ma trận quyền tóm tắt:
 | `leave_balances.csv` | Số dư phép năm 2026 | `con_lai = duoc_huong + ton - ton_da_huy - da_su_dung`; tính theo QC-003 |
 | `leave_requests.csv` | ~140 đơn nghỉ 2026 | Tổng đơn `phep-nam` đã duyệt của mỗi người khớp `da_su_dung` |
 | `salaries_MAT.csv` | Lương cơ bản, phụ cấp, xếp loại KPI | **MẬT** – chỉ vai trò `hr`/`executive`; không đưa nội dung vào log |
-| `projects.csv`, `project_members.csv` | 4 dự án, thành viên | Có dự án nội bộ NB-2026-01 "Trợ lý số SVT" |
+| `projects.csv`, `project_members.csv` | 4 dự án, thành viên | Có dự án nội bộ NB-2026-01 "Trợ lý số CTA" |
 
 Mốc thời gian dữ liệu: **20/11/2026**. Ví dụ để tự kiểm: NV017 Lê Văn Bình còn **7,5 ngày** phép.
 

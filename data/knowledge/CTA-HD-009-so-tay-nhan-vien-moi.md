@@ -1,5 +1,5 @@
 ---
-doc_id: SVT-HD-009
+doc_id: CTA-HD-009
 so_hieu: HD-HCNS-2026-02
 tieu_de: Sổ tay hội nhập nhân viên mới
 loai: huong-dan
@@ -17,8 +17,8 @@ nguoi_ky: Nguyễn Thị Lan – Trưởng phòng Hành chính – Nhân sự
 
 # SỔ TAY HỘI NHẬP NHÂN VIÊN MỚI
 
-## 1. Chào mừng đến với Sao Việt
-Công ty Cổ phần Công nghệ Sao Việt (SVT) thành lập năm 2014, cung cấp giải pháp phần mềm và chuyển đổi số cho doanh nghiệp năng lượng, tài chính và bán lẻ. Trụ sở tại Tầng 8, Tòa nhà Sao Việt, Cầu Giấy, Hà Nội; chi nhánh tại Quận 3, TP. Hồ Chí Minh.
+## 1. Chào mừng đến với Công ty A
+Công ty A (CTA) thành lập năm 2014, cung cấp giải pháp phần mềm và chuyển đổi số cho doanh nghiệp năng lượng, tài chính và bán lẻ. Trụ sở tại Tầng 8, Tòa nhà A, Cầu Giấy, Hà Nội; chi nhánh tại Quận 3, TP. Hồ Chí Minh.
 
 ## 2. Cơ cấu tổ chức
 | Đơn vị | Mã | Người phụ trách |
@@ -35,7 +35,7 @@ Công ty Cổ phần Công nghệ Sao Việt (SVT) thành lập năm 2014, cung 
 |---|---|---|
 | 08:30 | Đón tại lễ tân tầng 8, nhận thẻ nhân viên | HCNS |
 | 09:00 | Ký hồ sơ, nhận laptop và tài khoản | HCNS, CNTT |
-| 10:00 | Cài MFA, VPN, đăng nhập HRM và Trợ lý số SVT | CNTT |
+| 10:00 | Cài MFA, VPN, đăng nhập HRM và Trợ lý số CTA | CNTT |
 | 11:00 | Gặp quản lý trực tiếp và người hướng dẫn (buddy) | Phòng ban |
 | 13:30 | Tham quan văn phòng, giới thiệu đồng nghiệp | Buddy |
 
@@ -56,4 +56,4 @@ Hồ sơ mang theo ngày đầu: bản sao CCCD, sổ BHXH (nếu có), bằng c
 Mỗi nhân viên mới có một buddy trong phòng, hỗ trợ trong 60 ngày đầu. Buddy không thay thế quản lý trực tiếp trong việc giao việc và đánh giá.
 
 ## 7. Câu hỏi thường gặp
-Xem tài liệu "Hỏi đáp nhân sự" hoặc hỏi Trợ lý số SVT. Liên hệ HCNS: hr@saoviet.example, máy lẻ 1200.
+Xem tài liệu "Hỏi đáp nhân sự" hoặc hỏi Trợ lý số CTA. Liên hệ HCNS: hr@cty-a.example, máy lẻ 1200.

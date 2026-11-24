@@ -21,7 +21,7 @@ from app.ocr.errors import (
     UnsupportedFile,
 )
 
-LONG_TEXT = "Thong bao dieu chinh gio lam viec mua dong cua Cong ty Sao Viet, ap dung tu thang 12."
+LONG_TEXT = "Thong bao dieu chinh gio lam viec mua dong cua Cong ty A, ap dung tu thang 12."
 
 
 def png_bytes(size=(80, 40)) -> bytes:

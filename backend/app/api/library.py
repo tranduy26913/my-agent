@@ -24,7 +24,7 @@ class LibraryDocOut(CamelModel):
     title: str
     doc_type: str | None
     department: str
-    classified: bool  # Mật: người có quyền xem biết nó tồn tại, nhưng trợ lý không đọc nội dung (SVT-CS-007)
+    classified: bool  # Mật: người có quyền xem biết nó tồn tại, nhưng trợ lý không đọc nội dung (CTA-CS-007)
     effective_from: date | None
     effective_to: date | None
     supersedes: str | None

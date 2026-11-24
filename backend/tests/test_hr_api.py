@@ -307,7 +307,7 @@ def test_seed_hr_nap_csv_that_va_chay_lai_khong_nhan_doi(env):
     assert real_counts() == first == (24, 143, 24)
 
     bal = db.execute(select(LeaveBalance).where(LeaveBalance.employee_code == "NV017")).scalar_one()
-    assert (bal.year, bal.remaining) == (2026, 7.5)  # số liệu tiêu chí SVT-AI-011 (ADR-003 T1)
+    assert (bal.year, bal.remaining) == (2026, 7.5)  # số liệu tiêu chí CTA-AI-011 (ADR-003 T1)
     req = db.execute(select(LeaveRequest).where(LeaveRequest.code == "DP-2026-0137")).scalar_one()
     assert (req.employee_code, req.from_date, req.days, req.status, req.approver_code) == (
         "NV017", date(2026, 12, 21), 3.0, "cho-duyet", "NV006",

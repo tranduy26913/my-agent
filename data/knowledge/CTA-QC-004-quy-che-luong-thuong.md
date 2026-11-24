@@ -1,6 +1,6 @@
 ---
-doc_id: SVT-QC-004
-so_hieu: 02/2026/QĐ-SVT
+doc_id: CTA-QC-004
+so_hieu: 02/2026/QĐ-CTA
 tieu_de: Quy chế tiền lương, thưởng và phụ cấp
 loai: quy-che
 phong_ban_so_huu: HCNS

@@ -12,7 +12,7 @@ export interface LibraryDoc {
   title: string;
   docType: string | null;
   department: string;
-  /** Mật: người có quyền biết nó tồn tại, nhưng Trợ lý không đọc nội dung (SVT-CS-007) */
+  /** Mật: người có quyền biết nó tồn tại, nhưng Trợ lý không đọc nội dung (CTA-CS-007) */
   classified: boolean;
   /** YYYY-MM-DD */
   effectiveFrom: string | null;

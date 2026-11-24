@@ -11,7 +11,7 @@ export interface AskRequest {
 export interface Citation {
   /** Số [n] trong câu trả lời */
   n: number;
-  /** Ví dụ "SVT-QC-003 – Điều 3: Số ngày phép" */
+  /** Ví dụ "CTA-QC-003 – Điều 3: Số ngày phép" */
   label: string;
   docId: string | null;
 }
@@ -21,7 +21,7 @@ export interface AskResult {
   /** false = không tìm thấy trong tài liệu bạn được xem; `answer` là câu thông báo, không có nguồn */
   found: boolean;
   citations: Citation[];
-  /** Vị trí tài liệu Mật bạn được xem nhưng trợ lý không đọc (SVT-CS-007 Điều 5) */
+  /** Vị trí tài liệu Mật bạn được xem nhưng trợ lý không đọc (CTA-CS-007 Điều 5) */
   withheld: string[];
   asOf: string;
   model: string;

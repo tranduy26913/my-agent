@@ -30,10 +30,10 @@ def test_history_text():
 # ---------------------------------------------------------------- danh sách / một dòng
 
 def test_list_documents_co_username_va_so_chunk(kb_db):
-    add_doc(kb_db, "TEST-KB-A", n_chunks=3, uploaded_by="test.lan@saoviet.example")
+    add_doc(kb_db, "TEST-KB-A", n_chunks=3, uploaded_by="test.lan@cty-a.example")
     add_doc(kb_db, "TEST-KB-B", n_chunks=0)
     rows = {r.document.doc_id: r for r in list_documents(kb_db)}
-    assert rows["TEST-KB-A"].chunk_count == 3 and rows["TEST-KB-A"].username == "test.lan@saoviet.example"
+    assert rows["TEST-KB-A"].chunk_count == 3 and rows["TEST-KB-A"].username == "test.lan@cty-a.example"
     assert rows["TEST-KB-B"].chunk_count == 0 and rows["TEST-KB-B"].username is None
 
 

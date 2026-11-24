@@ -3,7 +3,7 @@ import type { ExtractResult, OcrApi, OcrJob, OcrJobDetail, OcrPageResult } from 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const SAMPLE =
-  "CÔNG TY CỔ PHẦN SAO VIỆT\nGIẤY ĐỀ NGHỊ THANH TOÁN CÔNG TÁC PHÍ\nMã nhân viên: NV017\nĐi công tác: Đà Nẵng, 3 ngày\nTổng cộng: 4.250.000 đồng";
+  "CÔNG TY A\nGIẤY ĐỀ NGHỊ THANH TOÁN CÔNG TÁC PHÍ\nMã nhân viên: NV017\nĐi công tác: Đà Nẵng, 3 ngày\nTổng cộng: 4.250.000 đồng";
 
 function pagesOf(n: number): OcrPageResult[] {
   return Array.from({ length: n }, (_, i) => ({
@@ -35,9 +35,9 @@ const SAMPLE_EXTRACT: ExtractResult = {
     payMore: 2_650_000,
   },
   findings: [
-    { code: "khach_san_vuot_dinh_muc", severity: "error", message: "Khách sạn 1.500.000 đ/đêm vượt định mức 1.200.000 đ/đêm (vượt 600.000 đ cho 2 đêm)", field: "cac_khoan[1]", rule: "08/2025/QĐ-SVT Điều 5", overAmount: 600_000 },
-    { code: "ngoai_danh_muc", severity: "error", message: "Khoản 'Tiếp khách' không thuộc danh mục công tác phí và không có hóa đơn", field: "cac_khoan[2]", rule: "08/2025/QĐ-SVT Điều 4, 5", overAmount: 1_200_000 },
-    { code: "nguoi_duyet", severity: "info", message: "Tổng 7.650.000 đ: Kế toán trưởng phê duyệt", field: null, rule: "08/2025/QĐ-SVT Điều 8 khoản 2", overAmount: null },
+    { code: "khach_san_vuot_dinh_muc", severity: "error", message: "Khách sạn 1.500.000 đ/đêm vượt định mức 1.200.000 đ/đêm (vượt 600.000 đ cho 2 đêm)", field: "cac_khoan[1]", rule: "08/2025/QĐ-CTA Điều 5", overAmount: 600_000 },
+    { code: "ngoai_danh_muc", severity: "error", message: "Khoản 'Tiếp khách' không thuộc danh mục công tác phí và không có hóa đơn", field: "cac_khoan[2]", rule: "08/2025/QĐ-CTA Điều 4, 5", overAmount: 1_200_000 },
+    { code: "nguoi_duyet", severity: "info", message: "Tổng 7.650.000 đ: Kế toán trưởng phê duyệt", field: null, rule: "08/2025/QĐ-CTA Điều 8 khoản 2", overAmount: null },
   ],
   needsReview: true,
   engine: "mock",

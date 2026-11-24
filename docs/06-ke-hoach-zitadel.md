@@ -12,7 +12,7 @@ Tài liệu này chỉ nói **làm thế nào**, chia thành từng giai đoạn
 
 ```
                      ┌──────────── auth.tranduyai.id.vn ─────────────┐
-                     │  Zitadel (instance → org "SVT" → project "svt")│  DB: agent-db / database "zitadel"
+                     │  Zitadel (instance → org "CTA" → project "svt")│  DB: agent-db / database "zitadel"
                      └───▲───────────────▲───────────────▲───────────┘
              OIDC login  │               │ OIDC login     │ JWKS (kiểm chữ ký)
                          │               │                │
@@ -27,7 +27,7 @@ chat.tranduyai.id.vn ─► LibreChat     portal.tranduyai.id.vn ─► Portal (
 
 | Keycloak | Zitadel | Ảnh hưởng tới kế hoạch |
 |---|---|---|
-| Realm `svt`, issuer `.../realms/svt` | Instance → Organization `SVT` → **Project** `svt`; issuer là gốc domain `https://auth.tranduyai.id.vn` | `OPENID_ISSUER` và `oidc_issuer` không có đường dẫn con |
+| Realm `svt`, issuer `.../realms/svt` | Instance → Organization `CTA` → **Project** `svt`; issuer là gốc domain `https://auth.tranduyai.id.vn` | `OPENID_ISSUER` và `oidc_issuer` không có đường dẫn con |
 | Client | **Application** bên trong project | Hai app `librechat` và `portal` nằm chung một project |
 | Audience mapper `svt-api` | Token tự có **project ID** trong `aud` | FastAPI kiểm `aud` chứa project ID |
 | Realm role, nằm trong `realm_access.roles` | **Project role**, nằm trong claim `urn:zitadel:iam:org:project:roles` (một object, không phải mảng) | Đổi cách LibreChat đọc vai trò admin |
@@ -54,7 +54,7 @@ Kết quả nằm ở docs/05 mục 4.1. Lúc model đã nạp sẵn, máy còn 
 | `ZITADEL_DATABASE_POSTGRES_HOST=agent-db`, `..._PORT=5432`, `..._DATABASE=zitadel` | | |
 | `ZITADEL_DATABASE_POSTGRES_USER_USERNAME/PASSWORD`, `..._USER_SSL_MODE=disable` | user `zitadel` | Dùng khi chạy |
 | `ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME/PASSWORD`, `..._ADMIN_SSL_MODE=disable` | user admin của `agent-db` | Chỉ dùng lúc khởi tạo |
-| `ZITADEL_FIRSTINSTANCE_ORG_NAME=SVT` | | Tạo luôn organization ngay lần đầu |
+| `ZITADEL_FIRSTINSTANCE_ORG_NAME=CTA` | | Tạo luôn organization ngay lần đầu |
 | `ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME/PASSWORD` | lấy từ `.env` | Admin đầu tiên. Đăng nhập lần đầu sẽ bị buộc đổi mật khẩu |
 | `ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_USERNAME=bootstrap`, `..._PATPATH=/machinekey/pat.txt` | mount một thư mục chỉ máy này đọc được | Tạo sẵn machine user và PAT cho script ở giai đoạn 2.5 |
 | ports | `127.0.0.1:8180:8080` | Cổng 8080 đã có LocalAI dùng; chỉ mở cho localhost |
@@ -72,7 +72,7 @@ Kết quả nằm ở docs/05 mục 4.1. Lúc model đã nạp sẵn, máy còn 
 - `docker stats` cho thấy mức RAM thực tế (ghi vào docs/05).
 - Mở console từ internet thì bị chặn.
 
-## Giai đoạn 2: Cấu hình organization `SVT` và project `svt` (khoảng nửa ngày) — **xong 2026-11-23, trừ bước đăng nhập qua trình duyệt (chờ route tunnel)**
+## Giai đoạn 2: Cấu hình organization `CTA` và project `svt` (khoảng nửa ngày) — **xong 2026-11-23, trừ bước đăng nhập qua trình duyệt (chờ route tunnel)**
 
 **2.1 Chính sách**, đặt ở mức instance hoặc org:
 - **Login policy:** tắt *Register allowed*, chỉ admin được tạo tài khoản. Tắt các nhà cung cấp đăng nhập bên ngoài (IdP).
@@ -83,7 +83,7 @@ Kết quả nằm ở docs/05 mục 4.1. Lúc model đã nạp sẵn, máy còn 
 
 **2.2 Project `svt`**
 - Bật *Assert Roles on Authentication*, để vai trò được đưa vào token.
-- Tạo đúng **một** project role: `librechat-admin`. Không đưa vai trò SVT vào Zitadel (ADR-004 mục 3).
+- Tạo đúng **một** project role: `librechat-admin`. Không đưa vai trò CTA vào Zitadel (ADR-004 mục 3).
 
 **2.3 Application trong project `svt`**
 | App | Loại | Redirect URI | Ghi chú |
@@ -126,7 +126,7 @@ Trong `librechat/.env`:
 - `OPENID_ADMIN_ROLE=librechat-admin`, `OPENID_ADMIN_ROLE_PARAMETER_PATH=urn:zitadel:iam:org:project:roles`.
   - **Cần kiểm chứng:** ở Zitadel, claim này là một object dạng `{ "librechat-admin": { "<orgId>": "..." } }`, không phải mảng. Phải đọc code LibreChat xem nó kiểm vai trò bằng tên key hay bằng `includes`. Nếu không khớp thì cho Zitadel chạy một **Action** để thêm claim `roles` dạng mảng.
 - `OPENID_REUSE_TOKENS=true`. Biến này bắt buộc để MCP nhận được access token thật. Đặt `OPENID_REUSE_MAX_SESSION_AGE_MS` gần bằng thời hạn access token.
-- `OPENID_BUTTON_LABEL="Đăng nhập SVT"`.
+- `OPENID_BUTTON_LABEL="Đăng nhập CTA"`.
 - **Chỉ đặt `ALLOW_EMAIL_LOGIN=false` và `OPENID_AUTO_REDIRECT=true` khi OIDC đã chạy ổn.** Làm sớm hơn thì tự khoá mình ra ngoài.
 - Sửa `.env` xong phải chạy `docker compose up -d --force-recreate --no-deps api`.
 
@@ -135,13 +135,13 @@ Cần kiểm chứng thêm:
 - Persona cũ đăng nhập qua OIDC có gắn vào **đúng** tài khoản Mongo cũ theo email không (lịch sử chat còn nguyên).
 
 **Đã làm (2026-11-23):**
-- `librechat/.env` (đã .gitignore): toàn bộ `OPENID_*` như trên (PKCE, `REUSE_TOKENS`, scope có `...:aud`, `ADMIN_ROLE=librechat-admin`, `ADMIN_ROLE_TOKEN_KIND=id`, `ADMIN_ROLE_PARAMETER_PATH=roles`, nhãn nút "Đăng nhập SVT", `USE_END_SESSION_ENDPOINT`); `ALLOW_SOCIAL_LOGIN=true`, `ALLOW_SOCIAL_REGISTRATION=true` (tài khoản chỉ do admin tạo ở Zitadel nên an toàn). **`ALLOW_EMAIL_LOGIN` và `OPENID_AUTO_REDIRECT` chưa đổi** (làm sau khi đăng nhập OIDC chạy ổn). `librechat.yaml`: `registration.socialLogins: ['openid']`; MCP `knowledge-mcp` thêm `Authorization: Bearer {{LIBRECHAT_OPENID_ACCESS_TOKEN}}`, giữ `X-User-Email` và `X-KB-Token` làm đường tạm. Đã `up -d --force-recreate --no-deps api`; `/api/config` báo `openidLoginEnabled: true`.
+- `librechat/.env` (đã .gitignore): toàn bộ `OPENID_*` như trên (PKCE, `REUSE_TOKENS`, scope có `...:aud`, `ADMIN_ROLE=librechat-admin`, `ADMIN_ROLE_TOKEN_KIND=id`, `ADMIN_ROLE_PARAMETER_PATH=roles`, nhãn nút "Đăng nhập CTA", `USE_END_SESSION_ENDPOINT`); `ALLOW_SOCIAL_LOGIN=true`, `ALLOW_SOCIAL_REGISTRATION=true` (tài khoản chỉ do admin tạo ở Zitadel nên an toàn). **`ALLOW_EMAIL_LOGIN` và `OPENID_AUTO_REDIRECT` chưa đổi** (làm sau khi đăng nhập OIDC chạy ổn). `librechat.yaml`: `registration.socialLogins: ['openid']`; MCP `knowledge-mcp` thêm `Authorization: Bearer {{LIBRECHAT_OPENID_ACCESS_TOKEN}}`, giữ `X-User-Email` và `X-KB-Token` làm đường tạm. Đã `up -d --force-recreate --no-deps api`; `/api/config` báo `openidLoginEnabled: true`.
 - Chưa có route tunnel nên LibreChat chưa gọi được `https://auth.tranduyai.id.vn`: log báo "OpenID Connect configuration is unavailable. Retrying in 5000ms". Không chặn khởi động; LibreChat tự thử lại nền và sẽ tự đăng ký chiến lược OIDC khi route có.
 - **Kiểm chứng bằng đọc mã v0.8.9 (trong container):**
   1. *Vai trò admin:* LibreChat đọc claim bằng lodash `get` rồi chỉ chấp nhận **mảng hoặc chuỗi**; claim `urn:zitadel:iam:org:project:roles` là object nên admin không bao giờ khớp. Đã xử lý bằng **Action Zitadel `addRolesClaim`** (gắn vào flow Complement Token: trước userinfo/ID token và trước access token) thêm claim `roles` là mảng role key. Role `librechat-admin` được cấp cho nhân viên có vai trò `admin` trong `employees.csv` (hiện `huy.do`, `khoa.dang`) bởi `infra/zitadel/bootstrap.py`; ai không còn là admin thì bị thu hồi khi chạy lại.
   2. *Tài khoản cũ:* `findOpenIDUser` **từ chối** (AUTH_FAILED) người dùng có `provider` khác `openid`; 5 persona đều là `local` nên không gắn được theo email. Đã chọn **xoá 5 persona** (binh.le, ha.pham, mai.ngo, duc.hoang, huy.do) bằng script chính thức `delete-user` (dừng container api trước, vì script đòi xác nhận không còn tiến trình LibreChat nào khác); họ sẽ được tạo mới ở lần đăng nhập OIDC đầu tiên. Mất 5 hội thoại và 18 tin nhắn cũ. Bản sao lưu toàn bộ DB Mongo trước khi xoá: `librechat/backups/LibreChat-2026-11-23-before-personas.archive.gz` (đã .gitignore, khôi phục bằng `mongorestore --gzip --archive=...`). Tài khoản `tranduyai...@gmail.com` (local, ADMIN) giữ nguyên nên là đường vào dự phòng khi đã tắt đăng nhập mật khẩu của người khác. Lưu ý: tắt `ALLOW_EMAIL_LOGIN` sẽ khoá luôn tài khoản này; cân nhắc trước khi tắt.
   3. *Token cho MCP:* chuỗi `Authorization: Bearer {{LIBRECHAT_OPENID_ACCESS_TOKEN}}` đúng định dạng LibreChat yêu cầu. Người dùng không đăng nhập OIDC thì biến không được thay; knowledge-mcp coi header chứa `{{` hoặc rỗng như không có Bearer rồi dùng đường `X-KB-Token` (đã có test).
-- **Chưa kiểm được** (cần đăng nhập thật): nút "Đăng nhập SVT" chạy trọn; `iss`/`aud` của token LibreChat nhận; user mới được tạo; `huy.do` được nâng thành ADMIN; token đến knowledge-mcp và `ask_knowledge` chạy bằng Bearer; container `api` gọi được `https://auth.tranduyai.id.vn` (nếu lỗi thì thêm `extra_hosts`).
+- **Chưa kiểm được** (cần đăng nhập thật): nút "Đăng nhập CTA" chạy trọn; `iss`/`aud` của token LibreChat nhận; user mới được tạo; `huy.do` được nâng thành ADMIN; token đến knowledge-mcp và `ask_knowledge` chạy bằng Bearer; container `api` gọi được `https://auth.tranduyai.id.vn` (nếu lỗi thì thêm `extra_hosts`).
 - Sau khi đăng nhập OIDC chạy ổn: `KB_MCP_ALLOW_SHARED_TOKEN=false` ở backend, bỏ hai header cũ trong `librechat.yaml`, rồi cân nhắc `ALLOW_EMAIL_LOGIN=false` và `OPENID_AUTO_REDIRECT=true`.
 
 **Xong khi:** binh.le đăng nhập chat qua Zitadel và vẫn thấy lịch sử hội thoại cũ; user được gán `librechat-admin` thấy menu quản trị của LibreChat.
@@ -199,7 +199,7 @@ Chi tiết giao diện nằm ở [`07-khung-giao-dien-portal.md`](07-khung-giao-
 **Đã làm (2026-11-23)** (chi tiết: [portal/README.md](../portal/README.md)):
 - Backend: `GET /api/me` (`app/api/me.py`) trả họ tên, phòng ban, vai trò từ bảng `employees` theo email trong token; chỉ nhận token Zitadel. 5 test, backend 373 test đạt.
 - Portal: `src/auth.ts` (Auth.js v5, provider Zitadel, PKCE + state, JWT phiên mã hoá trong cookie httpOnly, tự làm mới token, nhớ kết quả làm mới vì Zitadel xoay refresh token), `src/proxy.ts` (Next 16), trang `/login` và `/no-access`, đăng xuất gọi `end_session` của Zitadel, `getMe()` gọi `/api/me`, BFF gắn Bearer của chính người dùng. Route `/api/auth/*` chỉ mở bước callback (đóng `/session` vì nó đưa token ra trình duyệt).
-- Đã kiểm với Zitadel THẬT (qua localhost) và cookie phiên giả: chưa đăng nhập thì `/` về `/login` và `/api/*` trả 401; `/api/auth/session|csrf|signin` trả 404; bấm "Đăng nhập SVT" tạo đúng URL authorize (client, redirect_uri, scope có `...:aud`, PKCE S256, state); phiên hợp lệ nhưng backend không trả `/api/me` thì sang `/no-access`; phiên hết hạn có refresh token hỏng bị Zitadel từ chối rồi về `/login?error=session`; `callbackUrl=//evil.example` bị đưa về `/`.
+- Đã kiểm với Zitadel THẬT (qua localhost) và cookie phiên giả: chưa đăng nhập thì `/` về `/login` và `/api/*` trả 401; `/api/auth/session|csrf|signin` trả 404; bấm "Đăng nhập CTA" tạo đúng URL authorize (client, redirect_uri, scope có `...:aud`, PKCE S256, state); phiên hợp lệ nhưng backend không trả `/api/me` thì sang `/no-access`; phiên hết hạn có refresh token hỏng bị Zitadel từ chối rồi về `/login?error=session`; `callbackUrl=//evil.example` bị đưa về `/`.
 - **Chưa kiểm được** (cần đăng nhập thật qua trình duyệt, tức route tunnel `auth.tranduyai.id.vn`): bước callback đổi code lấy token; làm mới token thành công; `aud` của access token có chứa project id không; token có claim `email` không (nếu không, backend hỏi `userinfo`); đăng xuất qua `end_session`; `post_logout_redirect_uri` đã khai ở Zitadel (`http://localhost:3100`, `https://portal.tranduyai.id.vn`). Tôi không tạo user thăm dò để lấy token thật: hệ thống chặn việc tạo tài khoản mang email của nhân viên thật.
 - Còn lại của giai đoạn này: chưa có test tự động cho portal (chưa có hạ tầng test).
 - Dev: `AUTH_ZITADEL_INTERNAL_URL` cho server portal gọi Zitadel qua localhost; `PORTAL_DEV_AUTH=1` giữ lại người dùng giả để làm giao diện (xoá ở giai đoạn 6 cùng `API_DEV_TOKEN`, `PORTAL_BFF_TOKEN`).
@@ -234,7 +234,8 @@ Chi tiết giao diện nằm ở [`07-khung-giao-dien-portal.md`](07-khung-giao-
 - Portal: xoá `PORTAL_DEV_AUTH`, `NEXT_PUBLIC_PORTAL_DEV_AUTH`, `API_DEV_TOKEN`, `PORTAL_BFF_TOKEN`, `lib/backend-token.server.ts`, `lib/dev-role.ts`, công tắc vai trò ở menu người dùng. LibreChat: `librechat.yaml` bỏ `X-User-Email` và `X-KB-Token`; `KB_MCP_TOKEN` bỏ khỏi `librechat/.env` và `backend/.env`; đã `up -d --force-recreate --no-deps api`.
 - DB thật: `python -m app.migrate_stage6 --apply` (bước A, sau bản dump `librechat/backups/agent-2026-11-24-before-stage6.sql`) gỡ khoá ngoại `documents_uploaded_by_fkey`, `conversations_user_id_fkey` và đổi `uploaded_by` sang varchar (cả 14 tài liệu đều NULL nên không mất dữ liệu). **Bảng `users` còn nguyên** (bước B `--drop-users` chờ bạn cho phép: nó chỉ chứa dòng `portal-dev`).
 - Backend 419 test đạt, portal typecheck/lint sạch. Các dòng audit cũ của kb_*/llm_call mang id bảng `users` nên trang Nhật ký hiện "hệ thống" và trang Chi phí hiện "Người dùng #id".
-- **Còn lại của giai đoạn 6:** bước B `--drop-users`; vô hiệu hoá machine user `bootstrap`; cân nhắc `ALLOW_EMAIL_LOGIN=false` và `OPENID_AUTO_REDIRECT=true` (tài khoản gmail ADMIN local sẽ bị khoá); `KB_MCP_ALLOW_SHARED_TOKEN` không còn tồn tại nên bỏ khỏi checklist.
+- **Xong nốt (2026-11-24, buổi chiều):** bước B `--drop-users` đã chạy trên agent-db thật (bảng `users` hết; `messages` và `conversations` rỗng vẫn còn trong DB, không còn model trỏ tới, xoá sau nếu muốn). Sao lưu trước khi chạy: `librechat/backups/agent-2026-11-24-before-seed-hr.sql` (có cả bảng `users`). Machine user `bootstrap` đã **vô hiệu hoá** qua `POST /v2/users/{id}/deactivate`; PAT của nó trả 401. Còn người quản trị `zitadel-admin@...` (IAM_OWNER, người thật) để bật lại: khi cần chạy lại `infra/zitadel/bootstrap.py`, đăng nhập Zitadel bằng tài khoản đó rồi kích hoạt lại `bootstrap`.
+- **Cố ý chưa làm:** `ALLOW_EMAIL_LOGIN=false` và `OPENID_AUTO_REDIRECT=true`: tài khoản gmail ADMIN của LibreChat là tài khoản local nên sẽ bị khoá; làm khi có tài khoản ADMIN đăng nhập được bằng Zitadel (đã có `huy.do`, nhưng chưa kiểm vai trò admin trên LibreChat sau khi tắt). `KB_MCP_ALLOW_SHARED_TOKEN` không còn tồn tại nên bỏ khỏi checklist.
 
 - (Bản gốc) Xoá route `/auth/login`, bảng `users` và `create_access_token` khỏi backend. Chú ý `uploaded_by` đang là khoá ngoại tới `users.id`, cần đổi sang lưu `employee_id` hoặc email (phải có migration).
 - Xoá `X-KB-Token` và `KB_MCP_TOKEN`. Vô hiệu hoá machine user `bootstrap`.

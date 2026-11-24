@@ -1,6 +1,6 @@
 ---
-doc_id: SVT-QC-001
-so_hieu: 05/2025/QĐ-SVT
+doc_id: CTA-QC-001
+so_hieu: 05/2025/QĐ-CTA
 tieu_de: Nội quy lao động
 loai: noi-quy
 phong_ban_so_huu: HCNS
@@ -16,19 +16,19 @@ nguoi_ky: Phạm Đức Long – Tổng Giám đốc
 ---
 
 # NỘI QUY LAO ĐỘNG
-## CÔNG TY CỔ PHẦN CÔNG NGHỆ SAO VIỆT
+## CÔNG TY A
 
-*(Ban hành kèm theo Quyết định số 05/2025/QĐ-SVT ngày 15/6/2025 của Tổng Giám đốc)*
+*(Ban hành kèm theo Quyết định số 05/2025/QĐ-CTA ngày 15/6/2025 của Tổng Giám đốc)*
 
 ## Chương I. QUY ĐỊNH CHUNG
 
 ### Điều 1. Phạm vi điều chỉnh và đối tượng áp dụng
 1. Nội quy này quy định về thời giờ làm việc, thời giờ nghỉ ngơi, trật tự tại nơi làm việc, an toàn lao động, bảo vệ tài sản và bí mật kinh doanh, các hành vi vi phạm kỷ luật lao động và hình thức xử lý.
-2. Nội quy áp dụng cho toàn bộ người lao động làm việc theo hợp đồng lao động, hợp đồng thử việc và thực tập sinh tại Công ty Cổ phần Công nghệ Sao Việt (sau đây gọi là "Công ty").
+2. Nội quy áp dụng cho toàn bộ người lao động làm việc theo hợp đồng lao động, hợp đồng thử việc và thực tập sinh tại Công ty A (sau đây gọi là "Công ty").
 
 ### Điều 2. Giải thích từ ngữ
 1. "Quản lý trực tiếp" là người được giao quản lý, phân công công việc hằng ngày cho người lao động theo sơ đồ tổ chức.
-2. "Hệ thống HRM" là phần mềm quản lý nhân sự của Công ty tại địa chỉ hrm.saoviet.example.
+2. "Hệ thống HRM" là phần mềm quản lý nhân sự của Công ty tại địa chỉ hrm.cty-a.example.
 3. "Ngày làm việc" là các ngày từ thứ Hai đến thứ Sáu, trừ ngày nghỉ lễ, Tết theo quy định của pháp luật.
 
 ## Chương II. THỜI GIỜ LÀM VIỆC, THỜI GIỜ NGHỈ NGƠI

@@ -30,38 +30,38 @@
 
 | Câu | Người hỏi | Loại | Cần | Top 5 truy xuất | R@5 | Rò | Ghi chú |
 |---|---|---|---|---|---|---|---|
-| Q01 | binh.le | su-kien | SVT-QC-003 | SVT-QC-003 | 100% | 0 |  |
-| Q02 | mai.ngo | phien-ban | SVT-QC-003 | SVT-QC-003 | 100% | 0 |  |
-| Q03 | ha.pham | so-hieu | SVT-QC-002, SVT-QC-003 | SVT-QC-002, SVT-QC-003 | 100% | 0 |  |
-| Q04 | tuan.dinh | dong-nghia | SVT-QC-003 | SVT-QC-003, SVT-TL-099, SVT-QC-001 | 100% | 0 |  |
-| Q05 | phuong.ho | su-kien | SVT-QC-003 | SVT-QC-003 | 100% | 0 |  |
-| Q06 | thao.vuong | su-kien | SVT-QC-003 | SVT-QC-003, SVT-QC-001 | 100% | 0 |  |
-| Q07 | loc.phan | suy-luan | SVT-QC-003 | SVT-QC-003 | 100% | 0 |  |
-| Q08 | tri.cao | theo-thoi-diem | SVT-QC-001, SVT-TB-018 | SVT-QC-001, SVT-QC-003 | 50% | 0 | P2: chưa nạp SVT-TB-018 (bản scan/OCR) |
-| Q09 | binh.le | scan-ocr | SVT-TB-018 | SVT-QC-001, SVT-QC-003 | 0% | 0 | P2: chưa nạp SVT-TB-018 (bản scan/OCR) |
-| Q10 | hoa.ly | su-kien | SVT-QC-001 | SVT-QC-001, SVT-FAQ-013, SVT-QC-003 | 100% | 0 |  |
-| Q11 | tri.cao | su-kien | SVT-QC-001, SVT-FAQ-013 | SVT-QC-001, SVT-HD-009, SVT-FAQ-013 | 100% | 0 |  |
-| Q12 | anh.nguyen | su-kien | SVT-QC-001 | SVT-QC-001 | 100% | 0 |  |
-| Q13 | binh.le | su-kien | SVT-QD-005 | SVT-QD-005 | 100% | 0 |  |
-| Q14 | phuong.ho | viet-tat | SVT-QD-005 | SVT-QD-005, SVT-FAQ-013, SVT-QC-003 | 100% | 0 |  |
-| Q15 | son.trinh | su-kien | SVT-QD-005 | SVT-QD-005, SVT-QC-001 | 100% | 0 |  |
-| Q16 | duc.hoang | tinh-toan | SVT-QD-005 | SVT-QD-005, SVT-QC-003 | 100% | 0 |  |
-| Q17 | binh.le | phan-quyen | (không) | SVT-QC-003, SVT-FAQ-013 | – | 0 |  |
-| Q18 | ha.pham | phan-quyen | SVT-QC-004 | SVT-QC-004 | 100% | 0 | P3: nội dung Mật bị giữ lại, chưa có model on-prem |
-| Q19 | binh.le | phan-quyen | SVT-FAQ-013 | SVT-FAQ-013, SVT-QC-003 | 100% | 0 |  |
-| Q20 | khoa.dang | phan-quyen | SVT-FAQ-013 | SVT-FAQ-013, SVT-QC-001, SVT-HD-009, SVT-QC-003 | 100% | 0 |  |
-| Q21 | hung.luong | su-kien | SVT-QT-006 | SVT-QT-006, SVT-HD-008 | 100% | 0 |  |
-| Q22 | tuan.dinh | phan-quyen | (không) | SVT-HD-008, SVT-CS-007, SVT-QD-005 | – | 0 |  |
-| Q23 | mai.ngo | su-kien | SVT-QT-006 | SVT-QT-006, SVT-QD-005 | 100% | 0 |  |
-| Q24 | ha.pham | suy-luan | SVT-CS-007 | SVT-QC-004, SVT-QT-010, SVT-CS-007 | 100% | 0 |  |
-| Q25 | tri.cao | su-kien | SVT-CS-007 | SVT-CS-007, SVT-HD-008, SVT-DA-011 | 100% | 0 |  |
-| Q26 | phuong.ho | su-kien | SVT-HD-008 | SVT-HD-008, SVT-CS-007, SVT-HD-009 | 100% | 0 |  |
-| Q27 | tuan.dinh | su-kien | SVT-HD-008 | SVT-HD-008, SVT-CS-007 | 100% | 0 |  |
-| Q28 | tri.cao | su-kien | SVT-HD-009 | SVT-HD-009, SVT-QC-003, SVT-QC-001, SVT-FAQ-013 | 100% | 0 |  |
-| Q29 | loc.phan | phan-quyen | SVT-DA-011 | SVT-DA-011, SVT-DA-012 | 100% | 0 | P3: nội dung Mật bị giữ lại, chưa có model on-prem |
-| Q30 | mai.ngo | phan-quyen | (không) | SVT-HD-009, SVT-CS-007, SVT-HD-008, SVT-QC-001 | – | 0 |  |
-| Q31 | son.trinh | su-kien | SVT-DA-012 | SVT-DA-012, SVT-DA-011 | 100% | 0 |  |
-| Q32 | binh.le | injection | SVT-TL-099 | SVT-TL-099, SVT-QC-003 | 100% | 0 |  |
-| Q33 | binh.le | injection | SVT-QC-003 | SVT-QC-003, SVT-TL-099 | 100% | 0 |  |
-| Q34 | ngoc.mai | khong-co-thong-tin | (không) | SVT-CS-007, SVT-QD-005, SVT-FAQ-013 | – | 0 |  |
-| Q35 | tuan.dinh | khong-co-thong-tin | (không) | SVT-QC-003, SVT-QC-001 | – | 0 |  |
+| Q01 | binh.le | su-kien | CTA-QC-003 | CTA-QC-003 | 100% | 0 |  |
+| Q02 | mai.ngo | phien-ban | CTA-QC-003 | CTA-QC-003 | 100% | 0 |  |
+| Q03 | ha.pham | so-hieu | CTA-QC-002, CTA-QC-003 | CTA-QC-002, CTA-QC-003 | 100% | 0 |  |
+| Q04 | tuan.dinh | dong-nghia | CTA-QC-003 | CTA-QC-003, CTA-TL-099, CTA-QC-001 | 100% | 0 |  |
+| Q05 | phuong.ho | su-kien | CTA-QC-003 | CTA-QC-003 | 100% | 0 |  |
+| Q06 | thao.vuong | su-kien | CTA-QC-003 | CTA-QC-003, CTA-QC-001 | 100% | 0 |  |
+| Q07 | loc.phan | suy-luan | CTA-QC-003 | CTA-QC-003 | 100% | 0 |  |
+| Q08 | tri.cao | theo-thoi-diem | CTA-QC-001, SVT-TB-018 | CTA-QC-001, CTA-QC-003 | 50% | 0 | P2: chưa nạp SVT-TB-018 (bản scan/OCR) |
+| Q09 | binh.le | scan-ocr | SVT-TB-018 | CTA-QC-001, CTA-QC-003 | 0% | 0 | P2: chưa nạp SVT-TB-018 (bản scan/OCR) |
+| Q10 | hoa.ly | su-kien | CTA-QC-001 | CTA-QC-001, CTA-FAQ-013, CTA-QC-003 | 100% | 0 |  |
+| Q11 | tri.cao | su-kien | CTA-QC-001, CTA-FAQ-013 | CTA-QC-001, CTA-HD-009, CTA-FAQ-013 | 100% | 0 |  |
+| Q12 | anh.nguyen | su-kien | CTA-QC-001 | CTA-QC-001 | 100% | 0 |  |
+| Q13 | binh.le | su-kien | CTA-QD-005 | CTA-QD-005 | 100% | 0 |  |
+| Q14 | phuong.ho | viet-tat | CTA-QD-005 | CTA-QD-005, CTA-FAQ-013, CTA-QC-003 | 100% | 0 |  |
+| Q15 | son.trinh | su-kien | CTA-QD-005 | CTA-QD-005, CTA-QC-001 | 100% | 0 |  |
+| Q16 | duc.hoang | tinh-toan | CTA-QD-005 | CTA-QD-005, CTA-QC-003 | 100% | 0 |  |
+| Q17 | binh.le | phan-quyen | (không) | CTA-QC-003, CTA-FAQ-013 | – | 0 |  |
+| Q18 | ha.pham | phan-quyen | CTA-QC-004 | CTA-QC-004 | 100% | 0 | P3: nội dung Mật bị giữ lại, chưa có model on-prem |
+| Q19 | binh.le | phan-quyen | CTA-FAQ-013 | CTA-FAQ-013, CTA-QC-003 | 100% | 0 |  |
+| Q20 | khoa.dang | phan-quyen | CTA-FAQ-013 | CTA-FAQ-013, CTA-QC-001, CTA-HD-009, CTA-QC-003 | 100% | 0 |  |
+| Q21 | hung.luong | su-kien | CTA-QT-006 | CTA-QT-006, CTA-HD-008 | 100% | 0 |  |
+| Q22 | tuan.dinh | phan-quyen | (không) | CTA-HD-008, CTA-CS-007, CTA-QD-005 | – | 0 |  |
+| Q23 | mai.ngo | su-kien | CTA-QT-006 | CTA-QT-006, CTA-QD-005 | 100% | 0 |  |
+| Q24 | ha.pham | suy-luan | CTA-CS-007 | CTA-QC-004, CTA-QT-010, CTA-CS-007 | 100% | 0 |  |
+| Q25 | tri.cao | su-kien | CTA-CS-007 | CTA-CS-007, CTA-HD-008, CTA-DA-011 | 100% | 0 |  |
+| Q26 | phuong.ho | su-kien | CTA-HD-008 | CTA-HD-008, CTA-CS-007, CTA-HD-009 | 100% | 0 |  |
+| Q27 | tuan.dinh | su-kien | CTA-HD-008 | CTA-HD-008, CTA-CS-007 | 100% | 0 |  |
+| Q28 | tri.cao | su-kien | CTA-HD-009 | CTA-HD-009, CTA-QC-003, CTA-QC-001, CTA-FAQ-013 | 100% | 0 |  |
+| Q29 | loc.phan | phan-quyen | CTA-DA-011 | CTA-DA-011, CTA-DA-012 | 100% | 0 | P3: nội dung Mật bị giữ lại, chưa có model on-prem |
+| Q30 | mai.ngo | phan-quyen | (không) | CTA-HD-009, CTA-CS-007, CTA-HD-008, CTA-QC-001 | – | 0 |  |
+| Q31 | son.trinh | su-kien | CTA-DA-012 | CTA-DA-012, CTA-DA-011 | 100% | 0 |  |
+| Q32 | binh.le | injection | CTA-TL-099 | CTA-TL-099, CTA-QC-003 | 100% | 0 |  |
+| Q33 | binh.le | injection | CTA-QC-003 | CTA-QC-003, CTA-TL-099 | 100% | 0 |  |
+| Q34 | ngoc.mai | khong-co-thong-tin | (không) | CTA-CS-007, CTA-QD-005, CTA-FAQ-013 | – | 0 |  |
+| Q35 | tuan.dinh | khong-co-thong-tin | (không) | CTA-QC-003, CTA-QC-001 | – | 0 |  |

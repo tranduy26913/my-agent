@@ -57,7 +57,7 @@ function AccessChecker({ docId }: { docId: string }) {
       </CardHeader>
       <CardContent>
       <form onSubmit={(e) => { e.preventDefault(); void run(); }} className="flex gap-2">
-        <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ten@saoviet.vn" aria-label="Email nhân viên" className="h-10 min-w-0 flex-1 bg-card" />
+        <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ten@cty-a.example" aria-label="Email nhân viên" className="h-10 min-w-0 flex-1 bg-card" />
         <Button type="submit" variant="outline" size="lg" disabled={busy || !email.trim()} className="h-10 shrink-0 px-3">Kiểm tra</Button>
       </form>
       {result ? (

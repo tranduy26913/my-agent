@@ -36,10 +36,10 @@ KB_DOCUMENT_KEYS = {
 def make_doc(**over) -> Document:
     """Document chưa qua DB: giá trị mặc định (default=...) của cột chỉ áp lúc flush nên phải điền tay."""
     fields = dict(
-        doc_id="SVT-QC-003", so_hieu="01/2026/QĐ-SVT", title="Quy chế nghỉ phép (bản 2026)",
-        doc_type="quy-che", source="data/knowledge/SVT-QC-003.md", department="HCNS",
+        doc_id="CTA-QC-003", so_hieu="01/2026/QĐ-CTA", title="Quy chế nghỉ phép (bản 2026)",
+        doc_type="quy-che", source="data/knowledge/CTA-QC-003.md", department="HCNS",
         visibility="cong-khai", allowed_departments=[], allowed_roles=[], classification="thuong",
-        effective_from=date(2026, 1, 1), effective_to=None, supersedes="SVT-QC-002", superseded_by=None,
+        effective_from=date(2026, 1, 1), effective_to=None, supersedes="CTA-QC-002", superseded_by=None,
         version="2", quarantined=False, ocr_pages=0, created_at=datetime(2026, 11, 14, 2, 42, tzinfo=UTC),
     )
     fields.update(over)
@@ -55,10 +55,10 @@ def wire(out) -> dict:
 
 def test_to_kb_document_tai_lieu_thuong():
     out = to_kb_document(make_doc(), "lan.tran", 38)
-    assert out.doc_id == "SVT-QC-003"
+    assert out.doc_id == "CTA-QC-003"
     assert out.status == "ready" and out.file_kind == "md" and out.classified is False
     assert out.chunk_count == 38 and out.uploaded_by == "lan.tran"
-    assert out.supersedes == "SVT-QC-002"
+    assert out.supersedes == "CTA-QC-002"
 
 
 def test_classified_chi_khi_classification_la_Mat():
@@ -94,7 +94,7 @@ def test_json_camel_case_du_khoa_theo_types_ts():
     body = wire(to_kb_document(make_doc(classification="Mat", visibility="han-che",
                                         allowed_departments=["HCNS"], allowed_roles=["hr"]), "lan.tran", 41))
     assert set(body) == KB_DOCUMENT_KEYS
-    assert body["docId"] == "SVT-QC-003" and body["chunkCount"] == 41 and body["uploadedBy"] == "lan.tran"
+    assert body["docId"] == "CTA-QC-003" and body["chunkCount"] == 41 and body["uploadedBy"] == "lan.tran"
     assert body["allowedDepartments"] == ["HCNS"] and body["allowedRoles"] == ["hr"]
     assert body["effectiveFrom"] == "2026-01-01"  # ISO yyyy-mm-dd
     assert body["effectiveTo"] is None  # null có mặt, không bị bỏ khoá
@@ -124,7 +124,7 @@ def test_upload_meta_doc_camel_case_va_mac_dinh():
     meta = UploadMetaIn.model_validate_json(
         '{"docType": "quy-che", "department": "HCNS", "visibility": "han-che",'
         ' "allowedDepartments": ["HCNS"], "allowedRoles": ["hr"], "classified": true,'
-        ' "effectiveFrom": "2026-02-01", "supersedes": "SVT-QC-002"}'
+        ' "effectiveFrom": "2026-02-01", "supersedes": "CTA-QC-002"}'
     )
     assert meta.doc_type == "quy-che" and meta.allowed_departments == ["HCNS"]
     assert meta.effective_from == date(2026, 2, 1) and meta.classified is True

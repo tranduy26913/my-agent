@@ -1,6 +1,6 @@
 ---
-doc_id: SVT-QC-003
-so_hieu: 01/2026/QĐ-SVT
+doc_id: CTA-QC-003
+so_hieu: 01/2026/QĐ-CTA
 tieu_de: Quy chế nghỉ phép (bản 2026)
 loai: quy-che
 phong_ban_so_huu: HCNS
@@ -10,15 +10,15 @@ vai_tro_duoc_xem: []
 ngay_ban_hanh: 2025-12-10
 hieu_luc_tu: 2026-01-01
 het_hieu_luc: null
-thay_the: SVT-QC-002
+thay_the: CTA-QC-002
 phien_ban: 2
 nguoi_ky: Phạm Đức Long – Tổng Giám đốc
 ---
 
 # QUY CHẾ NGHỈ PHÉP
-## CÔNG TY CỔ PHẦN CÔNG NGHỆ SAO VIỆT
+## CÔNG TY A
 
-*(Ban hành kèm theo Quyết định số 01/2026/QĐ-SVT ngày 10/12/2025 của Tổng Giám đốc; thay thế Quyết định số 12/2023/QĐ-SVT)*
+*(Ban hành kèm theo Quyết định số 01/2026/QĐ-CTA ngày 10/12/2025 của Tổng Giám đốc; thay thế Quyết định số 12/2023/QĐ-CTA)*
 
 ## Chương I. QUY ĐỊNH CHUNG
 
@@ -73,7 +73,7 @@ Người lao động được nghỉ việc riêng hưởng nguyên lương tron
 
 ### Điều 9. Tổ chức thực hiện
 1. Phòng Hành chính – Nhân sự cập nhật số ngày phép trên Hệ thống HRM trước ngày 05/01 hằng năm.
-2. Người lao động có thắc mắc về số ngày phép liên hệ Phòng Hành chính – Nhân sự qua email hr@saoviet.example.
+2. Người lao động có thắc mắc về số ngày phép liên hệ Phòng Hành chính – Nhân sự qua email hr@cty-a.example.
 
 ### Điều 10. Hiệu lực
-Quy chế có hiệu lực từ ngày 01/01/2026 và thay thế Quy chế nghỉ phép ban hành kèm theo Quyết định số 12/2023/QĐ-SVT.
+Quy chế có hiệu lực từ ngày 01/01/2026 và thay thế Quy chế nghỉ phép ban hành kèm theo Quyết định số 12/2023/QĐ-CTA.

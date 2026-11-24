@@ -1,5 +1,5 @@
 # HỢP ĐỒNG DỊCH VỤ BẢO TRÌ PHẦN MỀM
-**Số: 31/2026/HĐ-SVT-HT – Bản v2 (Bên A chỉnh sửa, gửi lại ngày 18/11/2026)**
+**Số: 31/2026/HĐ-CTA-HT – Bản v2 (Bên A chỉnh sửa, gửi lại ngày 18/11/2026)**
 
 Hôm nay, ngày ... tháng 11 năm 2026, tại Hà Nội, chúng tôi gồm:
 
@@ -7,8 +7,8 @@ Hôm nay, ngày ... tháng 11 năm 2026, tại Hà Nội, chúng tôi gồm:
 Địa chỉ: Số 12, đường Lê Lợi, Phường Bến Nghé, Quận 1, Thành phố Hồ Chí Minh
 Đại diện: Ông Trương Văn Thịnh – Giám đốc
 
-**BÊN B (Bên cung cấp dịch vụ):** CÔNG TY CỔ PHẦN CÔNG NGHỆ SAO VIỆT
-Địa chỉ: Tầng 8, Tòa nhà Sao Việt, quận Cầu Giấy, Thành phố Hà Nội
+**BÊN B (Bên cung cấp dịch vụ):** CÔNG TY A
+Địa chỉ: Tầng 8, Tòa nhà A, quận Cầu Giấy, Thành phố Hà Nội
 Đại diện: Ông Phạm Đức Long – Tổng Giám đốc
 
 ## Điều 1. Đối tượng của hợp đồng

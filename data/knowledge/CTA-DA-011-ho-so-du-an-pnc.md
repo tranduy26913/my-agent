@@ -1,5 +1,5 @@
 ---
-doc_id: SVT-DA-011
+doc_id: CTA-DA-011
 so_hieu: DA-2026-07/CHARTER
 tieu_de: Điều lệ dự án Cổng dịch vụ khách hàng Phương Nam (PNC Portal)
 loai: ho-so-du-an
@@ -25,7 +25,7 @@ nguoi_ky: Trần Thu Trang – Trưởng phòng Dự án
 | Mục | Nội dung |
 |---|---|
 | Khách hàng | Công ty Phân phối Năng lượng Phương Nam (gọi tắt là "PNC") – khách hàng giả lập |
-| Hợp đồng | Số 26/2026/HĐ-SVT-PNC ký ngày 20/5/2026 |
+| Hợp đồng | Số 26/2026/HĐ-CTA-PNC ký ngày 20/5/2026 |
 | Giá trị hợp đồng | 4.850.000.000 đồng (đã gồm VAT) |
 | Ngân sách chi phí nội bộ | 3.200.000.000 đồng |
 | Thời gian | 01/6/2026 – 31/12/2026 |
@@ -71,4 +71,4 @@ nguoi_ky: Trần Thu Trang – Trưởng phòng Dự án
 
 ### 7. Điều khoản phạt và thanh toán (tóm tắt)
 - Thanh toán theo 4 đợt: 20% khi ký hợp đồng, 30% khi đạt M2, 30% khi đạt M5, 20% khi đạt M6.
-- Chậm tiến độ do lỗi của SVT: phạt 0,1% giá trị hợp đồng mỗi ngày, tối đa 8%.
+- Chậm tiến độ do lỗi của CTA: phạt 0,1% giá trị hợp đồng mỗi ngày, tối đa 8%.

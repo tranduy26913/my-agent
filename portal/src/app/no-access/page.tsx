@@ -10,7 +10,7 @@ export const metadata = { title: "Chưa được cấp quyền" };
 const REASONS: Record<string, { title: string; text: string }> = {
   directory: {
     title: "Tài khoản chưa có trong danh bạ nhân sự",
-    text: "Bạn đã đăng nhập được, nhưng email của bạn chưa có trong danh bạ nhân sự SVT nên chưa được cấp quyền. Hãy liên hệ phòng Hành chính nhân sự.",
+    text: "Bạn đã đăng nhập được, nhưng email của bạn chưa có trong danh bạ nhân sự CTA nên chưa được cấp quyền. Hãy liên hệ phòng Hành chính nhân sự.",
   },
   inactive: {
     title: "Tài khoản nhân sự không còn hoạt động",

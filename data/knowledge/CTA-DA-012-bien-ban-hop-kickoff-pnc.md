@@ -1,5 +1,5 @@
 ---
-doc_id: SVT-DA-012
+doc_id: CTA-DA-012
 so_hieu: DA-2026-07/BBH-01
 tieu_de: Biên bản họp khởi động dự án PNC Portal
 loai: bien-ban-hop
@@ -21,7 +21,7 @@ nguoi_ky: Hoàng Minh Đức – Giám đốc dự án
 **Thời gian:** 09:00 – 11:00, thứ Sáu ngày 05/6/2026
 **Địa điểm:** Phòng họp Sao Mai, tầng 8, và trực tuyến
 **Thành phần:**
-- Phía SVT: Trần Thu Trang (Sponsor), Hoàng Minh Đức (PM), Trịnh Văn Sơn, Mai Thị Ngọc, Lê Hoàng Nam
+- Phía CTA: Trần Thu Trang (Sponsor), Hoàng Minh Đức (PM), Trịnh Văn Sơn, Mai Thị Ngọc, Lê Hoàng Nam
 - Phía PNC: ông Nguyễn Văn Phúc (Giám đốc Chăm sóc khách hàng), bà Đặng Thị Yến (Trưởng phòng CNTT)
 
 ### 1. Nội dung đã thống nhất
@@ -33,7 +33,7 @@ nguoi_ky: Hoàng Minh Đức – Giám đốc dự án
 ### 2. Quyết định
 - **QĐ-1:** Ưu tiên phát triển cổng web trước, ứng dụng di động bắt đầu từ tháng 9/2026.
 - **QĐ-2:** Sử dụng đăng nhập bằng số điện thoại + OTP cho khách hàng của PNC.
-- **QĐ-3:** Dữ liệu thử nghiệm phải được ẩn danh trước khi chuyển cho SVT.
+- **QĐ-3:** Dữ liệu thử nghiệm phải được ẩn danh trước khi chuyển cho CTA.
 
 ### 3. Việc cần làm
 | STT | Việc | Người phụ trách | Hạn |

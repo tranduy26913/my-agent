@@ -1,6 +1,6 @@
 ---
-doc_id: SVT-QC-002
-so_hieu: 12/2023/QĐ-SVT
+doc_id: CTA-QC-002
+so_hieu: 12/2023/QĐ-CTA
 tieu_de: Quy chế nghỉ phép (bản 2024)
 loai: quy-che
 phong_ban_so_huu: HCNS
@@ -11,15 +11,15 @@ ngay_ban_hanh: 2023-12-15
 hieu_luc_tu: 2024-01-01
 het_hieu_luc: 2026-01-01
 thay_the: null
-bi_thay_the_boi: SVT-QC-003
+bi_thay_the_boi: CTA-QC-003
 phien_ban: 1
 nguoi_ky: Phạm Đức Long – Tổng Giám đốc
 ---
 
 # QUY CHẾ NGHỈ PHÉP
-*(Ban hành kèm theo Quyết định số 12/2023/QĐ-SVT ngày 15/12/2023)*
+*(Ban hành kèm theo Quyết định số 12/2023/QĐ-CTA ngày 15/12/2023)*
 
-> **Văn bản này đã hết hiệu lực từ ngày 01/01/2026, được thay thế bởi Quyết định số 01/2026/QĐ-SVT.**
+> **Văn bản này đã hết hiệu lực từ ngày 01/01/2026, được thay thế bởi Quyết định số 01/2026/QĐ-CTA.**
 
 ### Điều 1. Phạm vi áp dụng
 Quy chế áp dụng cho người lao động ký hợp đồng lao động chính thức với Công ty.

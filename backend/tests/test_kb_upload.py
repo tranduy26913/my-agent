@@ -396,7 +396,7 @@ def test_chay_dua_cung_doc_id_tra_409_khong_phai_500(env, monkeypatch):
         return real(data, ext, doc_id, title)
 
     monkeypatch.setattr(kb_service, "build_chunks", racing)
-    r = post(c, "SVT-TB-777-x.pdf", make_pdf(1), PDF, META)
+    r = post(c, "CTA-TB-777-x.pdf", make_pdf(1), PDF, META)
     assert r.status_code == 409, r.text
     assert saved_files(folder) == []
-    assert db.execute(select(Document).where(Document.doc_id == "SVT-TB-777")).scalars().all().__len__() == 1
+    assert db.execute(select(Document).where(Document.doc_id == "CTA-TB-777")).scalars().all().__len__() == 1

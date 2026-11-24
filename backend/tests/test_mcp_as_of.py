@@ -11,7 +11,7 @@ from app.knowledge_mcp import usable_as_of
     "quy định nghỉ phép",
     "Nhân viên chính thức được nghỉ phép bao nhiêu ngày?",
     "còn nghỉ ốm thì sao?",
-    "quy định về công tác phí trong văn bản SVT-QC-003",  # mã văn bản có số nhưng không phải năm
+    "quy định về công tác phí trong văn bản CTA-QC-003",  # mã văn bản có số nhưng không phải năm
 ])
 def test_cau_hoi_khong_nhac_thoi_diem_thi_bo_as_of(question):
     assert not usable_as_of(question, date(2023, 10, 5))

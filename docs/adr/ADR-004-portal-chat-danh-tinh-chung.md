@@ -26,7 +26,7 @@
 
 - Hai web chỉ nối với nhau bằng **liên kết**: portal có nút "Mở Trợ lý", LibreChat có `CUSTOM_FOOTER` dẫn về portal.
 - `MERGE.md` mức 2 (gộp vào LibreChat) **không làm nữa**.
-- Không dùng `admin-panel` có sẵn của LibreChat cho nghiệp vụ SVT. Nó chỉ quản trị LibreChat.
+- Không dùng `admin-panel` có sẵn của LibreChat cho nghiệp vụ CTA. Nó chỉ quản trị LibreChat.
 
 ### 2. Một nghiệp vụ, hai cách gọi
 Mỗi tool chỉ cài **một lần** ở tầng service của backend (`app/rag/*`, `app/hr/*`, ...), với cùng một bộ quy tắc ADR-001 và ADR-003. Có hai cách gọi tới nó:
@@ -37,7 +37,7 @@ Nhờ vậy, một người không thể xem được trên portal mà lại b�
 
 ### 3. Zitadel là nơi đăng nhập duy nhất (OIDC)
 - **Zitadel chỉ trả lời câu hỏi "người này là ai"**, gồm đăng nhập, mật khẩu, phiên đăng nhập và khoá tài khoản.
-- **"Người này được làm gì" vẫn do backend quyết định**, dựa trên `employees.roles` tra theo `email` trong token. Không chép vai trò SVT sang Zitadel, để vai trò chỉ được định nghĩa ở một nơi.
+- **"Người này được làm gì" vẫn do backend quyết định**, dựa trên `employees.roles` tra theo `email` trong token. Không chép vai trò CTA sang Zitadel, để vai trò chỉ được định nghĩa ở một nơi.
 - **Ngoại lệ duy nhất là project role `librechat-admin`** trong Zitadel. LibreChat cần nó qua `OPENID_ADMIN_ROLE`, và nó chỉ dùng để quản trị LibreChat.
 - Bỏ đăng nhập bằng mật khẩu của LibreChat (`ALLOW_EMAIL_LOGIN=false`) và bỏ JWT tự phát của backend. Sau khi chuyển xong thì xoá bảng `users`.
 - `knowledge-mcp` chuyển sang nhận `Authorization: Bearer {{LIBRECHAT_OPENID_ACCESS_TOKEN}}` rồi tự kiểm chữ ký. Không còn tin email do client tự khai nữa.
@@ -55,7 +55,7 @@ Nhờ vậy, một người không thể xem được trên portal mà lại b�
 | Tự viết OIDC provider | Rủi ro bảo mật cao, mất nhiều tuần, không mang lại giá trị nghiệp vụ |
 | Keycloak | Phương án đầu tiên, vì doanh nghiệp dùng phổ biến nhất. Bị loại sau khi đo: lúc model đã nạp sẵn máy chỉ còn khoảng 2,2 GB, còn Keycloak (Java) cần 0,5–1 GB, nên kéo xuống dưới ngưỡng 1,5 GB. Hai bên đều là OIDC chuẩn, nên đổi lại về sau không phải sửa kiến trúc |
 | Auth0 / Entra External ID (dịch vụ ngoài) | Danh tính nằm ngoài hệ thống, trái với hướng chạy on-prem cho dữ liệu Mật (P3) |
-| Đưa vai trò SVT vào Zitadel | Hai nơi cùng định nghĩa vai trò sẽ lệch nhau; ADR-003 đã dựa trên `employees` |
+| Đưa vai trò CTA vào Zitadel | Hai nơi cùng định nghĩa vai trò sẽ lệch nhau; ADR-003 đã dựa trên `employees` |
 | Admin không được xem chunk tài liệu Mật | Admin cần soát lỗi chunking/OCR của mọi tài liệu; ghi log đủ để truy vết |
 
 ## Hệ quả

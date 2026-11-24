@@ -43,7 +43,7 @@ Có 2 cách đưa tri thức vào LibreChat qua MCP:
 Chọn (b): MCP chỉ có một tool `ask_knowledge(question, as_of?)`.
 
 ## Lý do
-- SVT-CS-007 Điều 5 cấm gửi nội dung **Mật** tới model cloud. Chỉ backend biết chunk nào Mật. Với (a), chunk Mật
+- CTA-CS-007 Điều 5 cấm gửi nội dung **Mật** tới model cloud. Chỉ backend biết chunk nào Mật. Với (a), chunk Mật
   sẽ đi thẳng vào model của LibreChat.
 - Kiểm tra trích dẫn, audit và eval đi qua cùng một đường code, nên eval đo đúng thứ chạy production.
 

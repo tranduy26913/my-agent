@@ -14,7 +14,7 @@ export function createMockLookupApi(delayMs = 1500): LookupApi {
           found: true,
           answer:
             "Nhân viên chính thức được nghỉ phép năm 12 ngày làm việc mỗi năm [1]. Thâm niên từ 5 năm trở lên được cộng thêm 1 ngày cho mỗi 5 năm [1].",
-          citations: [{ n: 1, label: "SVT-QC-003 – Điều 3: Số ngày phép", docId: "SVT-QC-003" }],
+          citations: [{ n: 1, label: "CTA-QC-003 – Điều 3: Số ngày phép", docId: "CTA-QC-003" }],
         } satisfies AskResult;
       }
       return {

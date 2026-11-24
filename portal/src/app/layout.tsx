@@ -8,7 +8,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin", "vietnamese"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: { default: "Portal · Trợ lý số Sao Việt", template: "%s · Portal" },
+  title: { default: "Portal · Trợ lý số Công ty A", template: "%s · Portal" },
   description: "Công cụ cho nhân viên và trang quản trị của trợ lý số nội bộ",
 };
 

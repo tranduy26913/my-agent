@@ -31,7 +31,7 @@ async def lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="SVT Agent Platform API", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(title="CTA Agent Platform API", version="0.1.0", lifespan=lifespan)
     app.include_router(health.router)
     app.include_router(ocr.router, prefix="/api/ocr")
     app.include_router(stt.router, prefix="/api/stt")

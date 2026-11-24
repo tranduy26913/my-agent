@@ -4,7 +4,7 @@
 >
 > **Đối tượng:** AI Agent Engineer, trưởng nhóm chuyển đổi số, chủ quy trình ở các phòng ban, Ban Giám đốc.
 >
-> **Ví dụ xuyên suốt:** Công ty SVT (hư cấu, `data/README.md`) với hai quy trình: **(A) Trả lời câu hỏi nghỉ phép** của Phòng HCNS và **(B) Kiểm tra phiếu công tác phí** của Phòng TCKT.
+> **Ví dụ xuyên suốt:** Công ty CTA (hư cấu, `data/README.md`) với hai quy trình: **(A) Trả lời câu hỏi nghỉ phép** của Phòng HCNS và **(B) Kiểm tra phiếu công tác phí** của Phòng TCKT.
 
 ---
 
@@ -86,7 +86,7 @@
 - Thành phần tối thiểu: lãnh đạo bảo trợ (Sponsor), đại diện CNTT/bảo mật, pháp chế/tuân thủ, đại diện 2–3 phòng nghiệp vụ, AI Agent Engineer.
 - Nhịp họp: 2 tuần/lần trong pilot, hằng tháng khi ổn định.
 
-**Bước 0.3 – Ban hành chính sách sử dụng AI** (ví dụ SVT: `data/knowledge/SVT-CS-007`)
+**Bước 0.3 – Ban hành chính sách sử dụng AI** (ví dụ CTA: `data/knowledge/CTA-CS-007`)
 - Phân loại dữ liệu và loại model được phép cho từng cấp.
 - Công cụ được phê duyệt; cấm dùng công cụ ngoài với dữ liệu nội bộ.
 - Trách nhiệm với đầu ra AI; danh sách quyết định **không được** giao cho AI (tuyển dụng, kỷ luật, đánh giá nhân sự…).
@@ -140,7 +140,7 @@
 | Tỉ lệ lỗi / làm lại | % hồ sơ bị trả lại, sai sót |
 | Mức hài lòng | khảo sát nhanh 1–5 |
 
-**Ví dụ SVT**
+**Ví dụ CTA**
 
 | | (A) Câu hỏi nghỉ phép | (B) Kiểm tra phiếu công tác phí |
 |---|---|---|
@@ -195,7 +195,7 @@
 - Chi phí: xây dựng (công), vận hành (token, hạ tầng), duy trì (cập nhật tài liệu, eval).
 - Thời gian hoàn vốn = chi phí xây dựng / (giá trị ròng mỗi tháng).
 
-**Ví dụ SVT – chấm điểm**
+**Ví dụ CTA – chấm điểm**
 
 | Tiêu chí (trọng số) | (A) Hỏi nghỉ phép | (B) Phiếu công tác phí | (C) Sàng lọc CV tự động |
 |---|---|---|---|
@@ -237,8 +237,8 @@
 | Thông tin | Nguồn chính thức | Chủ sở hữu | Agent truy cập bằng |
 |---|---|---|---|
 | Số dư phép | HRM | HCNS | Tool `get_leave_balance` (hr-mcp) |
-| Quy chế nghỉ phép | Quy chế 01/2026/QĐ-SVT | HCNS | Kho tri thức (knowledge-mcp) |
-| Định mức công tác phí | Quy định 08/2025/QĐ-SVT | TCKT | **Bảng tham số trong code** + kho tri thức để trích dẫn |
+| Quy chế nghỉ phép | Quy chế 01/2026/QĐ-CTA | HCNS | Kho tri thức (knowledge-mcp) |
+| Định mức công tác phí | Quy định 08/2025/QĐ-CTA | TCKT | **Bảng tham số trong code** + kho tri thức để trích dẫn |
 
 **Bước 3.4 – Viết quy tắc quyết định thành bảng** (**M6 – Decision table**)
 - Mọi "nếu… thì…" trong đầu người làm phải viết ra. Ví dụ phiếu công tác phí:
@@ -465,7 +465,7 @@ Chỉ nâng một bậc (ví dụ L3 → L4) khi đủ cả ba: (1) 3 tháng li�
 
 ### 12.1 Thang L0–L5
 
-| Mức | Tên | Agent làm | Người làm | Ví dụ SVT |
+| Mức | Tên | Agent làm | Người làm | Ví dụ CTA |
 |---|---|---|---|---|
 | L0 | Thủ công | – | Toàn bộ | Hiện trạng |
 | L1 | Hỗ trợ thông tin | Tra cứu, trả lời có trích dẫn | Tự quyết và tự làm | Hỏi quy chế nghỉ phép |

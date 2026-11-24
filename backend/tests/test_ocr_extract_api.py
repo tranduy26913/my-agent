@@ -48,7 +48,7 @@ def post(client, name="phieu-mat.png", **params):
 def test_schemas(env):
     client, _, _ = env
     body = client.get("/api/ocr/schemas").json()
-    assert [s["id"] for s in body] == ["cong-tac-phi"] and "08/2025/QĐ-SVT" in body[0]["description"]
+    assert [s["id"] for s in body] == ["cong-tac-phi"] and "08/2025/QĐ-CTA" in body[0]["description"]
 
 
 def test_extract_nv018_end_to_end(env):

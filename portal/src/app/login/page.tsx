@@ -22,7 +22,7 @@ export default async function LoginPage({
     <main className="flex min-h-dvh items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm py-6">
         <CardHeader>
-          <CardTitle className="text-lg">Trợ lý số Sao Việt</CardTitle>
+          <CardTitle className="text-lg">Trợ lý số Công ty A</CardTitle>
           <CardDescription>Đăng nhập bằng tài khoản công ty để dùng công cụ và trang quản trị.</CardDescription>
         </CardHeader>
         {message && (
@@ -37,7 +37,7 @@ export default async function LoginPage({
             <input type="hidden" name="callbackUrl" value={callbackUrl ?? "/"} />
             <Button type="submit" className="w-full">
               <LogIn />
-              Đăng nhập SVT
+              Đăng nhập CTA
             </Button>
           </form>
         </CardFooter>

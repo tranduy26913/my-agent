@@ -155,7 +155,7 @@ function FindingsCard({ findings }: { findings: Finding[] }) {
     <Card>
       <CardHeader>
         <CardTitle>Kết quả kiểm tra</CardTitle>
-        <CardDescription>Đối chiếu với văn bản OCR, kiểm tra số học và Quy định công tác phí 08/2025/QĐ-SVT.</CardDescription>
+        <CardDescription>Đối chiếu với văn bản OCR, kiểm tra số học và Quy định công tác phí 08/2025/QĐ-CTA.</CardDescription>
       </CardHeader>
       <CardContent>
         {sorted.length === 0 ? (

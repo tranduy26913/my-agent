@@ -25,6 +25,17 @@
       "port": 4173
     },
     {
+      "name": "interview",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "interview",
+        "run",
+        "dev"
+      ],
+      "port": 3200
+    },
+    {
       "name": "portal",
       "runtimeExecutable": "npm",
       "runtimeArgs": [

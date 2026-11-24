@@ -56,7 +56,7 @@ export interface Finding {
   message: string;
   /** Vị trí trong phiếu, ví dụ "tong_cong" hoặc "cac_khoan[2]" */
   field: string | null;
-  /** Điều khoản áp dụng, ví dụ "08/2025/QĐ-SVT Điều 5" */
+  /** Điều khoản áp dụng, ví dụ "08/2025/QĐ-CTA Điều 5" */
   rule: string | null;
   /** Số tiền vượt định mức (đồng) */
   overAmount: number | null;

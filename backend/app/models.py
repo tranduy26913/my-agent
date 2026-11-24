@@ -100,8 +100,8 @@ class Document(Base):
 
     __tablename__ = "documents"
     id: Mapped[int] = mapped_column(primary_key=True)
-    doc_id: Mapped[str] = mapped_column(String(64), unique=True, index=True)  # SVT-QC-003
-    so_hieu: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)  # 01/2026/QĐ-SVT
+    doc_id: Mapped[str] = mapped_column(String(64), unique=True, index=True)  # CTA-QC-003
+    so_hieu: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)  # 01/2026/QĐ-CTA
     title: Mapped[str] = mapped_column(String(256))
     doc_type: Mapped[str | None] = mapped_column(String(32), nullable=True)  # quy-che | quy-trinh ...
     source: Mapped[str] = mapped_column(String(512))

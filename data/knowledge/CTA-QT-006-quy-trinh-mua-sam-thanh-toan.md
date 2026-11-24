@@ -1,6 +1,6 @@
 ---
-doc_id: SVT-QT-006
-so_hieu: 03/2026/QT-SVT
+doc_id: CTA-QT-006
+so_hieu: 03/2026/QT-CTA
 tieu_de: Quy trình mua sắm và thanh toán nội bộ
 loai: quy-trinh
 phong_ban_so_huu: TCKT
