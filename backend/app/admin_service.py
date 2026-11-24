@@ -1,10 +1,9 @@
 """Nghiệp vụ cho /api/admin/audit và /api/admin/usage (docs/07). Không phụ thuộc FastAPI.
 
-Hai điều cần biết về dữ liệu hiện có (nợ kỹ thuật, dọn ở giai đoạn 6 của docs/06 khi bỏ bảng users):
-- `audit_logs.user_id` và `usage_logs.user_id` KHÔNG cùng không gian id: sự kiện RAG và OCR ghi id NHÂN VIÊN
-  (employees.id), còn kb_*/llm_call ghi id bảng users. Nên tên người thực hiện phải tra đúng bảng, không
-  được join bừa (join sai sẽ hiện nhầm tên người khác).
-- Người dùng Zitadel không có dòng trong bảng users nên email nằm trong detail["actor"] (kb_service._audit).
+Về dữ liệu người thực hiện (bảng users đã bỏ ở giai đoạn 6 của docs/06):
+- Sự kiện RAG và OCR ghi `user_id` = employees.id. Sự kiện quản trị kb_* ghi email vào detail["actor"].
+- Dòng cũ (trước giai đoạn 6) của kb_*/llm_call có `user_id` là id bảng users đã xoá: không còn tên để hiện,
+  nên chỉ hiện "Người dùng #id". Đừng join `user_id` với employees cho các sự kiện đó (sẽ hiện nhầm người).
 
 Quyền riêng tư: `detail` của audit có thể chứa NỘI DUNG (câu hỏi của nhân viên, tham số và kết quả của tool).
 Trang quản trị chỉ xem "ai làm gì, lúc nào", nên API trả theo danh sách
@@ -19,13 +18,13 @@ from datetime import UTC, date, datetime, timedelta
 from sqlalchemy import and_, func, select
 from sqlalchemy.orm import Session
 
-from app.models import AuditLog, Employee, UsageLog, User
+from app.models import AuditLog, Employee, UsageLog
 
-# Sự kiện ghi user_id = employees.id (còn lại là users.id)
+# Sự kiện ghi user_id = employees.id (còn lại: dòng cũ mang id bảng users đã xoá)
 EMPLOYEE_KEYED_EVENTS = frozenset(
     {"rag_ask", "rag_error", "ocr_run", "ocr_extract", "ocr_job_failed", "ocr_job_view"}
 )
-# Mục đích dùng token ghi user_id = employees.id (còn lại là users.id)
+# Mục đích dùng token ghi user_id = employees.id (còn lại: dòng cũ mang id bảng users đã xoá)
 EMPLOYEE_KEYED_PURPOSES = frozenset({"rag", "ocr", "ocr-extract"})
 
 HIGHLIGHT_ALERT = "alert"  # cần chú ý ngay: xem tài liệu Mật, công cụ bị từ chối
@@ -122,9 +121,8 @@ def _day_start(d: date) -> datetime:
 
 
 def _actor_expr():
-    """Tên người thực hiện: email Zitadel trong detail, email người hỏi (RAG), rồi tên trong bảng users.
-    Bảng users chỉ được join cho sự kiện khoá theo users.id (xem đầu file)."""
-    return func.coalesce(AuditLog.detail["actor"].astext, AuditLog.detail["email"].astext, User.username)
+    """Tên người thực hiện: email Zitadel trong detail["actor"], hoặc email người hỏi (RAG)."""
+    return func.coalesce(AuditLog.detail["actor"].astext, AuditLog.detail["email"].astext)
 
 
 def list_audit(
@@ -141,7 +139,6 @@ def list_audit(
     actor_expr = _actor_expr()
     stmt = (
         select(AuditLog.id, AuditLog.ts, AuditLog.event, AuditLog.detail, actor_expr)
-        .outerjoin(User, and_(User.id == AuditLog.user_id, AuditLog.event.not_in(EMPLOYEE_KEYED_EVENTS)))
         .order_by(AuditLog.id.desc())
         .limit(limit + 1)
     )
@@ -270,16 +267,10 @@ def usage_report(db: Session, month: str | None = None) -> UsageReport:
             select(Employee).where(Employee.id.in_([r.user_id for r in user_rows if r.emp]))
         ).scalars()
     }
-    user_names = {
-        u.id: u.username
-        for u in db.execute(
-            select(User).where(User.id.in_([r.user_id for r in user_rows if not r.emp]))
-        ).scalars()
-    }
 
     def person(r) -> str:
-        names = emp_names if r.emp else user_names
-        return names.get(r.user_id) or f"Người dùng #{r.user_id}"
+        # Dòng cũ không thuộc employees chỉ còn id bảng users đã xoá
+        return (emp_names.get(r.user_id) if r.emp else None) or f"Người dùng #{r.user_id}"
 
     months = [
         r[0]

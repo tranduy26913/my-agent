@@ -1,24 +1,25 @@
-"""Bước 5: phân quyền của /api/kb, kiểm qua chuỗi xác thực THẬT (JWT + bảng users).
+"""Bước 5: phân quyền của /api/kb, kiểm qua chuỗi xác thực THẬT (token Zitadel giả + bảng employees).
 
-Chỉ get_db được thay bằng session rollback (tests/kb_testkit.py). Ba lớp kiểm tra:
-  1. Hành vi: token đủ loại (thiếu, sai, hết hạn, alg=none, user lạ, không phải admin) -> 401/403.
-  2. Cấu trúc: MỌI route dưới /api/kb phải đòi require_roles("admin"), kể cả route thêm sau này.
+Chỉ get_db và get_verifier được thay (tests/kb_testkit.py, tests/oidc_testkit.py). Ba lớp kiểm tra:
+  1. Hành vi: token đủ loại (thiếu, sai, hết hạn, không phải admin) -> 401/403.
+  2. Cấu trúc: MỌI route dưới /api/kb phải đòi cổng admin, kể cả route thêm sau này.
   3. Ranh giới: router không import app.security, backend không bật CORS.
 """
 
 import re
-import time
 from pathlib import Path
 
-import jwt
 import pytest
 from fastapi.testclient import TestClient
 
 from app.api.deps import get_db
-from app.config import settings
+from app.auth.oidc import get_verifier
 from app.main import create_app
-from app.security import create_access_token
-from tests.kb_testkit import _kb_db, add_doc, add_user  # noqa: F401  (_kb_db = fixture kb_db)
+from tests.kb_testkit import _kb_db, add_doc, add_employee  # noqa: F401  (_kb_db = fixture kb_db)
+from tests.oidc_testkit import Idp, bearer
+
+ADMIN = "test.admin@test.example"
+STAFF = "test.staff@test.example"
 
 URL = "/api/kb/documents"
 APP_DIR = Path(__file__).resolve().parent.parent / "app"
@@ -37,18 +38,20 @@ CALL_IDS = [f"{m.upper()} {p.replace(URL, '')}" or m for m, p, _ in CALLS]
 
 
 @pytest.fixture
-def real_auth(kb_db):
+def idp():
+    return Idp()
+
+
+@pytest.fixture
+def real_auth(kb_db, idp):
     """App với xác thực thật; DB là session rollback có sẵn một admin, một staff và tài liệu TEST-AZ-1."""
-    admin = add_user(kb_db, "test.admin")
-    staff = add_user(kb_db, "test.staff", role="staff")
+    add_employee(kb_db, "TEST-AZ-A", ADMIN, department="CNTT", roles=["admin", "employee"])
+    add_employee(kb_db, "TEST-AZ-S", STAFF, department="KD", roles=["employee"])
     add_doc(kb_db, "TEST-AZ-1")
     app = create_app()
     app.dependency_overrides[get_db] = lambda: kb_db
-    return TestClient(app, raise_server_exceptions=False), kb_db, admin, staff
-
-
-def bearer(token: str) -> dict:
-    return {"Authorization": f"Bearer {token}"}
+    app.dependency_overrides[get_verifier] = idp.verifier
+    return TestClient(app, raise_server_exceptions=False), kb_db, idp
 
 
 def call(client, spec, headers=None):
@@ -56,7 +59,7 @@ def call(client, spec, headers=None):
     return getattr(client, method)(path, headers=headers or {}, **kw)
 
 
-# ---------------------------------------------------------------- 1. hành vi với JWT thật
+# ---------------------------------------------------------------- 1. hành vi với token thật
 
 @pytest.mark.parametrize("spec", CALLS, ids=CALL_IDS)
 def test_khong_token_401(real_auth, spec):
@@ -65,10 +68,10 @@ def test_khong_token_401(real_auth, spec):
 
 @pytest.mark.parametrize("spec", CALLS, ids=CALL_IDS)
 def test_staff_403_ke_ca_khi_token_tu_nhan_admin(real_auth, spec):
-    """Vai trò lấy từ bảng users, KHÔNG tin claim `role` trong token."""
-    c, _, _, staff = real_auth
-    honest = create_access_token(staff.id, "staff")
-    lying = create_access_token(staff.id, "admin")
+    """Vai trò lấy từ bảng employees, KHÔNG tin claim vai trò trong token."""
+    c, _, idp = real_auth
+    honest = idp.token(email=STAFF)
+    lying = idp.token(email=STAFF, roles={"admin": {"1": "x"}}, role="admin")
     assert call(c, spec, bearer(honest)).status_code == 403
     assert call(c, spec, bearer(lying)).status_code == 403
 
@@ -76,38 +79,33 @@ def test_staff_403_ke_ca_khi_token_tu_nhan_admin(real_auth, spec):
 @pytest.mark.parametrize("spec", CALLS, ids=CALL_IDS)
 def test_admin_qua_cong_phan_quyen(real_auth, spec):
     """Admin thật không bị 401/403 (kết quả nghiệp vụ có thể là 2xx/404/422/207, miễn không chặn quyền)."""
-    c, _, admin, _ = real_auth
-    assert call(c, spec, bearer(create_access_token(admin.id, "admin"))).status_code not in (401, 403)
-
-
-def _forge(payload: dict, key=settings.jwt_secret, alg="HS256") -> str:
-    return jwt.encode(payload, key, algorithm=alg)
+    c, _, idp = real_auth
+    assert call(c, spec, bearer(idp.token(email=ADMIN))).status_code not in (401, 403)
 
 
 @pytest.mark.parametrize("name,make", [
-    ("sai khoá ký", lambda uid: _forge({"sub": str(uid), "exp": time.time() + 600}, key="khoa-khac-xyz")),
-    ("hết hạn", lambda uid: _forge({"sub": str(uid), "exp": time.time() - 60})),
-    ("alg=none", lambda uid: jwt.encode({"sub": str(uid), "exp": time.time() + 600}, None, algorithm="none")),
-    ("không phải JWT", lambda uid: "khong.phai.jwt"),
-    ("user không tồn tại", lambda uid: create_access_token(2_000_000_000, "admin")),
+    ("hết hạn", lambda idp: idp.token(email=ADMIN, exp=1)),
+    ("sai aud", lambda idp: idp.token(email=ADMIN, aud=["khac"])),
+    ("không phải JWT", lambda idp: "khong.phai.jwt"),
+    ("JWT HS256 cũ", lambda idp: __import__("jwt").encode({"sub": "1", "role": "admin"}, "k" * 32, "HS256")),
 ])
 def test_token_xau_401(real_auth, name, make):
-    c, _, admin, _ = real_auth
-    assert c.get(URL, headers=bearer(make(admin.id))).status_code == 401, name
+    c, _, idp = real_auth
+    assert c.get(URL, headers=bearer(make(idp))).status_code == 401, name
 
 
 def test_header_sai_dinh_dang_401(real_auth):
-    c, _, admin, _ = real_auth
-    token = create_access_token(admin.id, "admin")
+    c, _, idp = real_auth
+    token = idp.token(email=ADMIN)
     assert c.get(URL, headers={"Authorization": f"Basic {token}"}).status_code == 401
     assert c.get(URL, headers={"Authorization": token}).status_code == 401  # thiếu "Bearer"
     assert c.get(URL, headers={"Authorization": "Bearer"}).status_code == 401
 
 
 def test_403_khong_lo_chi_tiet_noi_bo(real_auth):
-    c, _, _, staff = real_auth
-    r = c.get(URL, headers=bearer(create_access_token(staff.id, "staff")))
-    assert r.status_code == 403 and "TEST-AZ-1" not in r.text and "test.staff" not in r.text
+    c, _, idp = real_auth
+    r = c.get(URL, headers=bearer(idp.token(email=STAFF)))
+    assert r.status_code == 403 and "TEST-AZ-1" not in r.text and STAFF not in r.text
 
 
 # ---------------------------------------------------------------- 2. quét: mọi route đều đòi admin
@@ -115,7 +113,7 @@ def test_403_khong_lo_chi_tiet_noi_bo(real_auth):
 HTTP_METHODS = {"get", "post", "put", "patch", "delete"}
 
 
-# Route dưới /api/kb dành cho MỌI nhân viên (xác thực bằng X-Portal-Token, kiểm ở test_kb_ask.py).
+# Route dưới /api/kb dành cho MỌI nhân viên (đăng nhập là đủ, kiểm ở test_kb_ask.py).
 # Danh sách miễn phải tường minh: route mới ở /api/kb mà không có tên ở đây vẫn bị bắt buộc có cổng admin.
 NOT_ADMIN_ROUTES = {("POST", "/api/kb/ask")}
 
@@ -143,10 +141,10 @@ def ungated(app, client, staff_headers) -> list[str]:
 
 
 def test_moi_route_kb_deu_dong_admin(real_auth):
-    c, _, _, staff = real_auth
+    c, _, idp = real_auth
     app = c.app
     assert len(kb_operations(app)) >= 7  # bảo đảm đã quét được route thật, không phải quét rỗng
-    assert ungated(app, c, bearer(create_access_token(staff.id, "staff"))) == []
+    assert ungated(app, c, bearer(idp.token(email=STAFF))) == []
 
 
 def test_bo_quet_bat_duoc_route_ho():

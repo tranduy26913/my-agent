@@ -12,8 +12,6 @@ class Settings(BaseSettings):
     # agent-db (docker-compose.override.yml của librechat) map ra cổng 5433 trên máy host.
     # Tách hẳn khỏi vectordb của LibreChat: kho tri thức doanh nghiệp có ACL riêng.
     database_url: str = "postgresql+psycopg://agent:agent@localhost:5433/agent"
-    jwt_secret: str = "change-me-in-production"
-    jwt_expire_minutes: int = 480
 
     # --- LLM ---
     # claude: gọi Claude API qua Anthropic SDK | fake: chạy offline không cần API key (demo/test)
@@ -89,14 +87,6 @@ class Settings(BaseSettings):
     rag_judge_model: str = "claude-haiku-5-5"  # LLM-judge trong eval
     kb_mcp_host: str = "0.0.0.0"
     kb_mcp_port: int = 8100
-    # Bí mật dùng chung giữa LibreChat và knowledge-mcp. Header X-User-Email chỉ được tin
-    # khi request mang đúng token này (chứng minh request đến từ LibreChat, không phải ai đó tự gọi).
-    kb_mcp_token: str = ""
-    # TẠM: còn nhận X-KB-Token + X-User-Email khi không có Bearer. Đặt false khi LibreChat đã gửi Bearer.
-    kb_mcp_allow_shared_token: bool = True
-    # TẠM (đến khi có Zitadel, docs/06 giai đoạn 4): bí mật dùng chung giữa BFF của portal và FastAPI.
-    # /api/kb/ask chỉ tin header X-User-Email khi request mang đúng token này. Khác hẳn kb_mcp_token.
-    portal_bff_token: str = ""
 
     # --- Đăng nhập Zitadel (docs/06, ADR-004). Rỗng = chưa bật: mọi Bearer token bị từ chối (fail closed) ---
     oidc_issuer: str = ""  # vd https://auth.tranduyai.id.vn: `iss` trong token phải khớp CHÍNH XÁC

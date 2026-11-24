@@ -13,7 +13,9 @@ from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.models import DIM, AuditLog, Chunk, Document, Employee, User
+from app.models import DIM, AuditLog, Chunk, Document, Employee
+
+ADMIN_EMAIL = "test.admin@saoviet.example"
 
 
 @pytest.fixture(name="kb_db")
@@ -43,13 +45,6 @@ def audit_since_start(db, event):
     """Dòng audit loại `event` do test hiện tại tạo ra, không tính dữ liệu có sẵn trong DB thật."""
     stmt = select(AuditLog).where(AuditLog.event == event, AuditLog.id > db.info.get("audit_floor", 0))
     return db.execute(stmt.order_by(AuditLog.id)).scalars().all()
-
-
-def add_user(db, username="test.admin", role="admin") -> User:
-    u = User(username=username, full_name="Quản trị thử", password_hash="x", role=role, department="CNTT")
-    db.add(u)
-    db.commit()  # commit (chỉ chốt savepoint): để rollback trong code được test không xoá dữ liệu mẫu
-    return u
 
 
 def add_employee(db, code, email, department="KD", roles=(), status="dang-lam", name="Người Thử") -> Employee:
@@ -83,16 +78,16 @@ def _kb_env(kb_db, tmp_path, monkeypatch):
     """
     from fastapi.testclient import TestClient
 
-    from app.api.deps import UserInfo, get_db, get_legacy_user
+    from app.api.deps import Actor, get_db, get_kb_admin
     from app.main import create_app
     from app.rag.embeddings import get_embedder
 
     monkeypatch.setattr(settings, "upload_dir", str(tmp_path / "uploads"))
     monkeypatch.setattr(settings, "embedding_provider", "hash")
     get_embedder.cache_clear()
-    admin = add_user(kb_db)
+    admin = Actor(ADMIN_EMAIL)
     app = create_app()
     app.dependency_overrides[get_db] = lambda: kb_db
-    app.dependency_overrides[get_legacy_user] = lambda: UserInfo(admin.id, "test.admin", "admin", "CNTT")
+    app.dependency_overrides[get_kb_admin] = lambda: admin
     yield TestClient(app, raise_server_exceptions=False), kb_db, admin, tmp_path / "uploads"
     get_embedder.cache_clear()

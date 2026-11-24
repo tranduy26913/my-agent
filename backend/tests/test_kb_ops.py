@@ -6,7 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 
-from app.api.deps import UserInfo, get_db, get_legacy_user
+from app.api.deps import get_db
 from app.main import create_app
 from app.models import Chunk, Document
 from app.rag import kb_service
@@ -47,12 +47,13 @@ CASES = [("post", f"{URL}:reindex", {"docIds": ["X"]}), ("post", f"{URL}:delete"
 
 
 @pytest.mark.parametrize("method,path,body", CASES)
-def test_ghi_can_dang_nhap_va_admin(method, path, body):
+def test_ghi_can_dang_nhap(method, path, body):
     app = create_app()
     app.dependency_overrides[get_db] = lambda: None
     assert getattr(TestClient(app), method)(path, json=body).status_code == 401
-    app.dependency_overrides[get_legacy_user] = lambda: UserInfo(2, "nv", "manager", "KD")
-    assert getattr(TestClient(app), method)(path, json=body).status_code == 403
+    # Vai trò admin kiểm ở tests/test_oidc.py (nhân viên thường 403)
+    headers = {"Authorization": "Bearer xxx"}
+    assert getattr(TestClient(app), method)(path, json=body, headers=headers).status_code == 401
 
 
 def test_route_tinh_khong_bi_nham_voi_doc_id(kb_env):
@@ -88,8 +89,8 @@ def test_reindex_thay_chunk_theo_noi_dung_moi_va_ghi_audit(kb_env, tmp_path):
     assert "TEST-RI-1" in new[0][1] and "01/2026/TEST" in new[0][1]  # tiền tố ngữ cảnh giống kb_ingest
 
     logs = audit(db, "kb_reindex")
-    assert len(logs) == 1 and logs[0].detail == {"doc_id": "TEST-RI-1", "chunks": 2}
-    assert logs[0].user_id == admin.id
+    assert len(logs) == 1 and logs[0].detail == {"doc_id": "TEST-RI-1", "chunks": 2, "actor": admin.email}
+    assert logs[0].detail["actor"] == admin.email
     assert [h["text"] for h in c.get(f"{URL}/TEST-RI-1").json()["history"]] == ["Nạp lại tài liệu"]
 
 
@@ -189,7 +190,7 @@ def test_quarantine_bat_tat_ghi_audit_va_lich_su(kb_env):
     assert c.put(f"{URL}/TEST-QU-1/quarantine", json={"on": False}).status_code == 204
     assert {d["docId"]: d for d in c.get(URL).json()}["TEST-QU-1"]["status"] == "ready"
     logs = audit(db, "kb_quarantine")
-    assert [x.detail["on"] for x in logs] == [True, False] and logs[0].user_id == admin.id
+    assert [x.detail["on"] for x in logs] == [True, False] and logs[0].detail["actor"] == admin.email
     hist = [h["text"] for h in c.get(f"{URL}/TEST-QU-1").json()["history"]]
     assert hist == ["Bỏ cách ly tài liệu", "Cách ly tài liệu"]
 
@@ -226,7 +227,7 @@ def test_delete_xoa_tai_lieu_chunk_tep_va_ghi_audit(kb_env):
     assert db.execute(left).scalar_one() == 0
     assert saved_files(folder) == []
     logs = [x for x in audit(db, "kb_delete") if x.detail["doc_id"] == "SVT-TB-060"]
-    assert len(logs) == 1 and logs[0].user_id == admin.id
+    assert len(logs) == 1 and logs[0].detail["actor"] == admin.email
     assert logs[0].detail["classified"] is True and logs[0].detail["chunks"] >= 2
     assert c.get(f"{URL}/SVT-TB-060").status_code == 404
 

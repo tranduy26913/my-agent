@@ -59,7 +59,8 @@ def test_nghi_viec_403(client, idp):
 
 
 def test_jwt_cu_hs256_khong_dung_duoc_o_day(client):
-    """/api/me chỉ nhận token Zitadel (không có đường song song như /api/kb)."""
-    from app.security import create_access_token
+    """/api/me chỉ nhận token Zitadel."""
+    import jwt
 
-    assert client.get("/api/me", headers=bearer(create_access_token(1, "admin"))).status_code == 401
+    legacy = jwt.encode({"sub": "1", "role": "admin"}, "k" * 32, algorithm="HS256")
+    assert client.get("/api/me", headers=bearer(legacy)).status_code == 401

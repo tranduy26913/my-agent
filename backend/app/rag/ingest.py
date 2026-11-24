@@ -69,7 +69,7 @@ def ingest_document(
     visibility: str = "phong-ban",
     allowed_departments: list[str] | None = None,
     allowed_roles: list[str] | None = None,
-    uploaded_by: int | None = None,
+    uploaded_by: str | None = None,
 ):
     """File upload không có frontmatter. Mặc định an toàn: chỉ phòng sở hữu xem được (phong-ban)."""
     import hashlib

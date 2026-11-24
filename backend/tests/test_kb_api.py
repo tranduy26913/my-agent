@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 from pydantic import ValidationError
 from sqlalchemy import select
 
-from app.api.deps import UserInfo, get_db, get_legacy_user
+from app.api.deps import Actor, get_db, get_kb_admin
 from app.api.kb import (
     DocIdsIn,
     KbDocumentDetailOut,
@@ -23,7 +23,7 @@ from app.api.kb import (
 )
 from app.main import create_app
 from app.models import AuditLog, Document
-from tests.kb_testkit import _kb_db, add_doc, add_employee, add_user  # noqa: F401  (_kb_db = fixture kb_db)
+from tests.kb_testkit import ADMIN_EMAIL, _kb_db, add_doc, add_employee  # noqa: F401  (_kb_db = fixture kb_db)
 
 # Đúng các khoá của interface KbDocument trong portal/src/features/kb/types.ts (trừ statusNote, optional).
 KB_DOCUMENT_KEYS = {
@@ -167,18 +167,17 @@ class StubDb:
     """Chỉ để get_db không mở kết nối thật ở các test không đụng dữ liệu (401/403)."""
 
 
-def as_user(role: str, db, user_id: int = 1):
+def as_admin(db):
+    """Client đã qua cổng admin. Cổng thật (token Zitadel + vai trò admin) kiểm ở test_oidc.py."""
     app = create_app()
     app.dependency_overrides[get_db] = lambda: db
-    user = UserInfo(user_id, "test.admin", role, "CNTT", "Quản trị thử")
-    app.dependency_overrides[get_legacy_user] = lambda: user
+    app.dependency_overrides[get_kb_admin] = lambda: Actor(ADMIN_EMAIL)
     return TestClient(app, raise_server_exceptions=False)
 
 
 @pytest.fixture
 def api(kb_db):
-    admin = add_user(kb_db)
-    return as_user("admin", kb_db, admin.id), kb_db, admin
+    return as_admin(kb_db), kb_db, ADMIN_EMAIL
 
 
 READ_ENDPOINTS = ["/api/kb/documents", "/api/kb/documents/X", "/api/kb/documents/X/access?email=a@b.vn"]
@@ -191,21 +190,14 @@ def test_chua_dang_nhap_401(path):
     assert TestClient(app).get(path).status_code == 401
 
 
-@pytest.mark.parametrize("role", ["staff", "manager"])
-@pytest.mark.parametrize("path", READ_ENDPOINTS)
-def test_khong_phai_admin_403(path, role):
-    r = as_user(role, StubDb()).get(path)
-    assert r.status_code == 403
-
-
 def test_list_tra_camel_case_va_du_lieu(api):
     c, db, admin = api
-    add_doc(db, "TEST-KB-L1", n_chunks=3, uploaded_by=admin.id, classification="Mat", quarantined=True)
+    add_doc(db, "TEST-KB-L1", n_chunks=3, uploaded_by=admin, classification="Mat", quarantined=True)
     r = c.get("/api/kb/documents")
     assert r.status_code == 200
     mine = next(d for d in r.json() if d["docId"] == "TEST-KB-L1")
     assert set(mine) == KB_DOCUMENT_KEYS
-    assert mine["chunkCount"] == 3 and mine["uploadedBy"] == "test.admin"
+    assert mine["chunkCount"] == 3 and mine["uploadedBy"] == ADMIN_EMAIL
     assert mine["classified"] is True and mine["status"] == "quarantined" and mine["fileKind"] == "md"
 
 
@@ -234,10 +226,10 @@ def test_detail_tai_lieu_mat_co_dung_mot_dong_audit(api):
     assert r.status_code == 200
     body = r.json()
     assert body["accessLogged"] is True and len(body["chunks"]) == 2
-    assert body["history"][0]["by"] == "test.admin" and "Mật" in body["history"][0]["text"]
+    assert body["history"][0]["by"] == ADMIN_EMAIL and "Mật" in body["history"][0]["text"]
     logs = db.execute(select(AuditLog).where(AuditLog.event == "kb_view_classified")).scalars().all()
     mine = [x for x in logs if x.detail.get("doc_id") == "TEST-KB-D2"]
-    assert len(mine) == 1 and mine[0].user_id == admin.id
+    assert len(mine) == 1 and mine[0].detail["actor"] == admin
 
 
 def test_detail_mat_ghi_audit_hong_thi_500_va_khong_lo_chunk(api, monkeypatch):

@@ -53,9 +53,10 @@ def test_khong_token_401(client):
 
 
 def test_jwt_cu_hs256_khong_con_dung_duoc(client):
-    from app.security import create_access_token
+    import jwt
 
-    assert client.get("/api/ocr/engines", headers=bearer(create_access_token(1, "admin"))).status_code == 401
+    legacy = jwt.encode({"sub": "1", "role": "admin"}, "k" * 32, algorithm="HS256")
+    assert client.get("/api/ocr/engines", headers=bearer(legacy)).status_code == 401
 
 
 def test_khong_co_trong_danh_ba_hoac_da_nghi_403(client, idp):

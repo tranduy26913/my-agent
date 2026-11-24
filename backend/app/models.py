@@ -1,10 +1,10 @@
 """ORM models. Mỗi bảng phục vụ một yêu cầu trong JD:
 
-- users / employees            -> dữ liệu nhân sự + phân quyền (RBAC)
+- employees                    -> dữ liệu nhân sự + phân quyền (RBAC); đăng nhập do Zitadel lo
 - documents / chunks           -> kho tri thức nội bộ (RAG, hybrid search, ACL theo tài liệu)
-- conversations / messages     -> bộ nhớ ngắn hạn (lịch sử hội thoại)
 - skills                       -> thư viện kỹ năng dùng chung (có duyệt)
 - experiences                  -> kho kinh nghiệm agent tự tích lũy (reflection)
+- conversations / messages     -> bộ nhớ ngắn hạn (lịch sử hội thoại)
 - audit_logs / usage_logs      -> lưu vết + kiểm soát chi phí
 - ocr_jobs                     -> job OCR bất đồng bộ (kết quả tạm, tự hết hạn)
 - feedback                     -> cải tiến liên tục dựa trên phản hồi người dùng
@@ -34,19 +34,6 @@ from app.config import settings
 from app.db import Base
 
 DIM = settings.embedding_dim
-
-
-class User(Base):
-    __tablename__ = "users"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str] = mapped_column(String(64), unique=True, index=True)
-    full_name: Mapped[str] = mapped_column(String(128))
-    password_hash: Mapped[str] = mapped_column(String(128))
-    role: Mapped[str] = mapped_column(String(32), default="staff")  # admin | manager | staff
-    department: Mapped[str] = mapped_column(String(64), default="General")
-    # Liên kết danh tính kênh chat: {"teams": "<aadObjectId>", "whatsapp": "8490xxxxxxx"}
-    external_ids: Mapped[dict] = mapped_column(JSON, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class Employee(Base):
@@ -90,7 +77,7 @@ class Document(Base):
     content_hash: Mapped[str] = mapped_column(String(64), default="")  # nạp lại idempotent
     # Tài liệu bị nghi chứa chỉ dẫn độc hại -> không bao giờ được truy xuất (P2 sẽ tự gắn cờ)
     quarantined: Mapped[bool] = mapped_column(Boolean, default=False)
-    uploaded_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    uploaded_by: Mapped[str | None] = mapped_column(String(255), nullable=True)  # email người nạp (Zitadel)
     ocr_pages: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     chunks: Mapped[list["Chunk"]] = relationship(back_populates="document", cascade="all, delete-orphan")
@@ -126,7 +113,7 @@ class Chunk(Base):
 class Conversation(Base):
     __tablename__ = "conversations"
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)  # employees.id (không khoá ngoại: users đã bỏ)
     channel: Mapped[str] = mapped_column(String(16), default="web")  # web | teams | whatsapp | mcp
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

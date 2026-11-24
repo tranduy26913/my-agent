@@ -9,7 +9,7 @@ import pytest
 
 from app.models import AuditLog
 from app.rag.kb_service import DocNotFound, check_access, get_detail, get_row, history_text, list_documents
-from tests.kb_testkit import _kb_db, add_doc, add_employee, add_user, audit_since_start  # noqa: F401  (_kb_db = fixture kb_db)
+from tests.kb_testkit import ADMIN_EMAIL, _kb_db, add_doc, add_employee, audit_since_start  # noqa: F401  (_kb_db = fixture kb_db)
 
 TODAY = date(2026, 11, 23)
 
@@ -30,12 +30,11 @@ def test_history_text():
 # ---------------------------------------------------------------- danh sách / một dòng
 
 def test_list_documents_co_username_va_so_chunk(kb_db):
-    u = add_user(kb_db, "test.lan")
-    add_doc(kb_db, "TEST-KB-A", n_chunks=3, uploaded_by=u.id)
+    add_doc(kb_db, "TEST-KB-A", n_chunks=3, uploaded_by="test.lan@saoviet.example")
     add_doc(kb_db, "TEST-KB-B", n_chunks=0)
     rows = {r.document.doc_id: r for r in list_documents(kb_db)}
-    assert rows["TEST-KB-A"].chunk_count == 3 and rows["TEST-KB-A"].username == "test.lan"
-    assert rows["TEST-KB-B"].chunk_count == 0 and rows["TEST-KB-B"].username is None  # outerjoin giữ dòng
+    assert rows["TEST-KB-A"].chunk_count == 3 and rows["TEST-KB-A"].username == "test.lan@saoviet.example"
+    assert rows["TEST-KB-B"].chunk_count == 0 and rows["TEST-KB-B"].username is None
 
 
 def test_list_documents_la_mot_truy_van(kb_db):
@@ -59,35 +58,32 @@ def test_get_row_khong_co_thi_not_found(kb_db):
 # ---------------------------------------------------------------- chi tiết + tài liệu Mật (ADR-004 mục 4)
 
 def test_detail_tai_lieu_thuong_khong_ghi_audit(kb_db):
-    admin = add_user(kb_db)
     add_doc(kb_db, "TEST-KB-T", n_chunks=3)
     before = len(audit_rows(kb_db))
-    d = get_detail(kb_db, "TEST-KB-T", admin.id)
+    d = get_detail(kb_db, "TEST-KB-T", ADMIN_EMAIL)
     assert [c.ordinal for c in d.chunks] == [0, 1, 2]
     assert d.access_logged is False and d.row.chunk_count == 3
     assert len(audit_rows(kb_db)) == before
 
 
 def test_detail_tai_lieu_mat_ghi_dung_mot_dong_audit(kb_db):
-    admin = add_user(kb_db)
     add_doc(kb_db, "TEST-KB-M", n_chunks=2, classification="Mat")
     before = len(audit_rows(kb_db))
-    d = get_detail(kb_db, "TEST-KB-M", admin.id)
+    d = get_detail(kb_db, "TEST-KB-M", ADMIN_EMAIL)
 
     rows = audit_rows(kb_db)[before:]
     assert len(rows) == 1
-    assert rows[0].user_id == admin.id and rows[0].detail["doc_id"] == "TEST-KB-M"
+    assert rows[0].detail["actor"] == ADMIN_EMAIL and rows[0].detail["doc_id"] == "TEST-KB-M"
     assert d.access_logged is True and len(d.chunks) == 2
     # lượt xem hiện ngay trong lịch sử của tài liệu, kèm tên người xem
-    assert d.history[0].by == "test.admin" and "Mật" in d.history[0].text
+    assert d.history[0].by == ADMIN_EMAIL and "Mật" in d.history[0].text
 
-    get_detail(kb_db, "TEST-KB-M", admin.id)  # mỗi lượt xem là một dòng
+    get_detail(kb_db, "TEST-KB-M", ADMIN_EMAIL)  # mỗi lượt xem là một dòng
     assert len(audit_rows(kb_db)) == before + 2
 
 
 def test_detail_mat_ghi_log_loi_thi_khong_tra_chunk(kb_db, monkeypatch):
     """Fail closed: ghi audit hỏng thì không đọc, không trả chunk nào."""
-    admin = add_user(kb_db)
     add_doc(kb_db, "TEST-KB-F", classification="Mat")
     kb_db.commit()  # chốt dữ liệu mẫu để get_row không phải flush
 
@@ -100,24 +96,26 @@ def test_detail_mat_ghi_log_loi_thi_khong_tra_chunk(kb_db, monkeypatch):
 
     monkeypatch.setattr(kb_db, "flush", boom)
     with pytest.raises(RuntimeError):
-        get_detail(kb_db, "TEST-KB-F", admin.id)
+        get_detail(kb_db, "TEST-KB-F", ADMIN_EMAIL)
     assert len(calls) == 1  # chỉ get_row; truy vấn chunk không bao giờ chạy
 
 
 def test_history_chi_lay_su_kien_kb_cua_dung_tai_lieu(kb_db):
-    admin = add_user(kb_db)
     add_doc(kb_db, "TEST-KB-H1")
     add_doc(kb_db, "TEST-KB-H2")
     kb_db.add_all([
-        AuditLog(user_id=admin.id, event="kb_quarantine", detail={"doc_id": "TEST-KB-H1", "on": True}),
+        AuditLog(
+            user_id=None, event="kb_quarantine",
+            detail={"doc_id": "TEST-KB-H1", "on": True, "actor": ADMIN_EMAIL},
+        ),
         AuditLog(user_id=None, event="kb_upload", detail={"doc_id": "TEST-KB-H1"}),
-        AuditLog(user_id=admin.id, event="kb_reindex", detail={"doc_id": "TEST-KB-H2"}),  # tài liệu khác
-        AuditLog(user_id=admin.id, event="ocr_run", detail={"doc_id": "TEST-KB-H1"}),  # không phải sự kiện kb
+        AuditLog(user_id=None, event="kb_reindex", detail={"doc_id": "TEST-KB-H2"}),  # tài liệu khác
+        AuditLog(user_id=None, event="ocr_run", detail={"doc_id": "TEST-KB-H1"}),  # không phải sự kiện kb
     ])
     kb_db.flush()
-    h = get_detail(kb_db, "TEST-KB-H1", admin.id).history
+    h = get_detail(kb_db, "TEST-KB-H1", ADMIN_EMAIL).history
     assert [x.text for x in h] == ["Nạp tài liệu vào kho", "Cách ly tài liệu"]  # mới nhất trước
-    assert h[0].by == "hệ thống" and h[1].by == "test.admin"
+    assert h[0].by == "hệ thống" and h[1].by == ADMIN_EMAIL
 
 
 # ---------------------------------------------------------------- kiểm tra quyền đọc (dùng lại can_read)

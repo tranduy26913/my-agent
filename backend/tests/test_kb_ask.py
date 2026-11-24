@@ -1,6 +1,7 @@
 """POST /api/kb/ask (trang Tra cứu của portal).
 
-Kiểm lớp API: xác thực bằng X-Portal-Token, tra người hỏi theo email trong bảng employees, schema camelCase.
+Kiểm lớp API: xác thực bằng Bearer token Zitadel giả (ký trong test), tra người hỏi theo email trong
+bảng employees, schema camelCase.
 Hàm `ask` (truy xuất + LLM) được thay bằng bản giả: logic đó đã có test riêng (test_rag_logic.py, eval), và
 test này không được phụ thuộc model embedding hay LocalAI. Các ca cần nhân viên chạy trên Postgres thật trong
 transaction rollback (tests/kb_testkit.py); không có DB thì skip.
@@ -13,13 +14,14 @@ from fastapi.testclient import TestClient
 
 from app.api import ask as ask_module
 from app.api.deps import get_db
-from app.config import settings
+from app.auth.oidc import get_verifier
 from app.main import create_app
 from app.rag.answer import AskResult
 from app.rag.retriever import Hit
 from tests.kb_testkit import _kb_db, add_employee  # noqa: F401  (_kb_db = fixture kb_db)
+from tests.oidc_testkit import Idp
 
-TOKEN = "tok-test-portal"
+IDP = Idp()
 
 
 def make_hit() -> Hit:
@@ -40,23 +42,23 @@ def make_hit() -> Hit:
 
 
 @pytest.fixture(name="client")
-def _client(monkeypatch):
-    monkeypatch.setattr(settings, "portal_bff_token", TOKEN)
+def _client():
     app = create_app()
     app.dependency_overrides[get_db] = lambda: None  # các ca 401/422 không chạm DB
+    app.dependency_overrides[get_verifier] = IDP.verifier
     return TestClient(app)
 
 
 @pytest.fixture(name="db_client")
-def _db_client(kb_db, monkeypatch):
-    monkeypatch.setattr(settings, "portal_bff_token", TOKEN)
+def _db_client(kb_db):
     app = create_app()
     app.dependency_overrides[get_db] = lambda: kb_db
+    app.dependency_overrides[get_verifier] = IDP.verifier
     return TestClient(app)
 
 
-def headers(email="test.binh@saoviet.example", token=TOKEN):
-    return {"X-Portal-Token": token, "X-User-Email": email}
+def headers(email="test.binh@saoviet.example", **claims):
+    return {"Authorization": f"Bearer {IDP.token(email=email, **claims)}"}
 
 
 # ---------- xác thực ----------
@@ -66,36 +68,24 @@ def test_khong_token_401(client):
     assert client.post("/api/kb/ask", json={"question": "x"}).status_code == 401
 
 
-def test_sai_token_401(client):
-    assert client.post("/api/kb/ask", json={"question": "x"}, headers=headers(token="sai")).status_code == 401
+@pytest.mark.parametrize("claims", [{"exp": 1}, {"aud": ["khac"]}, {"iss": "https://evil.example"}])
+def test_token_sai_401(client, claims):
+    assert client.post("/api/kb/ask", json={"question": "x"}, headers=headers(**claims)).status_code == 401
 
 
-def test_chua_cau_hinh_token_thi_tu_choi_het(client, monkeypatch):
-    monkeypatch.setattr(settings, "portal_bff_token", "")
-    # token rỗng khớp với cấu hình rỗng cũng KHÔNG được qua (fail closed)
-    assert client.post("/api/kb/ask", json={"question": "x"}, headers=headers(token="")).status_code == 401
+def test_chua_cau_hinh_oidc_thi_tu_choi_het(client):
+    client.app.dependency_overrides[get_verifier] = lambda: None
+    assert client.post("/api/kb/ask", json={"question": "x"}, headers=headers()).status_code == 401
 
 
-def test_token_co_ky_tu_la_van_la_401_khong_phai_500(client):
-    h = {
-        "X-Portal-Token": "tôi-là-token".encode(),
-        "X-User-Email": "a@b.c",
-    }  # bytes: httpx không nhận str ngoài ASCII
+def test_header_cau_noi_cu_khong_con_tac_dung(client):
+    """X-Portal-Token + X-User-Email (cầu nối cũ) đã gỡ ở giai đoạn 6: không Bearer thì 401."""
+    h = {"X-Portal-Token": "bat-ky", "X-User-Email": "a@b.c"}
     assert client.post("/api/kb/ask", json={"question": "x"}, headers=h).status_code == 401
 
 
-def test_thieu_email_401(client):
-    h = {"X-Portal-Token": TOKEN}
-    assert client.post("/api/kb/ask", json={"question": "x"}, headers=h).status_code == 401
-
-
-def test_token_cua_admin_kb_khong_dung_duoc_cho_ask(client):
-    """JWT Bearer của /api/kb (admin) không thay được X-Portal-Token."""
-    r = client.post(
-        "/api/kb/ask",
-        json={"question": "x"},
-        headers={"Authorization": "Bearer abc", "X-User-Email": "a@b.c"},
-    )
+def test_bearer_khong_phai_jwt_401(client):
+    r = client.post("/api/kb/ask", json={"question": "x"}, headers={"Authorization": "Bearer abc"})
     assert r.status_code == 401
 
 

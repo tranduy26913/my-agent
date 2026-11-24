@@ -72,7 +72,7 @@ class KbDocumentOut(CamelModel):
     chunk_count: int
     ocr_pages: int
     source: str
-    uploaded_by: str | None  # username, join từ users
+    uploaded_by: str | None  # email người nạp (Zitadel); None nếu nạp từ thư mục data/knowledge
     created_at: datetime
 
 
@@ -144,8 +144,8 @@ def file_kind_of(source: str) -> FileKind:
 def to_kb_document(doc: Document, username: str | None, chunk_count: int) -> KbDocumentOut:
     """ORM `Document` -> schema trả về. MỌI trường suy ra (status, fileKind, classified) gom ở đây.
 
-    `username` và `chunk_count` là hai thứ không nằm trong bảng documents: người gọi lấy bằng
-    outerjoin(users) và subquery count(chunks) trong cùng MỘT truy vấn, tránh N+1.
+    `username` (email người nạp) và `chunk_count` do người gọi truyền vào: số chunk lấy bằng subquery
+    count(chunks) trong cùng MỘT truy vấn, tránh N+1.
 
     .NET: đây là AutoMapper profile / hàm `ToDto()` (Entity -> DTO). Điểm khác EF Core: entity ở đây
     không tự nạp thuộc tính điều hướng (lazy load) nên hai giá trị phụ phải được truyền vào tường minh.
@@ -219,12 +219,12 @@ _BATCH_RESPONSES = {207: {"description": "Một số tài liệu lỗi; các tà
 @router.post("/documents:reindex", status_code=204, responses=_BATCH_RESPONSES)
 def reindex_documents(body: DocIdsIn, user: Actor = Depends(admin_only), db: Session = Depends(get_db)):
     # Đồng bộ: embed nặng CPU, lô lớn có thể lâu (trạng thái `processing` thật + hàng đợi: để sau, docs/08)
-    return _batch_response(kb_service.reindex_documents(db, body.doc_ids, user.id, user.name), "Nạp lại")
+    return _batch_response(kb_service.reindex_documents(db, body.doc_ids, user.email), "Nạp lại")
 
 
 @router.post("/documents:delete", status_code=204, responses=_BATCH_RESPONSES)
 def delete_documents(body: DocIdsIn, user: Actor = Depends(admin_only), db: Session = Depends(get_db)):
-    return _batch_response(kb_service.delete_documents(db, body.doc_ids, user.id, user.name), "Xoá")
+    return _batch_response(kb_service.delete_documents(db, body.doc_ids, user.email), "Xoá")
 
 
 @router.put("/documents/{doc_id}/quarantine", status_code=204)
@@ -232,7 +232,7 @@ def set_quarantine(
     doc_id: str, body: QuarantineIn, user: Actor = Depends(admin_only), db: Session = Depends(get_db)
 ):
     try:
-        kb_service.set_quarantine(db, doc_id, body.on, user.id, user.name)
+        kb_service.set_quarantine(db, doc_id, body.on, user.email)
     except DocNotFound as e:
         raise HTTPException(404, "Không tìm thấy tài liệu") from e
     return Response(status_code=204)
@@ -241,7 +241,7 @@ def set_quarantine(
 @router.get("/documents/{doc_id}", response_model=KbDocumentDetailOut)
 def get_document(doc_id: str, user: Actor = Depends(admin_only), db: Session = Depends(get_db)):
     try:
-        detail = kb_service.get_detail(db, doc_id, actor_id=user.id, actor_name=user.name)
+        detail = kb_service.get_detail(db, doc_id, actor=user.email)
     except DocNotFound as e:
         raise HTTPException(404, "Không tìm thấy tài liệu") from e
     return to_kb_detail(detail)
@@ -288,7 +288,7 @@ def upload_document(
     try:
         row = kb_service.upload_document(
             db, data=data, filename=file.filename or "", content_type=file.content_type,
-            meta=doc_meta, actor_id=user.id, actor_name=user.name,
+            meta=doc_meta, actor=user.email,
         )
     except KbError as e:
         raise HTTPException(e.status_code, str(e)) from e

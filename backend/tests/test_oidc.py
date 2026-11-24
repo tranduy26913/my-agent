@@ -10,7 +10,6 @@ from fastapi.testclient import TestClient
 
 from app.api.deps import get_asker_email, get_db
 from app.auth.oidc import OidcError, get_verifier
-from app.config import settings
 from app.knowledge_mcp import authenticate_headers
 from app.main import create_app
 from tests.kb_testkit import _kb_db, add_doc, add_employee, audit_since_start  # noqa: F401  (_kb_db = fixture kb_db)
@@ -61,7 +60,7 @@ def _expect_401(idp, token):
             "HS256 ký bằng secret của backend",
             lambda i: jwt.encode(
                 {"iss": ISSUER, "aud": PROJECT_ID, "sub": "x", "exp": 4_102_444_800},
-                settings.jwt_secret,
+                "k" * 40,
                 algorithm="HS256",
                 headers={"kid": KID},
             ),
@@ -254,82 +253,53 @@ def test_admin_xem_tai_lieu_mat_van_bi_ghi_log(api, idp):  # ADR-004 ca 6
     assert row.detail["actor"] == "test.admin@test.example" and row.detail["doc_id"] == "TEST-OIDC-MAT"
 
 
-def test_jwt_cu_hs256_van_dung_duoc_trong_thoi_gian_chuyen(api):
-    """Đường cũ chạy song song đến giai đoạn 6: JWT HS256 của bảng users không bị đường Zitadel chặn nhầm."""
-    from app.security import create_access_token
-    from tests.kb_testkit import add_user
-
-    c, db = api
-    admin = add_user(db, "test.legacy.admin")
-    r = c.get(URL, headers=bearer(create_access_token(admin.id, "admin")))
-    assert r.status_code == 200
+def test_jwt_cu_hs256_bi_tu_choi_sau_giai_doan_6(api):
+    """JWT HS256 tự phát của backend đã bỏ: không còn đường nào nhận nó."""
+    c, _ = api
+    legacy = jwt.encode({"sub": "1", "role": "admin"}, "k" * 32, algorithm="HS256")
+    assert c.get(URL, headers=bearer(legacy)).status_code == 401
 
 
 # ---------------------------------------------------------------- 3. get_asker_email và knowledge-mcp
 
 
-def test_asker_email_tu_bearer_va_khong_lui_ve_cau_noi_khi_bearer_sai(idp, monkeypatch):
-    monkeypatch.setattr(settings, "portal_bff_token", "bridge-secret")
+def test_asker_email_tu_bearer_khong_co_cau_noi_cu(idp):
     v = idp.verifier()
-    ok = get_asker_email(
-        authorization=f"Bearer {idp.token()}", x_portal_token="", x_user_email="", verifier=v
-    )
-    assert ok == "binh.le@test.example"
-    # Bearer hỏng + header cầu nối hợp lệ: PHẢI từ chối, không được lùi về cầu nối để lọt qua
+    assert get_asker_email(authorization=f"Bearer {idp.token()}", verifier=v) == "binh.le@test.example"
     from fastapi import HTTPException
 
-    with pytest.raises(HTTPException) as e:
-        get_asker_email(
-            authorization=f"Bearer {idp.token(exp=1)}",
-            x_portal_token="bridge-secret",
-            x_user_email="huy.do@x",
-            verifier=v,
-        )
+    for bad in (f"Bearer {idp.token(exp=1)}", "", "Bearer"):
+        with pytest.raises(HTTPException) as e:
+            get_asker_email(authorization=bad, verifier=v)
+        assert e.value.status_code == 401
+    with pytest.raises(HTTPException) as e:  # OIDC chưa cấu hình: fail closed
+        get_asker_email(authorization=f"Bearer {idp.token()}", verifier=None)
     assert e.value.status_code == 401
-    # Không Bearer: cầu nối cũ vẫn chạy
-    assert (
-        get_asker_email(authorization="", x_portal_token="bridge-secret", x_user_email="a@x", verifier=v)
-        == "a@x"
-    )
 
 
-def test_mcp_bearer_hop_le(idp, monkeypatch):
-    monkeypatch.setattr(settings, "kb_mcp_token", "mcp-secret")
+def test_mcp_bearer_hop_le(idp):
     email = authenticate_headers({"Authorization": f"Bearer {idp.token()}"}, idp.verifier())
     assert email == "binh.le@test.example"
 
 
-def test_mcp_bearer_sai_khong_lui_ve_x_kb_token(idp, monkeypatch):
-    monkeypatch.setattr(settings, "kb_mcp_token", "mcp-secret")
+def test_mcp_bearer_sai_bi_tu_choi_du_co_header_cu(idp):
     h = {
         "Authorization": f"Bearer {idp.token(exp=1)}",
-        "X-KB-Token": "mcp-secret",
+        "X-KB-Token": "bat-ky",
         "X-User-Email": "huy.do@x",
     }
     with pytest.raises(PermissionError):
         authenticate_headers(h, idp.verifier())
 
 
-def test_mcp_dung_x_kb_token_khi_chua_co_bearer_va_cho_tat_bang_co(idp, monkeypatch):
-    monkeypatch.setattr(settings, "kb_mcp_token", "mcp-secret")
-    h = {"x-kb-token": "mcp-secret", "x-user-email": "binh.le@test.example"}
-    assert authenticate_headers(h, idp.verifier()) == "binh.le@test.example"
-    # LibreChat chưa thay biến (người dùng chưa đăng nhập OIDC): Bearer chứa "{{" coi như không có Bearer
-    h2 = {**h, "authorization": "Bearer {{LIBRECHAT_OPENID_ACCESS_TOKEN}}"}
-    assert authenticate_headers(h2, idp.verifier()) == "binh.le@test.example"
-    # hoặc biến bị thay bằng chuỗi rỗng: "Bearer "
-    assert authenticate_headers({**h, "authorization": "Bearer "}, idp.verifier()) == "binh.le@test.example"
-    monkeypatch.setattr(settings, "kb_mcp_allow_shared_token", False)
+@pytest.mark.parametrize("auth", [None, "Bearer {{LIBRECHAT_OPENID_ACCESS_TOKEN}}", "Bearer ", "Basic abc"])
+def test_mcp_khong_co_bearer_thi_tu_choi_x_kb_token_da_go(idp, auth):
+    """Giai đoạn 6: X-KB-Token + X-User-Email không còn là đường vào, kể cả khi LibreChat chưa thay biến."""
+    h = {"x-kb-token": "bat-ky", "x-user-email": "binh.le@test.example"}
+    if auth is not None:
+        h["authorization"] = auth
     with pytest.raises(PermissionError):
         authenticate_headers(h, idp.verifier())
-    with pytest.raises(PermissionError):
-        authenticate_headers(h2, idp.verifier())
-
-
-def test_mcp_header_ky_tu_la_la_tu_choi_chu_khong_loi_500(idp, monkeypatch):
-    monkeypatch.setattr(settings, "kb_mcp_token", "mcp-secret")
-    with pytest.raises(PermissionError):
-        authenticate_headers({"x-kb-token": "mật-khẩu-Đ", "x-user-email": "a@x"}, None)
 
 
 def test_mcp_bearer_nhung_oidc_chua_cau_hinh_thi_tu_choi(idp):

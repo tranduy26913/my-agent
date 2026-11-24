@@ -12,14 +12,14 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
-from app.api.deps import UserInfo, get_db, get_legacy_user
+from app.api.deps import Actor, get_db, get_kb_admin
 from app.config import settings
 from app.main import create_app
 from app.models import Document
 from app.rag import kb_service
 from app.rag.embeddings import get_embedder
 from app.rag.kb_service import KbError, check_file, derive_doc_id
-from tests.kb_testkit import _kb_db, add_doc, add_user, audit_since_start  # noqa: F401  (_kb_db = fixture kb_db)
+from tests.kb_testkit import ADMIN_EMAIL, _kb_db, add_doc, audit_since_start  # noqa: F401  (_kb_db = fixture kb_db)
 
 URL = "/api/kb/documents"
 MD = "text/markdown"
@@ -74,10 +74,10 @@ def env(kb_db, tmp_path, monkeypatch):
     monkeypatch.setattr(settings, "upload_dir", str(tmp_path / "uploads"))
     monkeypatch.setattr(settings, "embedding_provider", "hash")
     get_embedder.cache_clear()
-    admin = add_user(kb_db)
+    admin = Actor(ADMIN_EMAIL)
     app = create_app()
     app.dependency_overrides[get_db] = lambda: kb_db
-    app.dependency_overrides[get_legacy_user] = lambda: UserInfo(admin.id, "test.admin", "admin", "CNTT")
+    app.dependency_overrides[get_kb_admin] = lambda: admin
     yield TestClient(app, raise_server_exceptions=False), kb_db, admin, tmp_path / "uploads"
     get_embedder.cache_clear()
 
@@ -131,13 +131,13 @@ def test_derive_doc_id():
 
 # ---------------------------------------------------------------- quyền
 
-def test_upload_can_dang_nhap_va_admin():
+def test_upload_can_dang_nhap():
     app = create_app()
     app.dependency_overrides[get_db] = lambda: None
     files = {"file": ("a.md", b"# x", MD)}
     assert TestClient(app).post(URL, files=files).status_code == 401
-    app.dependency_overrides[get_legacy_user] = lambda: UserInfo(2, "nv", "staff", "KD")
-    assert TestClient(app).post(URL, files=files).status_code == 403
+    # Vai trò admin kiểm ở tests/test_oidc.py (nhân viên thường 403)
+    assert TestClient(app).post(URL, files=files, headers={"Authorization": "Bearer xxx"}).status_code == 401
 
 
 # ---------------------------------------------------------------- nhánh .md có frontmatter
@@ -149,15 +149,15 @@ def test_md_frontmatter_nap_dung_va_ghi_vet(env):
     body = r.json()
     assert body["docId"] == "TEST-UP-001" and body["title"] == "Quy chế thử nghiệm"
     assert body["soHieu"] == "99/2026/TEST" and body["effectiveFrom"] == "2026-03-01"
-    assert body["uploadedBy"] == "test.admin" and body["chunkCount"] >= 2
+    assert body["uploadedBy"] == ADMIN_EMAIL and body["chunkCount"] >= 2
     assert body["fileKind"] == "md" and body["source"].endswith(".md")
     assert len(saved_files(folder)) == 1 and saved_files(folder)[0].endswith(".md")  # bản gốc đã lưu
 
     logs = [a for a in audit(db) if a.detail["doc_id"] == "TEST-UP-001"]
-    assert len(logs) == 1 and logs[0].user_id == admin.id
+    assert len(logs) == 1 and logs[0].detail["actor"] == admin.email and logs[0].user_id is None
     assert "quy-che-thu" not in str(logs[0].detail)  # riêng tư: không ghi tên tệp
     hist = c.get(f"{URL}/TEST-UP-001").json()["history"]
-    assert [h["text"] for h in hist] == ["Nạp tài liệu vào kho"] and hist[0]["by"] == "test.admin"
+    assert [h["text"] for h in hist] == ["Nạp tài liệu vào kho"] and hist[0]["by"] == ADMIN_EMAIL
 
 
 def test_md_co_bom_van_nhan_frontmatter(env):
