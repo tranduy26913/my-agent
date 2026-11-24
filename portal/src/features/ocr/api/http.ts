@@ -1,4 +1,16 @@
-import type { JobStatus, OcrApi, OcrJob, OcrJobDetail, OcrOptions, OcrPageResult, OcrResult } from "../types";
+import type {
+  ExpenseKind,
+  ExpenseLine,
+  ExtractResult,
+  Finding,
+  JobStatus,
+  OcrApi,
+  OcrJob,
+  OcrJobDetail,
+  OcrOptions,
+  OcrPageResult,
+  OcrResult,
+} from "../types";
 
 /** OCR một ảnh mất vài giây đến vài chục giây; quá lâu thì báo lỗi thay vì chờ mãi. */
 const SYNC_TIMEOUT_MS = 180_000;
@@ -38,6 +50,58 @@ interface RawJob {
   pages?: RawPage[] | null;
   ocr_pages?: number | null;
 }
+
+interface RawExtract {
+  schema_id: string;
+  data: {
+    so_phieu: string;
+    ma_nv: string;
+    ho_ten: string;
+    phong_ban: string;
+    noi_cong_tac: string;
+    tu_ngay: string;
+    den_ngay: string;
+    ngay_lap: string;
+    cac_khoan: { noi_dung: string; so_luong: string; thanh_tien: number; co_hoa_don: boolean | null; loai: ExpenseKind }[];
+    tong_cong: number;
+    da_tam_ung: number;
+    de_nghi_thanh_toan_them: number;
+  };
+  findings: { code: string; severity: Finding["severity"]; message: string; field: string | null; rule: string | null; over_amount: number | null }[];
+  needs_review: boolean;
+  engine: string;
+  llm_model: string;
+  pages: number;
+  ocr_pages: number;
+  ms: number;
+}
+
+const toExtract = (r: RawExtract): ExtractResult => ({
+  schemaId: r.schema_id,
+  form: {
+    formNo: r.data.so_phieu,
+    employeeCode: r.data.ma_nv,
+    fullName: r.data.ho_ten,
+    department: r.data.phong_ban,
+    place: r.data.noi_cong_tac,
+    fromDate: r.data.tu_ngay,
+    toDate: r.data.den_ngay,
+    issuedDate: r.data.ngay_lap,
+    lines: r.data.cac_khoan.map(
+      (l): ExpenseLine => ({ content: l.noi_dung, quantity: l.so_luong, amount: l.thanh_tien, invoice: l.co_hoa_don, kind: l.loai }),
+    ),
+    total: r.data.tong_cong,
+    advance: r.data.da_tam_ung,
+    payMore: r.data.de_nghi_thanh_toan_them,
+  },
+  findings: r.findings.map((f) => ({ code: f.code, severity: f.severity, message: f.message, field: f.field, rule: f.rule, overAmount: f.over_amount })),
+  needsReview: r.needs_review,
+  engine: r.engine,
+  llmModel: r.llm_model,
+  pages: r.pages,
+  ocrPages: r.ocr_pages,
+  ms: r.ms,
+});
 
 const toPage = (p: RawPage): OcrPageResult => ({ page: p.page, text: p.text, source: p.source, ms: p.ms });
 
@@ -106,6 +170,10 @@ export function createHttpOcrApi({ baseUrl }: { baseUrl: string }): OcrApi {
     },
     async getJob(id) {
       return toDetail((await (await call(`/jobs/${encodeURIComponent(id)}`)).json()) as RawJob);
+    },
+    async extract(file, opts) {
+      const res = await upload("/extract", file, opts, { signal: AbortSignal.timeout(SYNC_TIMEOUT_MS) });
+      return toExtract((await res.json()) as RawExtract);
     },
     async deleteJob(id) {
       await call(`/jobs/${encodeURIComponent(id)}`, { method: "DELETE" });

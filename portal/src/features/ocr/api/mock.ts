@@ -1,4 +1,4 @@
-import type { OcrApi, OcrJob, OcrJobDetail, OcrPageResult } from "../types";
+import type { ExtractResult, OcrApi, OcrJob, OcrJobDetail, OcrPageResult } from "../types";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -13,6 +13,39 @@ function pagesOf(n: number): OcrPageResult[] {
     ms: 900 + i * 120,
   }));
 }
+
+const SAMPLE_EXTRACT: ExtractResult = {
+  schemaId: "cong-tac-phi",
+  form: {
+    formNo: "CTP-2026-0412",
+    employeeCode: "NV018",
+    fullName: "Phạm Thị Phương",
+    department: "KD",
+    place: "Đà Nẵng",
+    fromDate: "2026-10-12",
+    toDate: "2026-10-14",
+    issuedDate: "2026-10-30",
+    lines: [
+      { content: "Vé máy bay khứ hồi", quantity: "1", amount: 3_450_000, invoice: true, kind: "di_lai" },
+      { content: "Khách sạn (1.500.000 đ/đêm)", quantity: "2 đêm", amount: 3_000_000, invoice: true, kind: "khach_san" },
+      { content: "Tiếp khách", quantity: "1", amount: 1_200_000, invoice: false, kind: "tiep_khach" },
+    ],
+    total: 7_650_000,
+    advance: 5_000_000,
+    payMore: 2_650_000,
+  },
+  findings: [
+    { code: "khach_san_vuot_dinh_muc", severity: "error", message: "Khách sạn 1.500.000 đ/đêm vượt định mức 1.200.000 đ/đêm (vượt 600.000 đ cho 2 đêm)", field: "cac_khoan[1]", rule: "08/2025/QĐ-SVT Điều 5", overAmount: 600_000 },
+    { code: "ngoai_danh_muc", severity: "error", message: "Khoản 'Tiếp khách' không thuộc danh mục công tác phí và không có hóa đơn", field: "cac_khoan[2]", rule: "08/2025/QĐ-SVT Điều 4, 5", overAmount: 1_200_000 },
+    { code: "nguoi_duyet", severity: "info", message: "Tổng 7.650.000 đ: Kế toán trưởng phê duyệt", field: null, rule: "08/2025/QĐ-SVT Điều 8 khoản 2", overAmount: null },
+  ],
+  needsReview: true,
+  engine: "mock",
+  llmModel: "mock",
+  pages: 1,
+  ocrPages: 1,
+  ms: 9000,
+};
 
 /** Dữ liệu giả để làm giao diện khi chưa có backend: job tiến triển theo thời gian thật (mỗi trang ~1 giây). */
 export function createMockOcrApi(): OcrApi {
@@ -67,6 +100,10 @@ export function createMockOcrApi(): OcrApi {
     async deleteJob(id) {
       await sleep(150);
       jobs.delete(id);
+    },
+    async extract() {
+      await sleep(1800);
+      return SAMPLE_EXTRACT;
     },
   };
 }

@@ -1,5 +1,7 @@
-import { ComingSoon } from "@/shell/ComingSoon";
+import { LibraryNextHost } from "@/host/LibraryNextHost";
 
-export default function Page() {
-  return <ComingSoon href="/tools/van-ban" />;
+export const metadata = { title: "Văn bản" };
+
+export default function LibraryRoute() {
+  return <LibraryNextHost />;
 }

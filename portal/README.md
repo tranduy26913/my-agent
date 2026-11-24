@@ -16,7 +16,7 @@ src/app/(portal)/        trang cần đăng nhập, bọc bởi khung (sidebar +
 src/app/(portal)/admin/  cổng admin: layout.tsx kiểm vai trò, không đủ quyền thì sang /403
 src/app/api/[...path]/   BFF: gắn Bearer phía server rồi chuyển tiếp tới FastAPI (chỉ nhóm khai ở ROUTES)
 src/shell/               AppShell, SidebarNav, UserMenu; nav.ts là NGUỒN DUY NHẤT của điều hướng
-src/lib/                 utils.ts (cn), Me (người dùng), getMe() giả, token backend
+src/lib/                 utils.ts (cn), http.ts (apiJson/postJson: mô-đun được import), Me (người dùng), getMe()
 src/components/ui/       component của shadcn (button, sheet, table, sidebar...), thêm bằng `npx shadcn@latest add <ten>`
 src/features/<ten>/      mô-đun giao diện, KHÔNG import next/* (ESLint chặn); chỉ được import @/components/ui/* và @/lib/utils
 src/host/                adapter Next cho mô-đun (router, QueryClient)
@@ -48,6 +48,14 @@ Thêm một trang công cụ: thêm một dòng vào `src/shell/nav.ts` + một 
 ### Không còn người dùng giả
 
 Giai đoạn 6 (docs/06) đã gỡ `PORTAL_DEV_AUTH`, `API_DEV_TOKEN` và `PORTAL_BFF_TOKEN`. Muốn xem portal phải đăng nhập Zitadel thật; để thử hai vai trò thì đăng nhập bằng một admin (vd `huy.do`) và một nhân viên thường (vd `binh.le`) ở hai cửa sổ ẩn danh.
+
+## Trang Tài khoản, Văn bản, Nghỉ phép, Danh bạ, Phiếu công tác phí (docs/07 mục 9)
+
+Mô-đun `features/users`, `library`, `leave`, `directory` chỉ có `api/http.ts`, **không có dữ liệu giả**: các trang này phụ thuộc vào quyền của chính người đăng nhập, nên dữ liệu giả sẽ cho thấy một thứ không đúng với quyền thật. Chúng gọi qua BFF: `/api/admin/users` (admin), `/api/kb/library` và `/api/hr/*` (mọi nhân viên; backend tự lọc phạm vi theo ADR-001/003). Tab "Phiếu công tác phí" nằm trong trang OCR, gọi `POST /api/ocr/extract`.
+
+- `/admin/users` cần backend có `ZITADEL_ADMIN_PAT` (không có thì trang báo 503). Mọi thao tác ghi vào Nhật ký; mật khẩu tạm chỉ hiện một lần.
+- `/tools/nghi-phep`, `/tools/danh-ba` cần ba bảng `leave_balances`, `leave_requests`, `employee_contacts`: `cd backend; .venv\Scripts\python -m app.seed_hr --dry-run` để xem, bỏ `--dry-run` để tạo và nạp (**ghi vào DB**).
+- Thử cả hai vai trò: đăng nhập admin (vd `huy.do`) và nhân viên thường (vd `binh.le`) ở hai cửa sổ ẩn danh. Chạy thêm bản dev ở cổng khác: `NEXT_DIST_DIR=.next-xxx npx next dev -p 3101`, rồi hoàn lại `tsconfig.json` (`git checkout -- portal/tsconfig.json`) và xoá `portal/AGENTS.md` mà Next tự sinh. Cookie của `localhost` dùng chung giữa các cổng; chạy ở `127.0.0.1` để khỏi đè phiên của bản đang chạy.
 
 ## Trang Nhật ký và Chi phí (`/admin/audit`, `/admin/usage`)
 

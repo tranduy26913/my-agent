@@ -25,9 +25,15 @@ interface Rule {
 
 const ROUTES: Rule[] = [
   { path: "kb/ask", methods: ["POST"] },
+  // Thư viện văn bản: mọi nhân viên; backend lọc theo quyền xem của chính người gọi (ADR-001).
+  { path: "kb/library", methods: ["GET"] },
   { path: "kb", roles: [ROLE_ADMIN] },
+  // Nghỉ phép, danh bạ: mọi nhân viên; backend quyết định xem của ai theo vai trò (ADR-003). Chỉ đọc.
+  { path: "hr", methods: ["GET"] },
   // OCR: mọi người đã đăng nhập; backend kiểm tra nhân viên và chỉ cho xem job của chính mình.
   { path: "ocr" },
+  // Tài khoản: tạo, khoá, mở khoá, đặt lại mật khẩu (mọi thao tác ghi vào Nhật ký ở backend).
+  { path: "admin/users", methods: ["GET", "POST"], roles: [ROLE_ADMIN] },
   { path: "admin/audit", methods: ["GET"], roles: [ROLE_ADMIN] },
   { path: "admin/usage", methods: ["GET"], roles: [ROLE_ADMIN] },
 ];

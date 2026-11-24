@@ -8,7 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { OcrApi, OcrResult } from "../types";
+import { ExtractPanel } from "./ExtractPanel";
 import { JobList } from "./JobList";
 import { ResultView } from "./ResultView";
 
@@ -26,10 +28,10 @@ const jobsKey = ["ocr", "jobs"] as const;
 const jobKey = (id: string) => ["ocr", "job", id] as const;
 
 /**
- * Trang OCR: lấy chữ từ ảnh hoặc PDF. Ảnh (một trang) đọc đồng bộ và không lưu; PDF chạy job nền, có tiến độ và lịch sử
+ * Tab "Đọc chữ": lấy chữ từ ảnh hoặc PDF. Ảnh (một trang) đọc đồng bộ và không lưu; PDF chạy job nền, có tiến độ và lịch sử
  * 7 ngày. KHÔNG nạp vào kho tri thức (đó là việc của /admin/kb). KHÔNG gồm sidebar / header: đó là khung của portal.
  */
-export function OcrPage({ api }: { api: OcrApi }) {
+function TextPanel({ api }: { api: OcrApi }) {
   const qc = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [fileKey, setFileKey] = useState(0); // đổi key để xoá ô chọn file sau khi gửi
@@ -238,5 +240,26 @@ export function OcrPage({ api }: { api: OcrApi }) {
         File gốc và tên file không được lưu. Văn bản OCR có thể sai: hãy đối chiếu với bản gốc trước khi dùng cho việc quan trọng.
       </p>
     </div>
+  );
+}
+
+/**
+ * Trang OCR gồm hai tab: "Đọc chữ" (lấy văn bản từ ảnh/PDF) và "Phiếu công tác phí" (trích xuất và kiểm tra phiếu).
+ * Hai tab giữ nguyên nội dung khi chuyển qua lại (forceMount + ẩn), để đang chạy job hay vừa có kết quả không bị mất.
+ */
+export function OcrPage({ api }: { api: OcrApi }) {
+  return (
+    <Tabs defaultValue="text" className="mx-auto max-w-3xl gap-4">
+      <TabsList aria-label="Chế độ">
+        <TabsTrigger value="text">Đọc chữ</TabsTrigger>
+        <TabsTrigger value="extract">Phiếu công tác phí</TabsTrigger>
+      </TabsList>
+      <TabsContent value="text" forceMount className="data-[state=inactive]:hidden">
+        <TextPanel api={api} />
+      </TabsContent>
+      <TabsContent value="extract" forceMount className="data-[state=inactive]:hidden">
+        <ExtractPanel api={api} />
+      </TabsContent>
+    </Tabs>
   );
 }
