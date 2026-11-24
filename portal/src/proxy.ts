@@ -5,7 +5,7 @@ import { auth } from "@/auth";
  * Đây chỉ là kiểm tra "có phiên hay không" cho nhanh (Next: Proxy không phải nơi kiểm quyền); vai trò admin được
  * kiểm ở layout /admin (lib/me.server.ts) và ở FastAPI. Chạy qua `auth` để token hết hạn được làm mới sớm.
  *
- * Danh sách ngoại lệ nằm ở `matcher`: trang đăng nhập, /no-access, callback OIDC, tệp tĩnh.
+ * Danh sách ngoại lệ nằm ở `matcher`: trang đăng nhập, /no-access, /roadmap (công khai), callback OIDC, tệp tĩnh.
  */
 export const proxy = auth((req) => {
   if (req.auth && !req.auth.error) return;
@@ -21,5 +21,5 @@ export const proxy = auth((req) => {
 });
 
 export const config = {
-  matcher: ["/((?!login|no-access|api/auth|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
+  matcher: ["/((?!login|no-access|roadmap|api/auth|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
 };
