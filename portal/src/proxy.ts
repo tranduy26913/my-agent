@@ -8,7 +8,6 @@ import { auth } from "@/auth";
  * Danh sách ngoại lệ nằm ở `matcher`: trang đăng nhập, /no-access, callback OIDC, tệp tĩnh.
  */
 export const proxy = auth((req) => {
-  if (process.env.NODE_ENV !== "production" && process.env.PORTAL_DEV_AUTH === "1") return; // người dùng giả, xem me.server.ts
   if (req.auth && !req.auth.error) return;
 
   const { pathname, search, origin } = req.nextUrl;

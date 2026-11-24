@@ -19,5 +19,7 @@ export async function loginAction(formData: FormData): Promise<void> {
 export async function logoutAction(): Promise<void> {
   const session = await auth();
   await signOut({ redirect: false });
-  redirect(endSessionUrl(session?.idToken, `${portalOrigin()}/login`));
+  // Zitadel so khớp CHÍNH XÁC với danh sách đã khai (bootstrap.py): chỉ có gốc URL, không có "/login".
+  // Gốc URL sẽ tự chuyển về /login vì phiên đã bị xoá.
+  redirect(endSessionUrl(session?.idToken, portalOrigin()));
 }

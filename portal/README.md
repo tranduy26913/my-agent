@@ -45,9 +45,9 @@ Thêm một trang công cụ: thêm một dòng vào `src/shell/nav.ts` + một 
 - BFF (`src/app/api/[...path]/route.ts`) gắn `Authorization: Bearer <access token của chính người đăng nhập>`; backend tự kiểm chữ ký và tra quyền theo email, nên portal không thể nói hộ quyền người khác.
 - Dev khi chưa đăng nhập được: `AUTH_ZITADEL_INTERNAL_URL=http://127.0.0.1:8180` cho phép server portal gọi Zitadel qua localhost (dùng `X-Forwarded-Host`, vì `fetch` của Node bỏ header `Host`). Trình duyệt vẫn phải tới được `https://auth.tranduyai.id.vn` để nhập mật khẩu, nên vẫn cần route tunnel.
 
-### Người dùng giả (TẠM, xoá ở giai đoạn 6)
+### Không còn người dùng giả
 
-Đặt `PORTAL_DEV_AUTH=1` và `NEXT_PUBLIC_PORTAL_DEV_AUTH=1` (chỉ có tác dụng ở dev) để làm giao diện mà không cần đăng nhập: portal dùng `huy.do@saoviet.example` (admin) hoặc `binh.le@saoviet.example`, đổi ở menu người dùng. Khi đó BFF xưng danh bằng hai cầu nối cũ `API_DEV_TOKEN` (cho `/admin/kb`) và `PORTAL_BFF_TOKEN` (cho Tra cứu), xem `.env.example`.
+Giai đoạn 6 (docs/06) đã gỡ `PORTAL_DEV_AUTH`, `API_DEV_TOKEN` và `PORTAL_BFF_TOKEN`. Muốn xem portal phải đăng nhập Zitadel thật; để thử hai vai trò thì đăng nhập bằng một admin (vd `huy.do`) và một nhân viên thường (vd `binh.le`) ở hai cửa sổ ẩn danh.
 
 ## Trang Nhật ký và Chi phí (`/admin/audit`, `/admin/usage`)
 

@@ -1,5 +1,4 @@
 import type { NextRequest } from "next/server";
-import { getDevAskerHeaders, getDevBackendToken } from "@/lib/backend-token.server";
 import { ROLE_ADMIN, hasAnyRole } from "@/lib/me";
 import { resolveSession } from "@/lib/me.server";
 
@@ -11,8 +10,7 @@ import { resolveSession } from "@/lib/me.server";
  * thể (kb/ask) phải đặt trước mục chung (kb). Đây là lớp chặn sớm; FastAPI vẫn tự kiểm quyền, không dựa vào lớp này.
  *
  * Xưng danh với FastAPI: gắn access token Zitadel của CHÍNH người đang đăng nhập (Authorization: Bearer). Backend tự
- * kiểm chữ ký và tra quyền theo email trong token, nên portal không thể "nói hộ" quyền của người khác. `auth` ở
- * ROUTES chỉ còn phân biệt đường cầu nối dev (PORTAL_DEV_AUTH=1, xoá ở giai đoạn 6).
+ * kiểm chữ ký và tra quyền theo email trong token, nên portal không thể "nói hộ" quyền của người khác.
  */
 const BACKEND_URL = (process.env.BACKEND_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
@@ -23,16 +21,15 @@ interface Rule {
   roles?: string[];
   /** Không khai = mọi method. */
   methods?: string[];
-  auth: "bearer" | "asker";
 }
 
 const ROUTES: Rule[] = [
-  { path: "kb/ask", methods: ["POST"], auth: "asker" },
-  { path: "kb", roles: [ROLE_ADMIN], auth: "bearer" },
+  { path: "kb/ask", methods: ["POST"] },
+  { path: "kb", roles: [ROLE_ADMIN] },
   // OCR: mọi người đã đăng nhập; backend kiểm tra nhân viên và chỉ cho xem job của chính mình.
-  { path: "ocr", auth: "bearer" },
-  { path: "admin/audit", methods: ["GET"], roles: [ROLE_ADMIN], auth: "bearer" },
-  { path: "admin/usage", methods: ["GET"], roles: [ROLE_ADMIN], auth: "bearer" },
+  { path: "ocr" },
+  { path: "admin/audit", methods: ["GET"], roles: [ROLE_ADMIN] },
+  { path: "admin/usage", methods: ["GET"], roles: [ROLE_ADMIN] },
 ];
 
 type Ctx = { params: Promise<{ path: string[] }> };
@@ -60,14 +57,7 @@ async function proxy(req: NextRequest, ctx: Ctx): Promise<Response> {
   const headers = new Headers();
   const contentType = req.headers.get("content-type");
   if (contentType) headers.set("content-type", contentType);
-  if (accessToken) {
-    headers.set("authorization", `Bearer ${accessToken}`);
-  } else if (rule.auth === "bearer") {
-    const token = getDevBackendToken(); // chỉ khi PORTAL_DEV_AUTH=1
-    if (token) headers.set("authorization", `Bearer ${token}`);
-  } else {
-    for (const [k, v] of Object.entries(getDevAskerHeaders(me))) headers.set(k, v);
-  }
+  headers.set("authorization", `Bearer ${accessToken}`);
 
   const hasBody = req.method !== "GET" && req.method !== "HEAD";
   let upstream: Response;

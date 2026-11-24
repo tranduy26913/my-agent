@@ -38,10 +38,7 @@ mcpServers:
       # ký và lấy email đã xác minh trong token, nên không còn tin email do client khai. Người dùng đăng nhập bằng
       # email/mật khẩu thì LibreChat không có token để thay: biến giữ nguyên, knowledge-mcp bỏ qua dòng này.
       Authorization: "Bearer {{LIBRECHAT_OPENID_ACCESS_TOKEN}}"
-      # TẠM (đến khi bỏ đăng nhập mật khẩu, rồi đặt KB_MCP_ALLOW_SHARED_TOKEN=false ở backend và xoá hai dòng dưới):
-      # email người đang chat + bí mật dùng chung chứng minh request đến từ LibreChat.
-      X-User-Email: "{{LIBRECHAT_USER_EMAIL}}"
-      X-KB-Token: "${KB_MCP_TOKEN}"
+      # Giai đoạn 6 đã gỡ X-User-Email và X-KB-Token: không có token Zitadel thì knowledge-mcp từ chối.
 
 # Ngày 6 sẽ thêm hr-mcp vào mcpServers ở trên:
 #   hr-mcp:

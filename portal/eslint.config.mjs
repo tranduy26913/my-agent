@@ -20,7 +20,7 @@ const eslintConfig = defineConfig([
             { group: ["next", "next/*"], message: "Mô-đun giao diện không import Next.js. Đưa phần này sang src/host (adapter)." },
             // Không dùng "@/*" kèm phủ định: gitignore không cho "bỏ chặn" con khi thư mục cha đã bị chặn.
             {
-              group: ["@/app/**", "@/shell/**", "@/host/**", "@/hooks/**", "@/features/**", "@/lib/me", "@/lib/me.*", "@/lib/dev-role", "@/lib/backend-token*"],
+              group: ["@/app/**", "@/shell/**", "@/host/**", "@/hooks/**", "@/features/**", "@/lib/me", "@/lib/me.*"],
               message: "Mô-đun chỉ được import @/components/ui/* và @/lib/utils từ ngoài mô-đun. Phần khác của portal thì đưa vào host (adapter).",
             },
             { group: ["server-only", "client-only"], message: "Mô-đun giao diện không dùng cơ chế riêng của Next." },
