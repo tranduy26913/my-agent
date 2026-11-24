@@ -214,3 +214,28 @@ class OcrJob(Base):
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class SttJob(Base):
+    """Job chép lời ghi âm (ADR-006). KHÔNG lưu file âm thanh và KHÔNG lưu tên file: chỉ metadata + kết quả.
+
+    Cột kiểu portable (JSON, không phải JSONB) để test được trên SQLite. `user_id` là employees.id
+    (như ocr_jobs).
+    """
+
+    __tablename__ = "stt_jobs"
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)  # uuid4 hex, không đoán được
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    status: Mapped[str] = mapped_column(String(16), default="queued")  # queued | running | done | failed
+    engine: Mapped[str] = mapped_column(String(32))
+    language: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    bytes_in: Mapped[int] = mapped_column(Integer, default=0)
+    duration_s: Mapped[float] = mapped_column(Float, default=0)  # tổng thời lượng, biết sau khi đổi định dạng
+    done_s: Mapped[float] = mapped_column(Float, default=0)  # đã chép tới giây thứ mấy
+    result: Mapped[list | None] = mapped_column(JSON, nullable=True)  # [{start, end, text}]
+    error: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+

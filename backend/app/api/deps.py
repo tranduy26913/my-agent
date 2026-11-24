@@ -34,6 +34,7 @@ __all__ = [
     "get_kb_admin",
     "get_ocr_user",
     "get_principal",
+    "get_stt_user",
     "require_role",
 ]
 
@@ -86,6 +87,10 @@ def get_ocr_user(p=Depends(get_principal)) -> UserInfo:
         full_name=p.full_name,
     )
 
+
+# /api/stt (ADR-006): cùng cổng với OCR, đặt tên riêng cho dễ đọc. LƯU Ý: là CÙNG một hàm, nên
+# `dependency_overrides[get_ocr_user]` trong test cũng thay luôn cho STT và ngược lại.
+get_stt_user = get_ocr_user
 
 # Cổng admin của /api/admin/*: cùng quy tắc với /api/kb.
 get_admin = get_kb_admin

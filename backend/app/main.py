@@ -15,8 +15,9 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api import admin, ask, health, kb, me, ocr
+from app.api import admin, ask, health, kb, me, ocr, stt
 from app.ocr import jobs
+from app.stt import jobs as stt_jobs
 
 log = logging.getLogger("api")
 
@@ -25,6 +26,7 @@ log = logging.getLogger("api")
 async def lifespan(app: FastAPI):
     # Chạy nền: DB tắt/chậm không được chặn API khởi động (/readyz sẽ báo 503 đúng tình trạng).
     threading.Thread(target=jobs.startup, name="ocr-startup", daemon=True).start()
+    threading.Thread(target=stt_jobs.startup, name="stt-startup", daemon=True).start()
     yield
 
 
@@ -32,6 +34,7 @@ def create_app() -> FastAPI:
     app = FastAPI(title="SVT Agent Platform API", version="0.1.0", lifespan=lifespan)
     app.include_router(health.router)
     app.include_router(ocr.router, prefix="/api/ocr")
+    app.include_router(stt.router, prefix="/api/stt")
     app.include_router(kb.router, prefix="/api/kb")
     app.include_router(ask.router, prefix="/api/kb")
     # ^ /api/kb/ask dành cho mọi nhân viên, khác phần còn lại của /api/kb (chỉ admin)

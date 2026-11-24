@@ -76,6 +76,19 @@ class Settings(BaseSettings):
     ocr_extract_max_tokens: int = 1500  # JSON một phiếu dài hơn câu trả lời RAG (700)
     ocr_extract_max_chars: int = 8000  # cắt văn bản OCR gửi cho LLM
 
+    # --- STT: ghi âm cuộc họp -> văn bản (ADR-006) ---
+    stt_engine: str = ""  # tên engine mặc định; giai đoạn 1 chưa có engine thật nào
+    stt_language: str = "vi"
+    ffmpeg_cmd: str = ""  # rỗng = tìm trong PATH, rồi C:\ffmpeg\bin\ffmpeg.exe
+    stt_tmp_dir: str = ""  # rỗng = <thư mục tạm hệ điều hành>/svt-stt; file ghi âm chỉ nằm đây lúc xử lý
+    stt_max_mb: float = 300.0
+    stt_max_minutes: float = 180.0
+    stt_job_ttl_days: int = 7
+    stt_job_workers: int = 1  # một lượt giải mã tại một thời điểm (tranh GPU/CPU)
+    stt_max_concurrency: int = 1  # số lượt giải mã song song cho mỗi engine
+    stt_job_max_active_per_user: int = 2
+    stt_job_queue_max: int = 10  # tệp nằm trên đĩa khi chờ, nên giới hạn theo dung lượng đĩa
+
     # --- Knowledge base (knowledge-mcp) ---
     kb_dir: str = "../data/knowledge"
     # /api/kb: bản gốc tài liệu upload (<sha256>.<đuôi>), cần cho reindex. Tương đối theo thư mục chạy.
