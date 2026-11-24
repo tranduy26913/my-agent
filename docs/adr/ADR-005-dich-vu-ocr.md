@@ -1,6 +1,6 @@
 # ADR-005: Dịch vụ OCR dùng chung, engine thay được
 
-- Trạng thái: **Đang triển khai** (đề xuất 2026-11-23, cập nhật cùng ngày sau khi làm xong giai đoạn 1–3 với Tesseract; chưa có engine `unlimited`)
+- Trạng thái: **Đang triển khai** (engine mặc định đã đổi sang `paddleocr_vl` ngày 2026-11-24; `unlimited` không chạy được trên máy demo, không đủ VRAM) (đề xuất 2026-11-23, cập nhật cùng ngày sau khi làm xong giai đoạn 1–3 với Tesseract; chưa có engine `unlimited`)
 - Liên quan: ADR-001 (phân quyền tài liệu), ADR-004 (Portal + Chat, một nghiệp vụ hai cách gọi), `docs/01-chuyen-nganh/04-rag-ocr-eval.md` mục 7, `docs/06-ke-hoach-zitadel.md`, `data/scan/ground-truth.md`
 - Báo cáo đo: `data/eval/reports/2026-11-23-ocr.md` (sau tiền xử lý) và `2026-11-23-ocr-baseline-khong-tien-xu-ly.md` (trước)
 
@@ -27,8 +27,9 @@ Theo mẫu đã dùng cho `llm/` và `get_embedder()` (`app/ocr/engines/`, đăn
 
 | Engine | Vai trò | Trạng thái |
 |---|---|---|
-| `tesseract` | **Mặc định.** CPU, miễn phí. Có tiền xử lý ảnh (mục 3) và gợi ý bố cục `layout="rows"` cho biểu mẫu có bảng. Chỉ "sẵn sàng" khi có cả chương trình lẫn gói ngôn ngữ `vie` và `eng` | Đã làm, đã cài và chạy thật |
-| `unlimited` | Client `httpx` gọi SGLang qua `/v1/chat/completions` (ảnh base64). Địa chỉ cấu hình bằng `OCR_SGLANG_URL`; không chạy chung GPU với `qwen3-4b` | **Chưa làm** |
+| `tesseract` | **Dự phòng** (và mặc định khi chưa cấu hình engine khác). CPU, miễn phí. Có tiền xử lý ảnh (mục 3) và gợi ý bố cục `layout="rows"` cho biểu mẫu có bảng. Chỉ "sẵn sàng" khi có cả chương trình lẫn gói ngôn ngữ `vie` và `eng` | Đã làm, đã cài và chạy thật |
+| `paddleocr_vl` | **Mặc định trên máy demo (2026-11-24).** PaddleOCR-VL-1.6 (0,9B, Apache-2.0) qua server nhỏ `ocr-engine/server/paddle_vl_server.py` (container `svt-ocr-paddle`, `127.0.0.1:10001`, `OCR_PADDLEVL_URL`). Vừa card 8 GB (1,7 GiB VRAM), 16–25 giây một trang. Backend cắt trang ở khung bảng (`app/ocr/layout.py`) để mỗi dòng bảng nằm trên một dòng chữ | Đã làm, đã chạy thật |
+| `unlimited` | Client `httpx` gọi SGLang qua `/v1/chat/completions` (ảnh base64). Địa chỉ cấu hình bằng `OCR_SGLANG_URL`; không chạy chung GPU với `qwen3-4b` | **Client đã viết và test với server giả; server SGLang KHÔNG chạy được trên RTX 2060 Super 8 GB (2026-11-24): trọng số chiếm hết VRAM, không còn chỗ cho KV cache.** Xem `ocr-engine/README.md` |
 | `fake` | Trả văn bản cố định, dùng trong test; không đăng ký trong `ENGINES` mặc định | Đã làm |
 
 Chọn engine qua `OCR_ENGINE` (mặc định) và tham số `engine` của từng request. Tên engine sai trả 400; engine chưa sẵn sàng trả 503. Engine chỉ bị kiểm tra khi gặp trang **cần** OCR, nên PDF có lớp text vẫn đọc được dù engine đang tắt.
@@ -70,7 +71,7 @@ Chọn engine qua `OCR_ENGINE` (mặc định) và tham số `engine` của từ
 Dùng chung với `/api/kb`: `GET /healthz`, `GET /readyz` (đã có). `GET /api/me` chưa làm: với JWT cũ bảng `users` không có email nên chưa nối được sang `employees`; chờ phương án đăng nhập mới.
 
 ### 5. Dữ liệu, quyền và ghi vết
-- **Xác thực:** mọi endpoint (trừ `/healthz`, `/readyz`) cần đăng nhập, lấy qua `app/api/deps.py`. Khi đổi sang Zitadel chỉ sửa file đó; router không phụ thuộc cách xác thực cụ thể.
+- **Xác thực (cập nhật 2026-11-24):** mọi endpoint (trừ `/healthz`, `/readyz`) cần token Zitadel của nhân viên đang hoạt động, qua `get_ocr_user` trong `app/api/deps.py` (đổi Principal thành `UserInfo`). Không còn nhận JWT HS256 cũ. `ocr_jobs.user_id`, `audit_logs.user_id` và `usage_logs.user_id` của OCR ghi **employees.id** (cột `ocr_jobs.user_id` vốn là Integer không khoá ngoại, nên không cần migration; bảng lúc chuyển đang rỗng). Audit kèm `actor` = email. Vai trò `admin` lấy từ `employees.roles`.
 - **Kết quả OCR thuộc về người gọi.** Job chỉ người tạo xem được; người khác nhận **404** (cố ý không phân biệt "không tồn tại" với "không phải của bạn"). Admin xem được job người khác nhưng phải ghi audit `ocr_job_view` **trước** khi trả nội dung (ghi lỗi thì không trả: fail closed, theo mẫu `kb_view_classified` của ADR-004). Admin không xóa hộ được. Chủ job xem thì không ghi `ocr_job_view`.
 - **Không lưu file gốc và không lưu tên file.** Chỉ lưu văn bản kết quả và metadata (engine, loại, số trang, thời gian, dung lượng). File gốc chỉ nằm trong RAM của tiến trình lúc chờ/xử lý. Job hết hạn sau `OCR_JOB_TTL_DAYS` (mặc định 7 ngày) và bị dọn lười biếng mỗi lần tạo job mới.
 - **Không tự đưa vào kho tri thức.** Việc đưa kết quả vào kho thuộc `/api/kb` và phải theo ADR-001 (phạm vi truy cập, phòng ban) cùng bước làm sạch prompt injection của P2. Văn bản OCR là dữ liệu không đáng tin.
@@ -129,6 +130,28 @@ Tất cả cấu hình được trong `app/config.py`:
 | NV017 | 0 lỗi; 1 cảnh báo (không đọc được ô hóa đơn dòng taxi) nên `needs_review = true`. Khi ô đó được OCR đọc đúng thì sạch hoàn toàn (`needs_review = false`, đã có test) | 7 đến 13 giây |
 
 Đáp án nói NV017 hợp lệ; hệ thống chặt hơn đáp án một chút vì từ chối đoán ô hóa đơn bị mất. Đó là chủ ý.
+
+### 3b. PaddleOCR-VL-1.6 thay Tesseract làm engine mặc định (2026-11-24)
+
+Lý do đổi: Tesseract đọc kém trên ảnh thật; Unlimited-OCR không chạy được trên card 8 GB. Số đo trên `data/scan` (ảnh sạch giả lập, `eval.py`, cùng đường chạy của API):
+
+| Phép đo | Tesseract | PaddleOCR-VL |
+|---|---|---|
+| TB-018 PNG: CER / WER | 3,9% / 6,5% | **3,2% / 4,5%** |
+| TB-018 PDF scan: CER / WER | 4,1% / 7,5% | **3,3% / 5,0%** |
+| Trường phiếu NV017 / NV018 | 11/12 và 13/13 | **12/12 và 13/13** |
+| `/extract` NV018 | đúng 4 lỗi | đúng 4 lỗi |
+| `/extract` NV017 | `needs_review = true` (không đọc được ô HĐ) | **`needs_review = false`** (đọc đủ cột HĐ) |
+| Thời gian một trang | 1,5–2 giây | 16–25 giây (lần đầu thêm ~10 giây nạp model) |
+
+Ba điều đã học được (chi tiết ở `ocr-engine/README.md`):
+1. `generation_config.json` của model đặt `use_cache: false`: không truyền `use_cache=True` thì chậm gấp ~10 lần (mỗi token tính lại cả chuỗi và cả bộ mã hoá ảnh).
+2. Đọc nguyên trang thì bảng ra theo CỘT. Cách sửa: dò khung bảng từ đường kẻ ngang dài, cắt thành [trên | bảng | dưới], đọc từng vùng bằng `OCR:`, nối lại (`app/ocr/layout.py`, backend lo; server chỉ đọc một ảnh).
+3. Server nạp model lười và nhả VRAM sau `PADDLE_VL_IDLE_SECONDS` (30 giây) để chat (qwen3-4b, 7,4 GB) còn chỗ.
+
+`OCR_FALLBACK_ENGINE=tesseract`: nếu engine MẶC ĐỊNH chưa sẵn sàng (server OCR tắt) thì rơi về Tesseract thay vì 503, và kết quả ghi đúng engine đã đọc. Chọn đích danh engine khác mà nó tắt thì vẫn 503.
+
+**Giới hạn của số đo:** chỉ 1 văn bản và 2 phiếu, đều là ảnh sạch giả lập; chưa thử ảnh chụp thật (nghiêng nhiều, bóng, mờ), bảng không viền, nhiều bảng hay bảng nhiều trang. Bộ dò khung bảng dựa vào ngưỡng đặt tay và có thể hỏng với ảnh thật.
 
 ## Các phương án đã cân nhắc
 

@@ -3,7 +3,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from app.api.deps import UserInfo, get_current_user, get_db
+from app.api.deps import UserInfo, get_db, get_ocr_user
 from app.config import settings
 from app.main import create_app
 from app.ocr.engines import ENGINES
@@ -31,7 +31,7 @@ def env(monkeypatch):
     db = StubDb()
     app.dependency_overrides[get_db] = lambda: db
     user = UserInfo(7, "binh.le", "staff", "Kinh doanh", "Lê Văn Bình")
-    app.dependency_overrides[get_current_user] = lambda: user
+    app.dependency_overrides[get_ocr_user] = lambda: user
     return TestClient(app), db, eng
 
 

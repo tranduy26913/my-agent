@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 
 from app.config import settings
 from app.ocr.engines import get_engine, resolve_name
-from app.ocr.errors import BadPageSpec, EngineFailed, FileTooLarge, OcrError, TooManyPages
+from app.ocr.errors import BadPageSpec, EngineFailed, EngineUnavailable, FileTooLarge, OcrError, TooManyPages
 from app.ocr.pdf import open_document
 
 log = logging.getLogger("ocr")
@@ -70,6 +70,22 @@ def parse_pages(spec: str | None, total: int) -> list[int]:
     return sorted(chosen)
 
 
+def _pick_engine(name: str):
+    """Engine để dùng: `name`, hoặc OCR_FALLBACK_ENGINE khi `name` là engine mặc định mà chưa sẵn sàng.
+
+    Chỉ dự phòng cho engine MẶC ĐỊNH: chọn đích danh engine khác mà nó tắt thì vẫn nhận 503.
+    Trả (tên engine thực sự dùng, engine) để kết quả ghi đúng engine đã đọc.
+    """
+    try:
+        return name, get_engine(name)
+    except EngineUnavailable:
+        fallback = settings.ocr_fallback_engine
+        if name != settings.ocr_engine or not fallback or fallback == name:
+            raise
+        log.warning("Engine %s chưa sẵn sàng, rơi về %s", name, fallback)
+        return fallback, get_engine(fallback)
+
+
 def _nfc(text: str) -> str:
     """Chuẩn hóa Unicode NFC: 'Điều' dựng sẵn và tổ hợp là một, nếu không so khớp từ khóa hỏng âm thầm."""
     return unicodedata.normalize("NFC", text).strip()
@@ -116,7 +132,8 @@ def recognize(
                 text, source = content.text, "text-layer"
             else:
                 if ocr_engine is None:
-                    ocr_engine = get_engine(engine_name)
+                    engine_name, ocr_engine = _pick_engine(engine_name)
+                    result.engine = engine_name  # có thể đã rơi về engine dự phòng
                 try:
                     with _gate(engine_name):
                         text = ocr_engine.recognize(content.image, **({"layout": layout} if layout else {}))

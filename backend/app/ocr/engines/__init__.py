@@ -2,12 +2,16 @@ from collections.abc import Callable
 
 from app.config import settings
 from app.ocr.engines.base import OcrEngine
+from app.ocr.engines.paddleocr_vl import PaddleOcrVlEngine
 from app.ocr.engines.tesseract import TesseractEngine
+from app.ocr.engines.unlimited import UnlimitedEngine
 from app.ocr.errors import EngineUnavailable, UnknownEngine
 
 # Tên engine -> hàm tạo. Thêm engine mới = thêm một dòng ở đây (test đăng ký engine giả vào đúng dict này).
 ENGINES: dict[str, Callable[[], OcrEngine]] = {
     "tesseract": TesseractEngine,
+    "paddleocr_vl": PaddleOcrVlEngine,
+    "unlimited": UnlimitedEngine,
 }
 
 

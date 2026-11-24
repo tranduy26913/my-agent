@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.api import ocr as ocr_api
-from app.api.deps import UserInfo, get_current_user, get_db
+from app.api.deps import UserInfo, get_db, get_ocr_user
 from app.config import settings
 from app.main import create_app
 from app.ocr import extract
@@ -37,7 +37,7 @@ def env(monkeypatch):
     app = create_app()
     db = StubDb()
     app.dependency_overrides[get_db] = lambda: db
-    app.dependency_overrides[get_current_user] = lambda: USER
+    app.dependency_overrides[get_ocr_user] = lambda: USER
     return TestClient(app), db, eng
 
 

@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
-from app.api.deps import UserInfo, get_current_user, get_db
+from app.api.deps import UserInfo, get_db, get_ocr_user
 from app.config import settings
 from app.main import create_app
 from app.models import OcrJob
@@ -63,7 +63,7 @@ def env(tmp_path, monkeypatch):
 
     who = {"user": A}
     app.dependency_overrides[get_db] = db_override
-    app.dependency_overrides[get_current_user] = lambda: who["user"]
+    app.dependency_overrides[get_ocr_user] = lambda: who["user"]
     return SimpleNamespace(
         client=TestClient(app), factory=factory, audit=audit, usage=usage, eng=eng, who=who,
         monkeypatch=monkeypatch,
@@ -175,7 +175,7 @@ def test_tu_choi_ngay_khong_tao_job(env, monkeypatch):
 
 
 def test_chua_dang_nhap(env):
-    env.client.app.dependency_overrides.pop(get_current_user)
+    env.client.app.dependency_overrides.pop(get_ocr_user)
     png = {"file": ("a.png", png_bytes(), "image/png")}
     assert env.client.post("/api/ocr/jobs", files=png).status_code == 401
     assert env.client.get("/api/ocr/jobs").status_code == 401
