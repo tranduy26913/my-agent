@@ -42,3 +42,4 @@ next-env.d.ts
 /ocr-engine/model/
 /ocr-engine/download.log
 /ocr-engine/models/
+/ocr-engine/build.log
